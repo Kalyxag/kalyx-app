@@ -4,11 +4,20 @@ import { useRouter } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { COURSES_DATA } from '@/lib/mock/courses'
 
-const COURSE_LIST = [
-  { id: 'gwg-2025', pct: 88, status: 'Pflicht' },
-  { id: 'dsgvo-dsg', pct: 94, status: 'Pflicht' },
-  { id: 'iso-27001', pct: 72, status: 'Pflicht' },
-]
+const COURSES_BY_TENANT: Record<string, {id:string,pct:number}[]> = {
+  'helvetia-finanz':   [{id:'gwg-2025',pct:88},{id:'dsgvo-dsg',pct:94},{id:'iso-27001',pct:72}],
+  'novabio-schweiz':   [{id:'gwg-2025',pct:45},{id:'dsgvo-dsg',pct:76},{id:'iso-27001',pct:60}],
+  'akademie-plus':     [{id:'dsgvo-dsg',pct:94},{id:'iso-27001',pct:88}],
+  'swiss-retail-group':[{id:'dsgvo-dsg',pct:71},{id:'iso-27001',pct:65}],
+  'precisiontech':     [{id:'iso-27001',pct:83},{id:'dsgvo-dsg',pct:68}],
+  'metroplan-zuerich': [
+    {id:'rpg2-2026',pct:62},
+    {id:'dsg-oeffentlich',pct:45},
+    {id:'uvp-usg',pct:38},
+    {id:'iveob-beschaffung',pct:72},
+    {id:'klima-netto-null',pct:55},
+  ],
+}
 
 export default function CoursesPage() {
   const [session, setSession] = useState<any>(null)
@@ -16,26 +25,27 @@ export default function CoursesPage() {
   useEffect(() => { const s = auth.getSession(); if (!s) router.push('/login'); else setSession(s) }, [router])
   if (!session) return null
 
+  const slug = session.tenantSlug || 'helvetia-finanz'
+  const courseList = COURSES_BY_TENANT[slug] || COURSES_BY_TENANT['helvetia-finanz']
+
   return (
     <div>
       <h1 style={{ fontFamily: 'Georgia,serif', fontSize: 26, fontWeight: 600, marginBottom: 6, color: '#111820' }}>Pflichtschulungen</h1>
       <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 28 }}>
-        KI-generierte Kurse · Open Badge 3.0 Zertifikate · FINMA-konformer Audit-Trail · {session.tenant.name}
+        KI-generierte Kurse · Open Badge 3.0 Zertifikate · FINMA-konformer Audit-Trail · {session.tenant?.name}
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
-        {COURSE_LIST.map(cl => {
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(courseList.length, 3)},1fr)`, gap: 20 }}>
+        {courseList.map(cl => {
           const c = COURSES_DATA[cl.id]
           if (!c) return null
-          // Check saved progress
           const saved = typeof window !== 'undefined' ? JSON.parse(sessionStorage.getItem(`course_${c.id}`) || '{}') : {}
           const completed = saved.step === 'result' && saved.score >= c.passing_score
           const inProgress = saved.step && saved.step !== 'result'
-
           return (
-            <div key={c.id} style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, overflow: 'hidden', cursor: 'pointer', transition: 'transform .15s, box-shadow .15s' }}
+            <div key={c.id} style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, overflow: 'hidden', cursor: 'pointer', transition: 'transform .15s,box-shadow .15s' }}
               onClick={() => router.push(`/dashboard/courses/${c.id}`)}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}>
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform='translateY(-4px)';(e.currentTarget as HTMLElement).style.boxShadow='0 8px 24px rgba(0,0,0,.1)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform='';(e.currentTarget as HTMLElement).style.boxShadow='' }}>
               <div style={{ background: c.bg, padding: '24px 22px', display: 'flex', gap: 14, alignItems: 'flex-start', position: 'relative' as const }}>
                 <span style={{ fontSize: 36 }}>{c.emoji}</span>
                 <div style={{ flex: 1 }}>
