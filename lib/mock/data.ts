@@ -92,6 +92,27 @@ export const MOCK_TENANTS: Record<string, Tenant> = {
     created_at: '2025-03-01T09:00:00Z',
     updated_at: '2025-05-01T14:00:00Z',
   },
+  'metroplan-zuerich': {
+    id: 'a6000000-0000-0000-0000-000000000006',
+    slug: 'metroplan-zuerich',
+    name: 'MetroPlan Zürich GmbH',
+    display_name: 'MetroPlan Zürich',
+    plan: 'professional',
+    logo_url: null,
+    primary_color: '#1B4F72',
+    accent_color: '#27AE60',
+    custom_domain: null,
+    billing_email: 'hello@kalyx.ag',
+    address_city: 'Zürich',
+    address_country: 'CH',
+    mfa_required: false,
+    sso_enabled: false,
+    is_active: true,
+    trial_ends_at: null,
+    created_at: '2025-04-01T09:00:00Z',
+    updated_at: '2025-05-01T14:00:00Z',
+  },
+  'metroplan-zuerich':   { compliance_rate: 62, total_users: 18,  active_users: 15, total_completions: 28, pending_completions: 8,  certificates_issued: 12,  overdue_count: 8  },
   'precisiontech': {
     id: 'a5000000-0000-0000-0000-000000000005',
     slug: 'precisiontech',
@@ -140,6 +161,17 @@ export const MOCK_USERS_BY_TENANT: Record<string, User[]> = {
     { id: 'u4-001', tenant_id: 'a4000000-0000-0000-0000-000000000004', email: 'admin@swiss-retail-group.ch', full_name: 'Nicole Zimmermann', avatar_url: null, department: 'HR & Training', position: 'HR & Training Manager', employee_id: 'SR-001', location: 'Bern', phone: '+41 31 800 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-19T07:45:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-03-01T09:00:00Z', created_at: '2025-03-01T09:00:00Z', updated_at: '2025-05-19T07:45:00Z' },
     { id: 'u4-002', tenant_id: 'a4000000-0000-0000-0000-000000000004', email: 'compliance@swiss-retail-group.ch', full_name: 'Marco Furrer', avatar_url: null, department: 'Operations', position: 'Operations Director', employee_id: 'SR-002', location: 'Bern', phone: '+41 31 800 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T16:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-03-02T09:00:00Z', created_at: '2025-03-01T10:00:00Z', updated_at: '2025-05-18T16:00:00Z' },
   ],
+  'metroplan-zuerich': [
+    { id: 'u6-001', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'admin@metroplan-zuerich.ch', full_name: 'Eva-Maria Rothenfluh', avatar_url: null, department: 'Regionale Planung', position: 'Projektleiterin Regionale Planung', employee_id: 'MP-001', location: 'Zürich', phone: '+41 44 200 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-19T08:30:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-01T09:00:00Z', created_at: '2025-04-01T09:00:00Z', updated_at: '2025-05-19T08:30:00Z' },
+    { id: 'u6-002', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'datenschutz@metroplan-zuerich.ch', full_name: 'Markus Brunner', avatar_url: null, department: 'Qualität & Compliance', position: 'Datenschutzbeauftragter', employee_id: 'MP-002', location: 'Zürich', phone: '+41 44 200 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T14:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-02T09:00:00Z', created_at: '2025-04-01T10:00:00Z', updated_at: '2025-05-18T14:00:00Z' },
+    { id: 'u6-003', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'planung@metroplan-zuerich.ch', full_name: 'Dr. Thomas Wüest', avatar_url: null, department: 'Kommunale Planung', position: 'Projektleiter Nutzungsplanung', employee_id: 'MP-003', location: 'Zürich', phone: '+41 44 200 00 03', language: 'de', role: 'learner', is_active: true, last_login_at: '2025-05-17T10:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-05T09:00:00Z', created_at: '2025-04-05T10:00:00Z', updated_at: '2025-05-17T10:00:00Z' },
+  ],
+  'metroplan-zuerich':   { compliance_rate: 62, total_users: 18,  active_users: 15, total_completions: 28, pending_completions: 8,  certificates_issued: 12,  overdue_count: 8  },
+  'metroplan-zuerich': [
+    { id: 'act1', type: 'completion', user_name: 'Eva-Maria Rothenfluh', description: 'RPG 2 Schulung abgeschlossen · Score: 87%', time_ago: 'Heute 08:35' },
+    { id: 'act2', type: 'overdue',    user_name: 'Dr. Thomas Wüest',     description: 'Frist UVP-Schulung überschritten',                time_ago: 'Erinnerung gesendet' },
+    { id: 'act3', type: 'invite',     user_name: 'Sandra Frei',          description: 'Neue Mitarbeiterin eingeladen · Städtebau',       time_ago: 'Vor 2 Std.' },
+  ],
   'precisiontech': [
     { id: 'u5-001', tenant_id: 'a5000000-0000-0000-0000-000000000005', email: 'admin@precisiontech.ch', full_name: 'Hans Meier', avatar_url: null, department: 'Safety & Compliance', position: 'Safety & Compliance Officer', employee_id: 'PT-001', location: 'Winterthur', phone: '+41 52 900 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-19T06:30:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-03-15T09:00:00Z', created_at: '2025-03-15T09:00:00Z', updated_at: '2025-05-19T06:30:00Z' },
     { id: 'u5-002', tenant_id: 'a5000000-0000-0000-0000-000000000005', email: 'qualitaet@precisiontech.ch', full_name: 'Petra Koch', avatar_url: null, department: 'Quality', position: 'Quality Manager ISO 9001', employee_id: 'PT-002', location: 'Winterthur', phone: '+41 52 900 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T13:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-03-16T09:00:00Z', created_at: '2025-03-15T10:00:00Z', updated_at: '2025-05-18T13:00:00Z' },
@@ -159,6 +191,8 @@ export const MOCK_CREDENTIALS: Record<string, { password: string; tenant: string
   'compliance@akademie-plus.ch':   { password: 'AkademiePlus2025!', tenant: 'akademie-plus' },
   'admin@swiss-retail-group.ch':   { password: 'SwissRetail2025!', tenant: 'swiss-retail-group' },
   'compliance@swiss-retail-group.ch': { password: 'SwissRetail2025!', tenant: 'swiss-retail-group' },
+  'admin@metroplan-zuerich.ch':      { password: 'MetroPlan2025!',  tenant: 'metroplan-zuerich' },
+  'datenschutz@metroplan-zuerich.ch': { password: 'MetroPlan2025!', tenant: 'metroplan-zuerich' },
   'admin@precisiontech.ch':        { password: 'PrecisionTech2025!', tenant: 'precisiontech' },
   'qualitaet@precisiontech.ch':    { password: 'PrecisionTech2025!', tenant: 'precisiontech' },
 }
@@ -170,6 +204,7 @@ export const MOCK_STATS_BY_TENANT: Record<string, DashboardStats> = {
   'novabio-schweiz':   { compliance_rate: 76, total_users: 120, active_users: 108, total_completions: 203, pending_completions: 12, certificates_issued: 67,  overdue_count: 18 },
   'akademie-plus':     { compliance_rate: 94, total_users: 200, active_users: 195, total_completions: 387, pending_completions: 8,  certificates_issued: 156, overdue_count: 8  },
   'swiss-retail-group':{ compliance_rate: 71, total_users: 350, active_users: 290, total_completions: 612, pending_completions: 45, certificates_issued: 198, overdue_count: 45 },
+  'metroplan-zuerich':   { compliance_rate: 62, total_users: 18,  active_users: 15, total_completions: 28, pending_completions: 8,  certificates_issued: 12,  overdue_count: 8  },
   'precisiontech':     { compliance_rate: 83, total_users: 180, active_users: 168, total_completions: 298, pending_completions: 18, certificates_issued: 112, overdue_count: 18 },
 }
 
@@ -206,6 +241,17 @@ export const MOCK_ACTIVITY_BY_TENANT: Record<string, ActivityItem[]> = {
     { id: 'act1', type: 'completion',  user_name: 'Nicole Zimmermann', description: 'Lebensmittelhygiene abgeschlossen · 83%', time_ago: 'Heute 07:50' },
     { id: 'act2', type: 'overdue',     user_name: 'Kevin Müller',      description: 'ISO 27001 Frist überschritten (Filiale 12)', time_ago: 'SMS gesendet' },
     { id: 'act3', type: 'invite',      user_name: 'Julia Sommer',      description: 'Neue Mitarbeiterin eingeladen · Filiale 7', time_ago: 'Vor 3 Std.' },
+  ],
+  'metroplan-zuerich': [
+    { id: 'u6-001', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'admin@metroplan-zuerich.ch', full_name: 'Eva-Maria Rothenfluh', avatar_url: null, department: 'Regionale Planung', position: 'Projektleiterin Regionale Planung', employee_id: 'MP-001', location: 'Zürich', phone: '+41 44 200 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-19T08:30:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-01T09:00:00Z', created_at: '2025-04-01T09:00:00Z', updated_at: '2025-05-19T08:30:00Z' },
+    { id: 'u6-002', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'datenschutz@metroplan-zuerich.ch', full_name: 'Markus Brunner', avatar_url: null, department: 'Qualität & Compliance', position: 'Datenschutzbeauftragter', employee_id: 'MP-002', location: 'Zürich', phone: '+41 44 200 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T14:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-02T09:00:00Z', created_at: '2025-04-01T10:00:00Z', updated_at: '2025-05-18T14:00:00Z' },
+    { id: 'u6-003', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'planung@metroplan-zuerich.ch', full_name: 'Dr. Thomas Wüest', avatar_url: null, department: 'Kommunale Planung', position: 'Projektleiter Nutzungsplanung', employee_id: 'MP-003', location: 'Zürich', phone: '+41 44 200 00 03', language: 'de', role: 'learner', is_active: true, last_login_at: '2025-05-17T10:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-05T09:00:00Z', created_at: '2025-04-05T10:00:00Z', updated_at: '2025-05-17T10:00:00Z' },
+  ],
+  'metroplan-zuerich':   { compliance_rate: 62, total_users: 18,  active_users: 15, total_completions: 28, pending_completions: 8,  certificates_issued: 12,  overdue_count: 8  },
+  'metroplan-zuerich': [
+    { id: 'act1', type: 'completion', user_name: 'Eva-Maria Rothenfluh', description: 'RPG 2 Schulung abgeschlossen · Score: 87%', time_ago: 'Heute 08:35' },
+    { id: 'act2', type: 'overdue',    user_name: 'Dr. Thomas Wüest',     description: 'Frist UVP-Schulung überschritten',                time_ago: 'Erinnerung gesendet' },
+    { id: 'act3', type: 'invite',     user_name: 'Sandra Frei',          description: 'Neue Mitarbeiterin eingeladen · Städtebau',       time_ago: 'Vor 2 Std.' },
   ],
   'precisiontech': [
     { id: 'act1', type: 'completion', user_name: 'Hans Meier',   description: 'SUVA Arbeitssicherheit abgeschlossen · 88%',   time_ago: 'Heute 06:45' },
