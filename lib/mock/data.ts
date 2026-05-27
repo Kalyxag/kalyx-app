@@ -132,6 +132,26 @@ export const MOCK_TENANTS: Record<string, Tenant> = {
     created_at: '2025-04-01T09:00:00Z',
     updated_at: '2025-05-01T14:00:00Z',
   },
+  'brandwerk-zuerich': {
+    id: 'a7000000-0000-0000-0000-000000000007',
+    slug: 'brandwerk-zuerich',
+    name: 'Brandwerk Zuerich AG',
+    display_name: 'Brandwerk',
+    plan: 'professional',
+    logo_url: null,
+    primary_color: '#0A66C2',
+    accent_color: '#7C3AED',
+    custom_domain: null,
+    billing_email: 'hello@kalyx.ag',
+    address_city: 'Zuerich',
+    address_country: 'CH',
+    mfa_required: false,
+    sso_enabled: false,
+    is_active: true,
+    trial_ends_at: null,
+    created_at: '2025-04-15T09:00:00Z',
+    updated_at: '2025-05-15T14:00:00Z',
+  },
 }
 
 // Default tenant for backward compat
@@ -168,6 +188,11 @@ export const MOCK_USERS_BY_TENANT: Record<string, User[]> = {
     { id: 'u6-001', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'admin@metroplan-zuerich.ch', full_name: 'Eva-Maria Rothenfluh', avatar_url: null, department: 'Regionale Planung', position: 'Projektleiterin', employee_id: 'MP-001', location: 'Zuerich', phone: '+41 44 200 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-19T08:30:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-01T09:00:00Z', created_at: '2025-04-01T09:00:00Z', updated_at: '2025-05-19T08:30:00Z' },
     { id: 'u6-002', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'datenschutz@metroplan-zuerich.ch', full_name: 'Markus Brunner', avatar_url: null, department: 'Compliance', position: 'Datenschutzbeauftragter', employee_id: 'MP-002', location: 'Zuerich', phone: '+41 44 200 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T14:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-02T09:00:00Z', created_at: '2025-04-01T10:00:00Z', updated_at: '2025-05-18T14:00:00Z' },
   ],
+  'brandwerk-zuerich': [
+    { id: 'u7-001', tenant_id: 'a7000000-0000-0000-0000-000000000007', email: 'admin@brandwerk-zuerich.ch', full_name: 'Christine Mueller', avatar_url: null, department: 'Account Management', position: 'Group Account Director', employee_id: 'BW-001', location: 'Zuerich', phone: '+41 44 300 00 01', language: 'de', role: 'tenant_admin', is_active: true, last_login_at: '2025-05-20T09:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-15T09:00:00Z', created_at: '2025-04-15T09:00:00Z', updated_at: '2025-05-20T09:00:00Z' },
+    { id: 'u7-002', tenant_id: 'a7000000-0000-0000-0000-000000000007', email: 'digital@brandwerk-zuerich.ch', full_name: 'Tobias Gerber', avatar_url: null, department: 'Digital', position: 'Head of Digital', employee_id: 'BW-002', location: 'Zuerich', phone: '+41 44 300 00 02', language: 'de', role: 'learner', is_active: true, last_login_at: '2025-05-19T14:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-16T09:00:00Z', created_at: '2025-04-15T10:00:00Z', updated_at: '2025-05-19T14:00:00Z' },
+    { id: 'u7-003', tenant_id: 'a7000000-0000-0000-0000-000000000007', email: 'strategy@brandwerk-zuerich.ch', full_name: 'Laura Bachmann', avatar_url: null, department: 'Strategy', position: 'Senior Strategist', employee_id: 'BW-003', location: 'Zuerich', phone: '+41 44 300 00 03', language: 'de', role: 'learner', is_active: true, last_login_at: '2025-05-18T11:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-17T09:00:00Z', created_at: '2025-04-15T11:00:00Z', updated_at: '2025-05-18T11:00:00Z' },
+  ],
 }
 
 export const MOCK_USERS = MOCK_USERS_BY_TENANT['helvetia-finanz']
@@ -187,6 +212,9 @@ export const MOCK_CREDENTIALS: Record<string, { password: string; tenant: string
   'qualitaet@precisiontech.ch':    { password: 'PrecisionTech2025!', tenant: 'precisiontech' },
   'admin@metroplan-zuerich.ch': { password: 'MetroPlan2025!', tenant: 'metroplan-zuerich' },
   'datenschutz@metroplan-zuerich.ch': { password: 'MetroPlan2025!', tenant: 'metroplan-zuerich' },
+  'admin@brandwerk-zuerich.ch': { password: 'Brandwerk2025!', tenant: 'brandwerk-zuerich' },
+  'digital@brandwerk-zuerich.ch': { password: 'Brandwerk2025!', tenant: 'brandwerk-zuerich' },
+  'strategy@brandwerk-zuerich.ch': { password: 'Brandwerk2025!', tenant: 'brandwerk-zuerich' },
 }
 
 // ── DASHBOARD STATS BY TENANT ─────────────────────────────────
@@ -202,6 +230,7 @@ export const MOCK_STATS_BY_TENANT: Record<string, DashboardStats> = {
     { id: 'u6-002', tenant_id: 'a6000000-0000-0000-0000-000000000006', email: 'datenschutz@metroplan-zuerich.ch', full_name: 'Markus Brunner', avatar_url: null, department: 'Compliance', position: 'Datenschutzbeauftragter', employee_id: 'MP-002', location: 'Zuerich', phone: '+41 44 200 00 02', language: 'de', role: 'compliance_officer', is_active: true, last_login_at: '2025-05-18T14:00:00Z', external_id: null, manager_id: null, invited_by: null, onboarded_at: '2025-04-02T09:00:00Z', created_at: '2025-04-01T10:00:00Z', updated_at: '2025-05-18T14:00:00Z' },
   ],
   'metroplan-zuerich': { compliance_rate: 62, total_users: 18, active_users: 15, total_completions: 28, pending_completions: 8, certificates_issued: 12, overdue_count: 8 },
+  'brandwerk-zuerich': { compliance_rate: 55, total_users: 32, active_users: 28, total_completions: 45, pending_completions: 12, certificates_issued: 18, overdue_count: 6 },
 }
 
 export const MOCK_DASHBOARD_STATS = MOCK_STATS_BY_TENANT['helvetia-finanz']
@@ -248,4 +277,10 @@ export const MOCK_ACTIVITY_BY_TENANT: Record<string, ActivityItem[]> = {
     { id: 'act2', type: 'overdue', user_name: 'Markus Brunner', description: 'Frist UVP-Schulung ueberschritten', time_ago: 'Vor 1 Tag' },
   ],
 
+
+  'brandwerk-zuerich': [
+    { id: 'act1', type: 'completion', user_name: 'Christine Mueller', description: 'ABM Zertifikat abgeschlossen - Score: 84%', time_ago: 'Heute 09:15' },
+    { id: 'act2', type: 'completion', user_name: 'Tobias Gerber', description: 'KI-Tools im Agenturalltag - Score: 91%', time_ago: 'Gestern 16:30' },
+    { id: 'act3', type: 'invite', user_name: 'Laura Bachmann', description: 'Green Claims Kurs gestartet', time_ago: 'Vor 2 Std.' },
+  ],
 }
