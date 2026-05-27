@@ -17,6 +17,13 @@ const COURSES_BY_TENANT: Record<string, {id:string,pct:number}[]> = {
     {id:'iveob-beschaffung',pct:72},
     {id:'klima-netto-null',pct:55},
   ],
+  'brandwerk-zuerich': [
+    {id:'ki-agentur',pct:72},
+    {id:'dsgvo-marketing',pct:48},
+    {id:'abm-zertifikat',pct:55},
+    {id:'green-claims',pct:38},
+    {id:'social-selling-b2b',pct:61},
+  ],
 }
 
 export default function CoursesPage() {
