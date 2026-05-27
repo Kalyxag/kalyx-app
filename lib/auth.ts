@@ -11,6 +11,7 @@ function getTenantSlug(email: string): string {
     'swiss-retail-group.ch': 'swiss-retail-group',
     'precisiontech.ch': 'precisiontech',
     'metroplan-zuerich.ch': 'metroplan-zuerich',
+    'brandwerk-zuerich.ch': 'brandwerk-zuerich',
   }
   return map[domain] || 'helvetia-finanz'
 }
