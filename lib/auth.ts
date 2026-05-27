@@ -10,6 +10,7 @@ function getTenantSlug(email: string): string {
     'akademie-plus.ch': 'akademie-plus',
     'swiss-retail-group.ch': 'swiss-retail-group',
     'precisiontech.ch': 'precisiontech',
+    'metroplan-zuerich.ch': 'metroplan-zuerich',
   }
   return map[domain] || 'helvetia-finanz'
 }
