@@ -260,8 +260,7 @@ export default function KursErstellenPage() {
           KI-Kursersteller
         </h1>
         <p style={{ fontSize: 13, color: '#6B7280', maxWidth: 560 }}>
-          Lade ein internes Dokument hoch — KALYX KI erstellt daraus automatisch einen vollständigen Kurs mit 5 Modulen, 15 Prüffragen und Quellenangaben.
-        </p>
+          Laden Sie ein internes Dokument hoch. KALYX KI erstellt daraus automatisch einen passenden Kurs. Umfang und Tiefe richten sich nach dem Dokument, damit nichts erfunden wird.
       </div>
 
       {/* Upload zone */}
@@ -308,9 +307,9 @@ export default function KursErstellenPage() {
         <div style={{ ...mono, marginBottom: 16 }}>Was KALYX KI erstellt</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {[
-            { icon: '📚', title: '5 tiefe Module', desc: 'Jedes Modul mit 5 Absätzen, Kernpunkten und Quellenangaben' },
-            { icon: '❓', title: '15 Prüffragen', desc: 'Anspruchsvolle Multiple-Choice-Fragen mit ausführlichen Erklärungen' },
-            { icon: '🏅', title: 'Open Badge ready', desc: 'Kurs ist sofort spielbar und zertifizierbar' },
+           { icon: '📚', title: '3 bis 5 Module', desc: 'Der Umfang passt sich dem Dokument an, mit Kernpunkten und Quellenangaben' },
+{ icon: '✅', title: 'Check nach jedem Modul', desc: 'Fragen direkt nach dem Lesen, mit sofortigem Feedback statt Block am Ende' },
+{ icon: '🏅', title: 'Open Badge ready', desc: 'Motivierend gestaltet, sofort spielbar und zertifizierbar' },
           ].map(i => (
             <div key={i.title} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 24, flexShrink: 0 }}>{i.icon}</span>
