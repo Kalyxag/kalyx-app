@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { DEPT_COURSE_CONFIG } from '@/lib/mock/dept_config'
-
+import TestDataGate from './TestDataGate'
 type Step = 'upload' | 'config' | 'generating' | 'preview' | 'saved'
 
 interface GeneratedCourse {
@@ -254,6 +254,7 @@ export default function KursErstellenPage() {
   // ════════════════════════════════════════════════════════════
   if (step === 'upload') return (
     <div>
+      <TestDataGate />
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, fontWeight: 600, color: '#111820', marginBottom: 6 }}>
           KI-Kursersteller
