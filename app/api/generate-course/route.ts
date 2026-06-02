@@ -102,8 +102,11 @@ Gib jetzt ausschließlich das JSON in der Zielsprache aus.`
 async function callModel(system: string, userMessage: string): Promise<string> {
   if (AI_PROVIDER === 'bedrock') {
     // AWS Bedrock EU — Auth via IAM (AWS-Credential-Chain / Rolle), kein API-Key.
-    // npm i @anthropic-ai/bedrock-sdk  +  IAM-Rechte bedrock:InvokeModel auf das eu.-Profil
-    const bedrockMod: any = await import('@anthropic-ai/bedrock-sdk')
+    // WICHTIG: Der Spezifizierer ist bewusst zusammengesetzt, damit der Build
+    // OHNE installiertes SDK durchläuft. Beim Wechsel auf Bedrock einmalig:
+    //   npm i @anthropic-ai/bedrock-sdk
+    const bedrockPkg = '@anthropic-ai' + '/' + 'bedrock-sdk'
+    const bedrockMod: any = await import(/* webpackIgnore: true */ bedrockPkg)
     const AnthropicBedrock = bedrockMod.AnthropicBedrock || bedrockMod.default
     // Zugangsdaten kommen aus den AWS_*-Umgebungsvariablen (AWS-Credential-Chain).
     const client = new AnthropicBedrock({
