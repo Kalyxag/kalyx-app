@@ -1,11 +1,12 @@
 // Ziel-Pfad im Repo: app/registrieren/page.tsx
 //
-// Schlanke Selbst-Registrierung (Konversionspfad von der Landingpage).
-// Sendet an /api/registrieren und zeigt danach den angelegten
-// Arbeitsbereich. Der Setup-Assistent (/onboarding) folgt als naechster Baustein.
+// Schlanke Selbst-Registrierung (Konversionspfad). Legt ueber /api/registrieren
+// den Mandanten an, meldet danach automatisch an und leitet zu /onboarding.
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 const GREEN = '#14613E'
 const NAVY = '#0B1929'
@@ -13,13 +14,14 @@ const GOLD = '#B8904A'
 const GRAY = '#6B7280'
 
 export default function RegistrierenPage() {
+  const router = useRouter()
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [consent, setConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState<{ slug: string } | null>(null)
+  const [created, setCreated] = useState<{ slug: string } | null>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,7 +38,17 @@ export default function RegistrierenPage() {
         setError(data.error || 'Etwas ist schiefgelaufen. Bitte erneut versuchen.')
         return
       }
-      setDone({ slug: data.slug })
+      // Automatisch anmelden und in den Arbeitsbereich weiterleiten
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      })
+      if (signInErr) {
+        // Anlegen hat geklappt, nur die Auto-Anmeldung nicht: dann manuell anmelden
+        setCreated({ slug: data.slug })
+        return
+      }
+      router.push('/onboarding')
     } catch {
       setError('Verbindung fehlgeschlagen. Bitte erneut versuchen.')
     } finally {
@@ -44,26 +56,13 @@ export default function RegistrierenPage() {
     }
   }
 
-  const wrap: React.CSSProperties = {
-    minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: NAVY, padding: 24, fontFamily: '-apple-system, system-ui, sans-serif',
-  }
-  const card: React.CSSProperties = {
-    width: '100%', maxWidth: 440, background: '#fff', borderRadius: 16,
-    padding: '40px 36px', boxShadow: '0 24px 60px rgba(0,0,0,.35)',
-  }
+  const wrap: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: NAVY, padding: 24, fontFamily: '-apple-system, system-ui, sans-serif' }
+  const card: React.CSSProperties = { width: '100%', maxWidth: 440, background: '#fff', borderRadius: 16, padding: '40px 36px', boxShadow: '0 24px 60px rgba(0,0,0,.35)' }
   const label: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, color: NAVY, marginBottom: 6 }
-  const input: React.CSSProperties = {
-    width: '100%', fontSize: 14, color: '#111', background: '#F5F4EF',
-    border: '1.5px solid #DDD9D0', borderRadius: 8, padding: '11px 14px', marginBottom: 16, outline: 'none',
-  }
-  const btn: React.CSSProperties = {
-    width: '100%', fontSize: 15, fontWeight: 600, color: '#fff', background: GREEN,
-    border: 'none', borderRadius: 8, padding: '13px 18px', cursor: 'pointer',
-    opacity: loading ? 0.7 : 1,
-  }
+  const input: React.CSSProperties = { width: '100%', fontSize: 14, color: '#111', background: '#F5F4EF', border: '1.5px solid #DDD9D0', borderRadius: 8, padding: '11px 14px', marginBottom: 16, outline: 'none' }
+  const btn: React.CSSProperties = { width: '100%', fontSize: 15, fontWeight: 600, color: '#fff', background: GREEN, border: 'none', borderRadius: 8, padding: '13px 18px', cursor: 'pointer', opacity: loading ? 0.7 : 1 }
 
-  if (done) {
+  if (created) {
     return (
       <div style={wrap}>
         <div style={card}>
@@ -71,12 +70,10 @@ export default function RegistrierenPage() {
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
           </div>
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 26, color: NAVY, textAlign: 'center', marginBottom: 10 }}>Arbeitsbereich angelegt</h1>
-          <p style={{ fontSize: 15, color: GRAY, textAlign: 'center', lineHeight: 1.6, marginBottom: 8 }}>
-            Dein KALYX-Arbeitsbereich <strong style={{ color: GREEN }}>{done.slug}</strong> ist erstellt und dauerhaft gespeichert.
+          <p style={{ fontSize: 15, color: GRAY, textAlign: 'center', lineHeight: 1.6, marginBottom: 22 }}>
+            Dein KALYX-Arbeitsbereich <strong style={{ color: GREEN }}>{created.slug}</strong> ist erstellt. Bitte melde dich jetzt an.
           </p>
-          <p style={{ fontSize: 13, color: GRAY, textAlign: 'center', lineHeight: 1.6 }}>
-            Naechster Schritt: die gefuehrte Einrichtung (Firmenprofil, Abteilungen, Branding). Diese folgt als naechster Baustein.
-          </p>
+          <a href="/anmelden" style={{ ...btn, display: 'block', textAlign: 'center', textDecoration: 'none' }}>Zur Anmeldung</a>
         </div>
       </div>
     )
@@ -107,10 +104,13 @@ export default function RegistrierenPage() {
 
         {error && <p style={{ color: '#C0392B', fontSize: 13, marginBottom: 14 }}>{error}</p>}
 
-        <button type="submit" style={btn} disabled={loading}>
-          {loading ? 'Wird angelegt …' : 'Arbeitsbereich erstellen'}
-        </button>
+        <button type="submit" style={btn} disabled={loading}>{loading ? 'Wird angelegt …' : 'Arbeitsbereich erstellen'}</button>
+
+        <p style={{ textAlign: 'center', fontSize: 13, color: GRAY, marginTop: 18 }}>
+          Schon registriert? <a href="/anmelden" style={{ color: GREEN, fontWeight: 600 }}>Anmelden</a>
+        </p>
       </form>
     </div>
   )
 }
+
