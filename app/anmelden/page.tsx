@@ -1,4 +1,4 @@
-// Ziel-Pfad im Repo: app/anmelden/page.tsx  (ERSETZT die bisherige Datei)
+/ Ziel-Pfad im Repo: app/anmelden/page.tsx  (ERSETZT die bisherige Datei)
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -47,7 +47,7 @@ export default function AnmeldenPage() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
     setLoading(false)
     if (error) { setError('Anmeldung fehlgeschlagen. Bitte prüfe E-Mail und Passwort.'); return }
-    router.push('/onboarding')
+    router.push('/arbeitsbereich')
   }
 
   const wrap: React.CSSProperties = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: NAVY, padding: 24, fontFamily: FB }
