@@ -224,15 +224,16 @@ export default function KursErstellenPage() {
 
       const data = await response.json()
       if (data.success) {
-        // Store in sessionStorage for immediate availability in mock mode
-        const existing = JSON.parse(sessionStorage.getItem(`kalyx_courses_${slug}`) || '[]')
+        // Dauerhaft im Browser speichern (übersteht Neuladen). Hinweis: echte
+        // mandantenweite Speicherung erfolgt später über eine Datenbank.
+        const existing = JSON.parse(localStorage.getItem(`kalyx_courses_${slug}`) || '[]')
         existing.push({
           ...data.course,
           pct: 0,
           mandatory,
           departments: selectedDepts.length > 0 ? selectedDepts : 'all',
         })
-        sessionStorage.setItem(`kalyx_courses_${slug}`, JSON.stringify(existing))
+        localStorage.setItem(`kalyx_courses_${slug}`, JSON.stringify(existing))
         setStep('saved')
       } else {
         setError(data.error || 'Speichern fehlgeschlagen')
