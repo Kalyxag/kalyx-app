@@ -114,7 +114,7 @@ async function callModel(system: string, userMessage: string): Promise<string> {
     })
     const msg = await client.messages.create({
       model: AI_MODEL, // eu.anthropic.claude-sonnet-4-...-v1:0  (EU-Geo-Inferenzprofil)
-      max_tokens: 4096,
+      max_tokens: 8000,
       temperature: 0.2,
       system,
       messages: [{ role: 'user', content: userMessage }],
@@ -138,7 +138,7 @@ async function callModel(system: string, userMessage: string): Promise<string> {
     },
     body: JSON.stringify({
       model: AI_MODEL,
-      max_tokens: 4096,
+      max_tokens: 8000,
       temperature: 0.2,
       system,
       messages: [{ role: 'user', content: userMessage }],
@@ -230,6 +230,8 @@ DOKUMENTINHALT:
 ${text.substring(0, 12000)}
 ---
 ${text.length > 12000 ? `[Auf 12.000 Zeichen gekürzt von ${text.length}]` : ''}
+
+WICHTIG: Antworte ausschließlich mit dem JSON-Objekt. Beginne deine Antwort direkt mit { und beende sie mit }. Kein einleitender Satz, keine Erklärung, keine Code-Backticks.
 JSON jetzt:`
 
     let rawText: string
@@ -249,17 +251,26 @@ JSON jetzt:`
       return NextResponse.json({ error: 'KI-Generierung fehlgeschlagen. Bitte erneut versuchen.' }, { status: 500 })
     }
 
-    const cleaned = rawText
-      .replace(/^```json\s*/im, '')
-      .replace(/^```\s*/im, '')
-      .replace(/```\s*$/im, '')
-      .trim()
+    // Robustes Herauslösen des JSON, auch wenn das Modell Text drumherum schreibt
+    // oder Code-Backticks setzt (häufig bei kleineren Modellen wie Haiku).
+    function extractJson(raw: string): string {
+      let t = (raw || '').trim()
+      // Code-Fences entfernen
+      t = t.replace(/```json/gi, '').replace(/```/g, '').trim()
+      // Vom ersten { bis zum letzten } ausschneiden
+      const first = t.indexOf('{')
+      const last = t.lastIndexOf('}')
+      if (first !== -1 && last !== -1 && last > first) {
+        t = t.slice(first, last + 1)
+      }
+      return t.trim()
+    }
 
     let course
     try {
-      course = JSON.parse(cleaned)
+      course = JSON.parse(extractJson(rawText))
     } catch {
-      console.error('Parse error. Raw:', rawText.substring(0, 300))
+      console.error('Parse error. Raw:', rawText.substring(0, 500))
       return NextResponse.json({ error: 'Kurs-Format fehlerhaft. Bitte erneut versuchen.' }, { status: 500 })
     }
 
