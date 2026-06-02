@@ -1,4 +1,4 @@
-/ Ziel-Pfad im Repo: app/anmelden/page.tsx  (ERSETZT die bisherige Datei)
+// Ziel-Pfad im Repo: app/anmelden/page.tsx  (ERSETZT die bisherige Datei)
 'use client'
 
 import { useEffect, useState } from 'react'
