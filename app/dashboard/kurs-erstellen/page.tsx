@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { DEPT_COURSE_CONFIG } from '@/lib/mock/dept_config'
+import TestDataGate from './TestDataGate'
 
 type Step = 'upload' | 'config' | 'generating' | 'preview' | 'saved'
 
@@ -71,6 +72,11 @@ export default function KursErstellenPage() {
   const [mandatory, setMandatory] = useState(false)
   const [selectedDepts, setSelectedDepts] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+  const [questionCount, setQuestionCount] = useState(10)
+  const [showGate, setShowGate] = useState(false)
+
+  // Empfehlung für den Testbetrieb: bis ca. 10 Seiten / 15'000 Zeichen
+  const REC_CHARS = 15000
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -171,6 +177,7 @@ export default function KursErstellenPage() {
           filename: file?.name,
           tenantSlug: slug,
           departments: selectedDepts.length > 0 ? selectedDepts : allDepts,
+          questionCount,
         }),
       })
 
@@ -190,10 +197,9 @@ export default function KursErstellenPage() {
       setCourse(data.course)
       setStep('preview')
 
-    } catch (err) {
+    } catch {
       clearInterval(stepTimer)
-      const msg = err instanceof Error ? err.message : ''
-      setError(msg || 'Verbindungsfehler. Bitte erneut versuchen.')
+      setError('Verbindungsfehler. Bitte erneut versuchen.')
       setStep('config')
     }
   }
@@ -260,7 +266,7 @@ export default function KursErstellenPage() {
           KI-Kursersteller
         </h1>
         <p style={{ fontSize: 13, color: '#6B7280', maxWidth: 560 }}>
-          Lade ein internes Dokument hoch — KALYX KI erstellt daraus automatisch einen vollständigen Kurs mit 5 Modulen, 15 Prüffragen und Quellenangaben.
+          Laden Sie ein internes Dokument hoch. KALYX KI erstellt daraus automatisch einen passenden Kurs. Umfang und Tiefe richten sich nach dem Dokument, damit nichts erfunden wird.
         </p>
       </div>
 
@@ -297,6 +303,11 @@ export default function KursErstellenPage() {
         </div>
       </div>
 
+      {/* Dateigröße-Empfehlung */}
+      <div style={{ fontSize: 12, color: '#6B7280', textAlign: 'center' as const, marginBottom: 24, marginTop: -8 }}>
+        Empfehlung für den Testbetrieb: bis ca. 10 Seiten beziehungsweise {REC_CHARS.toLocaleString('de-CH')} Zeichen. Größere Dokumente funktionieren, können die Generierung aber verlangsamen.
+      </div>
+
       {error && (
         <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 8, padding: '12px 16px', color: '#DC2626', fontSize: 13, marginBottom: 16 }}>
           {error}
@@ -308,9 +319,9 @@ export default function KursErstellenPage() {
         <div style={{ ...mono, marginBottom: 16 }}>Was KALYX KI erstellt</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
           {[
-            { icon: '📚', title: '5 tiefe Module', desc: 'Jedes Modul mit 5 Absätzen, Kernpunkten und Quellenangaben' },
-            { icon: '❓', title: '15 Prüffragen', desc: 'Anspruchsvolle Multiple-Choice-Fragen mit ausführlichen Erklärungen' },
-            { icon: '🏅', title: 'Open Badge ready', desc: 'Kurs ist sofort spielbar und zertifizierbar' },
+            { icon: '📚', title: '3 bis 5 Module', desc: 'Der Umfang passt sich dem Dokument an, mit Kernpunkten und Quellenangaben' },
+            { icon: '✅', title: 'Check nach jedem Modul', desc: 'Fragen direkt nach dem Lesen, mit sofortigem Feedback statt Block am Ende' },
+            { icon: '🏅', title: 'Open Badge ready', desc: 'Motivierend gestaltet, sofort spielbar und zertifizierbar' },
           ].map(i => (
             <div key={i.title} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 24, flexShrink: 0 }}>{i.icon}</span>
@@ -361,6 +372,34 @@ export default function KursErstellenPage() {
           <div style={{ fontSize: 11, color: '#9CA3AF' }}>{fileText.length.toLocaleString('de-CH')} Zeichen extrahiert · {(file?.size || 0) > 1024*1024 ? ((file?.size||0)/1024/1024).toFixed(1) + ' MB' : ((file?.size||0)/1024).toFixed(0) + ' KB'}</div>
         </div>
         <div style={{ fontFamily: 'monospace', fontSize: 9, background: '#F0FDF4', color: '#14613E', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>BEREIT</div>
+      </div>
+
+      {/* Live-Warnung bei zu großem Dokument */}
+      {fileText.length > REC_CHARS && (
+        <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', borderRadius: 8, padding: '12px 16px', color: '#92400E', fontSize: 12.5, lineHeight: 1.6, marginBottom: 20 }}>
+          <strong>Hinweis:</strong> Dieses Dokument ist mit {fileText.length.toLocaleString('de-CH')} Zeichen größer als die Empfehlung ({REC_CHARS.toLocaleString('de-CH')} Zeichen). Die Generierung kann länger dauern oder am Zeitlimit scheitern. Tipp: ein kürzeres Dokument verwenden oder die Fragenzahl niedrig halten.
+        </div>
+      )}
+
+      {/* Fragen-Intensität */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div style={{ ...mono }}>Wissensabfrage (Intensität)</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: primary }}>{questionCount} Fragen</div>
+        </div>
+        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 14 }}>
+          Wie viele Prüffragen aus den Modulen abgefragt werden. Mehr Fragen bedeuten eine intensivere Wissensabfrage und eine etwas längere Generierung.
+        </div>
+        <input
+          type="range" min={5} max={20} step={1} value={questionCount}
+          onChange={(e) => setQuestionCount(Number(e.target.value))}
+          style={{ width: '100%', accentColor: primary, cursor: 'pointer' }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#9CA3AF', marginTop: 6 }}>
+          <span>5 · kompakt</span>
+          <span>12 · ausgewogen</span>
+          <span>20 · intensiv</span>
+        </div>
       </div>
 
       {/* Dept assignment */}
@@ -429,12 +468,19 @@ export default function KursErstellenPage() {
         </div>
       )}
 
-      <button onClick={generateCourse} style={{ ...btn(), padding: '12px 32px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <button onClick={() => setShowGate(true)} style={{ ...btn(), padding: '12px 32px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
         Kurs mit KI generieren
       </button>
+
+      {showGate && (
+        <TestDataGate
+          onConfirm={() => { setShowGate(false); generateCourse() }}
+          onClose={() => setShowGate(false)}
+        />
+      )}
     </div>
   )
 
