@@ -53,10 +53,10 @@ C) QUELLEN-FELD (sources) — STRENG
 
 D) ADAPTIVER UMFANG
 Beurteile zuerst, wie viel lehrbaren Inhalt das Dokument WIRKLICH hergibt.
-- 3 bis 4 Module — so viele wie Quelle + solides Allgemeinwissen ehrlich füllen. NICHT mehr. Niemals auffüllen/wiederholen/verwässern, um eine Zahl zu treffen. Halte dich kurz und auf den Punkt.
-- Jedes Modul: 2 bis 4 kompakte Absätze (je 3 bis 4 Sätze), Tiefe nach verfügbarem Material.
+- 3 bis 4 Module — so viele wie Quelle + solides Allgemeinwissen ehrlich füllen. NICHT mehr. Niemals auffüllen/wiederholen/verwässern, um eine Zahl zu treffen.
+- Jedes Modul: 4 bis 6 ausführliche, inhaltlich tiefe Absätze (je 4 bis 6 Sätze) — erkläre Hintergründe, Zusammenhänge und konkrete Beispiele, nicht nur Stichworte. Tiefe nach verfügbarem Material.
 - Keypoints: 3 bis 5 pro Modul, jeder durch Modulinhalt belegt.
-- Quiz: 8 bis 10 Fragen, am Inhalt skaliert. Jede Frage/richtige Antwort/Erklärung muss allein aus den von dir geschriebenen Modulinhalten beantwortbar sein.
+- Quiz: Erzeuge so viele Fragen wie in der Aufgabe angegeben, am Inhalt skaliert. Jede Frage/richtige Antwort/Erklärung muss allein aus den von dir geschriebenen Modulinhalten beantwortbar sein.
 Enthält das Dokument kein lehrbares Fachthema (reine Werbe-/Anmeldebroschüre, Rechnung, Inhaltsverzeichnis): nur so viel erstellen wie gedeckt, und im _review coverage "low" melden.
 
 E) UNSICHERHEIT: Bist du unsicher → weglassen. Im Zweifel allgemeiner statt konkreter erfinden.
@@ -211,6 +211,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { text, filename, tenantSlug, departments, targetLanguage } = body
+    // Vom Frontend gewünschte Fragenzahl (Schieberegler 5–20), sicher begrenzt
+    const qcRaw = Number(body?.questionCount)
+    const questionCount = Number.isFinite(qcRaw) ? Math.min(20, Math.max(5, Math.round(qcRaw))) : 10
     const lang = targetLanguage || 'Deutsch'
 
     if (!text || text.length < 100) {
@@ -222,6 +225,8 @@ export async function POST(req: NextRequest) {
 ZIELSPRACHE: ${lang} (gesamter Kurs in dieser Sprache)
 Datei: ${filename || 'Dokument'}
 Zielgruppe: ${departments?.length ? departments.join(', ') : 'allgemein'}
+ANZAHL QUIZFRAGEN: genau ${questionCount} (q1 bis q${questionCount}); nur weniger, wenn der Inhalt ehrlich nicht mehr hergibt.
+MODULTIEFE: ausführliche Module mit 4 bis 6 inhaltlich tiefen Absätzen je Modul (Hintergründe, Zusammenhänge, konkrete Beispiele aus dem Dokument).
 
 Wenn das Dokument für ein vollständiges Fachthema nicht ausreicht, erstelle einen ehrlich kürzeren Kurs und dokumentiere die Lücken im _review-Block — fülle NICHTS mit erfundenen Fakten auf.
 
