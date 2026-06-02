@@ -53,10 +53,10 @@ C) QUELLEN-FELD (sources) — STRENG
 
 D) ADAPTIVER UMFANG
 Beurteile zuerst, wie viel lehrbaren Inhalt das Dokument WIRKLICH hergibt.
-- 3 bis 5 Module — so viele wie Quelle + solides Allgemeinwissen ehrlich füllen. NICHT mehr. Niemals auffüllen/wiederholen/verwässern, um eine Zahl zu treffen.
-- Jedes Modul: 3 bis 5 Absätze, Tiefe nach verfügbarem Material.
+- 3 bis 4 Module — so viele wie Quelle + solides Allgemeinwissen ehrlich füllen. NICHT mehr. Niemals auffüllen/wiederholen/verwässern, um eine Zahl zu treffen. Halte dich kurz und auf den Punkt.
+- Jedes Modul: 2 bis 4 kompakte Absätze (je 3 bis 4 Sätze), Tiefe nach verfügbarem Material.
 - Keypoints: 3 bis 5 pro Modul, jeder durch Modulinhalt belegt.
-- Quiz: 8 bis 15 Fragen, am Inhalt skaliert. Jede Frage/richtige Antwort/Erklärung muss allein aus den von dir geschriebenen Modulinhalten beantwortbar sein.
+- Quiz: 8 bis 10 Fragen, am Inhalt skaliert. Jede Frage/richtige Antwort/Erklärung muss allein aus den von dir geschriebenen Modulinhalten beantwortbar sein.
 Enthält das Dokument kein lehrbares Fachthema (reine Werbe-/Anmeldebroschüre, Rechnung, Inhaltsverzeichnis): nur so viel erstellen wie gedeckt, und im _review coverage "low" melden.
 
 E) UNSICHERHEIT: Bist du unsicher → weglassen. Im Zweifel allgemeiner statt konkreter erfinden.
@@ -114,7 +114,7 @@ async function callModel(system: string, userMessage: string): Promise<string> {
     })
     const msg = await client.messages.create({
       model: AI_MODEL, // eu.anthropic.claude-sonnet-4-...-v1:0  (EU-Geo-Inferenzprofil)
-      max_tokens: 8000,
+      max_tokens: 4096,
       temperature: 0.2,
       system,
       messages: [{ role: 'user', content: userMessage }],
@@ -138,7 +138,7 @@ async function callModel(system: string, userMessage: string): Promise<string> {
     },
     body: JSON.stringify({
       model: AI_MODEL,
-      max_tokens: 8000,
+      max_tokens: 4096,
       temperature: 0.2,
       system,
       messages: [{ role: 'user', content: userMessage }],
@@ -227,9 +227,9 @@ Wenn das Dokument für ein vollständiges Fachthema nicht ausreicht, erstelle ei
 
 DOKUMENTINHALT:
 ---
-${text.substring(0, 14000)}
+${text.substring(0, 12000)}
 ---
-${text.length > 14000 ? `[Auf 14.000 Zeichen gekürzt von ${text.length}]` : ''}
+${text.length > 12000 ? `[Auf 12.000 Zeichen gekürzt von ${text.length}]` : ''}
 JSON jetzt:`
 
     let rawText: string
