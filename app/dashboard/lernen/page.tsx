@@ -8,6 +8,7 @@ import { DEPT_COURSE_CONFIG, getCoursesForDepartment } from '@/lib/mock/dept_con
 export default function LernenPage() {
   const [session, setSession] = useState<any>(null)
   const [deptFilter, setDeptFilter] = useState<string>('all')
+  const [aiCourses, setAiCourses] = useState<any[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -20,6 +21,18 @@ export default function LernenPage() {
       setDeptFilter(s.user.department)
     }
   }, [router])
+
+  // KI-generierte Kurse aus dem Browser-Speicher laden
+  useEffect(() => {
+    if (!session) return
+    const slug = session.tenantSlug || 'helvetia-finanz'
+    try {
+      const arr = JSON.parse(localStorage.getItem(`kalyx_courses_${slug}`) || '[]')
+      setAiCourses(Array.isArray(arr) ? arr : [])
+    } catch {
+      setAiCourses([])
+    }
+  }, [session])
 
   if (!session) return null
 
@@ -97,6 +110,48 @@ export default function LernenPage() {
           {isAdmin && rule.departments === 'all' && (
             <div style={{ marginTop: 10 }}>
               <span style={{ fontFamily: 'monospace', fontSize: 8, background: `${primary}14`, color: primary, borderRadius: 4, padding: '2px 8px' }}>Alle Abteilungen</span>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Sichtbare KI-Kurse (nach Abteilung / Rolle gefiltert)
+  const visibleAiCourses = aiCourses.filter((c: any) => {
+    const deps = c?.departments
+    if (isAdmin) {
+      if (deptFilter === 'all') return true
+      return deps === 'all' || (Array.isArray(deps) && deps.includes(deptFilter))
+    }
+    const myDept = session.user?.department
+    return deps === 'all' || (Array.isArray(deps) && myDept && deps.includes(myDept))
+  })
+
+  function AiCourseCard({ c }: { c: any }) {
+    const color = c.color || primary
+    const bg = c.bg || `${primary}14`
+    return (
+      <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 14, overflow: 'hidden', cursor: 'pointer', transition: 'transform .15s, box-shadow .15s' }}
+        onClick={() => router.push(`/dashboard/lernen/${c.id}`)}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 20px rgba(0,0,0,.1)' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '' }}>
+        <div style={{ background: bg, padding: '20px 20px 16px', position: 'relative' as const }}>
+          <div style={{ position: 'absolute' as const, top: 12, right: 12, background: primary, color: '#fff', fontFamily: 'monospace', fontSize: 8, letterSpacing: '.06em', borderRadius: 20, padding: '3px 8px', fontWeight: 600 }}>KI-GENERIERT</div>
+          <div style={{ fontFamily: 'monospace', fontSize: 9, color, letterSpacing: '.07em', marginBottom: 6 }}>{c.regulation || 'Internes Wissen'}</div>
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 600, color: '#111820', lineHeight: 1.3 }}>{c.emoji ? c.emoji + ' ' : ''}{c.title}</div>
+        </div>
+        <div style={{ padding: '14px 20px' }}>
+          {c.subtitle && <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 12, lineHeight: 1.5 }}>{c.subtitle}</div>}
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' as const }}>
+            {c.duration && <span style={{ ...mono }}>{c.duration}</span>}
+            <span style={{ ...mono }}>{(c.modules?.length || 0)} Module</span>
+            <span style={{ ...mono }}>{(c.quiz?.length || 0)} Fragen</span>
+            {c.passing_score && <span style={{ ...mono }}>{c.passing_score}% bestehen</span>}
+          </div>
+          {c.mandatory && (
+            <div style={{ marginTop: 10 }}>
+              <span style={{ fontFamily: 'monospace', fontSize: 8, background: '#FEF2F2', color: '#DC2626', borderRadius: 4, padding: '2px 8px', border: '1px solid #FCA5A5' }}>PFLICHT</span>
             </div>
           )}
         </div>
@@ -202,6 +257,19 @@ export default function LernenPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(optional.length, 3)}, 1fr)`, gap: 18 }}>
             {optional.map(r => <CourseCard key={r.id} rule={r} />)}
+          </div>
+        </div>
+      )}
+      {visibleAiCourses.length > 0 && (
+        <div style={{ marginTop: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: primary }} />
+            <span style={{ fontFamily: 'monospace', fontSize: 10, letterSpacing: '.08em', color: '#374151', fontWeight: 600 }}>
+              KI-GENERIERTE KURSE — {visibleAiCourses.length} Kurs{visibleAiCourses.length !== 1 ? 'e' : ''}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(visibleAiCourses.length, 3)}, 1fr)`, gap: 18 }}>
+            {visibleAiCourses.map((c: any) => <AiCourseCard key={c.id} c={c} />)}
           </div>
         </div>
       )}

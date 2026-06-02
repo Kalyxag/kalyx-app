@@ -62,7 +62,7 @@ export default function CoursePage() {
   const [animIn, setAnimIn] = useState(true)
   const [certId] = useState(() => `KALYX-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900000) + 100000)}`)
 
-  // ── Kurs laden: Mock zuerst, dann KI-Kurse aus sessionStorage ──
+  // ── Kurs laden: Mock zuerst, dann KI-Kurse aus localStorage ──
   useEffect(() => {
     const s = auth.getSession()
     if (!s) { router.push('/login'); return }
@@ -70,11 +70,11 @@ export default function CoursePage() {
 
     let found: any = COURSES_DATA[id]
     if (!found && typeof window !== 'undefined') {
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const key = sessionStorage.key(i)
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
         if (key && key.startsWith('kalyx_courses_')) {
           try {
-            const arr = JSON.parse(sessionStorage.getItem(key) || '[]')
+            const arr = JSON.parse(localStorage.getItem(key) || '[]')
             const hit = Array.isArray(arr) ? arr.find((c: any) => c.id === id) : null
             if (hit) { found = hit; break }
           } catch {}
