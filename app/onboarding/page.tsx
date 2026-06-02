@@ -316,7 +316,8 @@ export default function OnboardingPage() {
             Als Nächstes laden wir gemeinsam eure Mitarbeitenden ein, weisen Kurse zu und gestalten euer Branding. Das bauen wir in den nächsten Runden an genau dieser Stelle weiter.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="kx-btn kx-btn-primary" style={btn} onClick={() => { setDone(false); setStep(0) }}>Eingaben ansehen</button>
+            <button className="kx-btn kx-btn-primary" style={btn} onClick={() => router.push('/arbeitsbereich')}>Zum Arbeitsbereich</button>
+            <button className="kx-btn" style={btnGhost} onClick={() => { setDone(false); setStep(0) }}>Eingaben ansehen</button>
             <button className="kx-btn" style={btnGhost} onClick={logout}>Abmelden</button>
           </div>
         </div>
