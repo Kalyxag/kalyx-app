@@ -61,6 +61,7 @@ export default function ArbeitsbereichPage() {
   const [deptCount, setDeptCount] = useState(0)
   const [roleCount, setRoleCount] = useState(0)
   const [teamCount, setTeamCount] = useState(0)
+  const [courseCount, setCourseCount] = useState(0)
   const [deptNames, setDeptNames] = useState<string[]>([])
 
   useEffect(() => {
@@ -73,13 +74,14 @@ export default function ArbeitsbereichPage() {
       const { data: au } = await supabase.from('app_users').select('tenant_id').eq('id', session.user.id).maybeSingle()
       const tid = (au as any)?.tenant_id
       if (!tid) { router.replace('/anmelden'); return }
-      const [{ data: p }, { data: c }, { data: o }, { data: dRows }, { count: rCount }, { count: uCount }] = await Promise.all([
+      const [{ data: p }, { data: c }, { data: o }, { data: dRows }, { count: rCount }, { count: uCount }, { count: courseC }] = await Promise.all([
         supabase.from('company_profiles').select('display_name,legal_name,sector,country,website').eq('tenant_id', tid).maybeSingle(),
         supabase.from('compliance_profiles').select('frameworks,esignature_required,recert_interval_default,residency_confirmed').eq('tenant_id', tid).maybeSingle(),
         supabase.from('onboarding_state').select('step_profile,step_departments,step_compliance').eq('tenant_id', tid).maybeSingle(),
         supabase.from('departments').select('name').eq('tenant_id', tid).order('created_at'),
         supabase.from('roles').select('*', { count: 'exact', head: true }).eq('tenant_id', tid),
         supabase.from('app_users').select('*', { count: 'exact', head: true }).eq('tenant_id', tid),
+        supabase.from('courses').select('*', { count: 'exact', head: true }),
       ])
       if (!active) return
       setEmail(session.user.email || '')
@@ -88,7 +90,7 @@ export default function ArbeitsbereichPage() {
       setOb((o as Ob) || {})
       const names = ((dRows as { name: string }[]) || []).map(d => d.name)
       setDeptNames(names); setDeptCount(names.length)
-      setRoleCount(rCount || 0); setTeamCount(uCount || 0)
+      setRoleCount(rCount || 0); setTeamCount(uCount || 0); setCourseCount(courseC || 0)
       setLoading(false)
     })()
     return () => { active = false }
@@ -229,12 +231,18 @@ export default function ArbeitsbereichPage() {
           <div style={{ fontSize: 13, color: GOLD }}>Mitarbeitende einladen folgt als nächster Baustein.</div>
         </div>
 
-        {/* Kurse (bald) */}
-        <div className="kx-card" style={{ ...card, opacity: 0.92 }}>
-          <span style={tileTitle}>Kurse</span>
-          <div style={{ fontFamily: FH, fontSize: 20, fontWeight: 600, color: NAVY, marginBottom: 4 }}>In Vorbereitung</div>
-          <div style={{ fontSize: 13, color: GRAY, lineHeight: 1.6 }}>Als Nächstes holen wir die Kurse in die Datenbank, damit sie geteilt, zuweisbar und nachweisbar werden.</div>
-        </div>
+        {/* Kurse (live) */}
+        <a href="/bibliothek" className="kx-card kx-tile" style={{ ...card, textDecoration: 'none', display: 'block' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={tileTitle}>Kurse</span>
+            <span style={{ fontFamily: FB, fontSize: 13, fontWeight: 600, color: GREEN }}>Bibliothek öffnen →</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
+            <div style={big}>{courseCount}</div>
+            <div style={{ fontSize: 12.5, color: GRAY }}>Kurse verfügbar</div>
+          </div>
+          <div style={{ fontSize: 13, color: GRAY, lineHeight: 1.6 }}>Globalen Katalog durchsuchen oder eigene Kurse anlegen.</div>
+        </a>
 
         {/* Branding (bald) */}
         <div className="kx-card" style={{ ...card, opacity: 0.92 }}>
