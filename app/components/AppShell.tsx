@@ -68,7 +68,7 @@ const MAIN_NAV=[
   {key:'team',label:'Team',icon:I.users,soon:true},
 ]
 const ADMIN_NAV=[
-  {key:'ki',label:'KI-Kursersteller',icon:I.spark,soon:true},
+  {key:'ki',label:'KI-Kursersteller',href:'/kursersteller',icon:I.spark},
   {key:'kunde',label:'Neuer Kunde',icon:I.plus,soon:true},
 ]
 
@@ -119,7 +119,9 @@ export default function AppShell({active,children}:{active:string;children:React
       </nav>
       <div className="kx-only-wide"><div style={sideLabel}>Admin</div></div>
       <nav className="kx-nav" style={{display:'flex',flexDirection:'column',gap:2}}>
-        {ADMIN_NAV.map(n=> <div key={n.key} className="kx-soon" title="kommt bald"><Ico d={n.icon}/>{n.label}{soonTag}</div>)}
+        {ADMIN_NAV.map(n=> (n as any).href
+          ? <a key={n.key} href={(n as any).href} className={active===n.key?'kx-active':''}><Ico d={n.icon}/>{n.label}</a>
+          : <div key={n.key} className="kx-soon" title="kommt bald"><Ico d={n.icon}/>{n.label}{soonTag}</div>)}
       </nav>
       {/* Nutzer */}
       <div className="kx-only-wide" style={{marginTop:'auto',display:'flex',alignItems:'center',gap:11,padding:'12px 8px 2px',borderTop:'1px solid rgba(255,255,255,.08)'}}>
@@ -144,3 +146,4 @@ export default function AppShell({active,children}:{active:string;children:React
     </div>
   </div>)
 }
+
