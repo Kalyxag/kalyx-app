@@ -140,11 +140,11 @@ export default function ArbeitsbereichPage(){
           <div style={{fontSize:13,color:GRAY}}>Rezertifizierung: {RECERT[comp.recert_interval_default||'jaehrlich']||'—'}{comp.esignature_required?' · E-Signatur aktiv':''}</div>
         </div>
 
-        <div className="kx-card kx-tile" style={card}>
-          <span style={tileTitle}>Team</span>
+        <a href="/team" className="kx-card kx-tile" style={{...card,textDecoration:'none',display:'block'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={tileTitle}>Team</span><span style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Team öffnen →</span></div>
           <div style={{display:'flex',alignItems:'baseline',gap:10,marginBottom:6}}><div style={big}>{teamCount}</div><div style={{fontSize:12.5,color:GRAY}}>Mitglied(er)</div></div>
           <div style={{fontSize:13,color:GOLD}}>Mitarbeitende einladen folgt als nächster Baustein.</div>
-        </div>
+        </a>
 
         <a href="/bibliothek" className="kx-card kx-tile" style={{...card,textDecoration:'none',display:'block'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><span style={tileTitle}>Kurse</span><span style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Bibliothek öffnen →</span></div>
