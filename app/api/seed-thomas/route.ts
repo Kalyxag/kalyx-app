@@ -579,23 +579,28 @@ async function run(req: Request) {
 
   const notes: string[] = []
 
-  // 1) Aufraeumen (idempotent): bestehenden Aurora-Mandanten und seine Daten entfernen
+  // 1) Aufraeumen (idempotent): Daten eines bestehenden Aurora-Mandanten entfernen.
+  //    Der Mandant selbst wird WIEDERVERWENDET, nicht geloescht. Das vermeidet
+  //    Konflikte mit Fremdschluesseln und mit dem eindeutigen Slug und macht die
+  //    Route gefahrlos mehrfach aufrufbar.
+  let tenantId = ''
+  // Loeschreihenfolge: zuerst die Tabellen, die auf andere verweisen.
+  const childTables = ['audit_log', 'certificates', 'exam_attempts', 'course_questions', 'course_modules', 'course_assignments', 'courses', 'roles', 'departments', 'app_users', 'onboarding_state', 'compliance_profiles', 'branding', 'company_profiles']
   const { data: existing } = await admin.from('tenants').select('id').eq('slug', TENANT_SLUG).maybeSingle()
   if (existing && (existing as any).id) {
-    const tid = (existing as any).id
-    const childTables = ['certificates', 'exam_attempts', 'course_questions', 'course_modules', 'courses', 'roles', 'departments', 'app_users', 'onboarding_state', 'compliance_profiles', 'branding', 'company_profiles', 'audit_log']
-    for (const t of childTables) { try { await admin.from(t).delete().eq('tenant_id', tid) } catch {} }
-    try { await admin.from('tenants').delete().eq('id', tid) } catch {}
-    notes.push('Vorhandenes Aurora-Konto entfernt und neu aufgebaut.')
+    tenantId = (existing as any).id
+    for (const t of childTables) { try { await admin.from(t).delete().eq('tenant_id', tenantId) } catch {} }
+    notes.push('Bestehendes Aurora-Konto gefunden und vollstaendig neu aufgebaut (Mandant beibehalten).')
+  } else {
+    const { data: tenant, error: tErr } = await admin.from('tenants').insert({ slug: TENANT_SLUG, status: 'trial' }).select('id').single()
+    if (tErr || !tenant) {
+      return NextResponse.json({ error: 'Mandant konnte nicht angelegt werden: ' + (tErr?.message || 'unbekannt') }, { status: 500 })
+    }
+    tenantId = (tenant as any).id as string
   }
-  await deleteAuthUsersByEmail(admin, TEAM.map(t => t.email))
 
-  // 2) Mandant anlegen
-  const { data: tenant, error: tErr } = await admin.from('tenants').insert({ slug: TENANT_SLUG, status: 'trial' }).select('id').single()
-  if (tErr || !tenant) {
-    return NextResponse.json({ error: 'Mandant konnte nicht angelegt werden: ' + (tErr?.message || 'unbekannt') }, { status: 500 })
-  }
-  const tenantId = (tenant as any).id as string
+  // Auth-Benutzer immer entfernen und anschliessend frisch neu anlegen.
+  await deleteAuthUsersByEmail(admin, TEAM.map(t => t.email))
 
   // 3) Profile, Branding, Onboarding (alle Schritte erledigt), Compliance
   const r1 = await insertResilient(admin, 'company_profiles', [{ tenant_id: tenantId, ...PROFILE }])
