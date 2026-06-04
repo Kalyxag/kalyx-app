@@ -1,12 +1,15 @@
-// Ziel-Pfad im Repo: app/api/fragen-generieren/route.ts  (NEU)
+// Ziel-Pfad im Repo: app/api/fragen-generieren/route.ts  (ERSETZT – ausgebaute Version)
 //
-// Erzeugt geerdete Multiple-Choice-Fragen zu einem Kursthema. Schlüssel bleibt serverseitig.
-// Gibt reines JSON zurück; das Speichern macht der Client (RLS, mandantengeschützt).
+// Erzeugt anspruchsvolle Multiple-Choice-Übungsfragen (Standard 20+) zu einem
+// Kursthema, gegliedert nach Fachgebiet und mit Schwierigkeitsgrad. Geerdet, ehrlich.
+// Schlüssel serverseitig. Reines JSON zurück; Speichern macht der Client (RLS).
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
-type Body = { thema?: string; anzahl?: number; sprache?: string; niveau?: string; certPrep?: boolean; externalCert?: string }
+type Body = { thema?: string; anzahl?: number; sprache?: string; niveau?: string; branche?: string; position?: string; fachgebiete?: string[]; certPrep?: boolean; externalCert?: string }
 const SPRACHE: Record<string, string> = { de: 'Deutsch', fr: 'Französisch', it: 'Italienisch', en: 'Englisch' }
+const BRANCHE: Record<string, string> = { finance: 'Finanzdienstleistung', pharma: 'Pharma / Life Sciences', bildung: 'Bildung / Verband', retail: 'Handel', industrie: 'Industrie / Produktion', sonstige: 'allgemein' }
 
 export async function POST(req: Request) {
   let body: Body
@@ -14,28 +17,38 @@ export async function POST(req: Request) {
   const thema = (body.thema || '').trim()
   if (!thema) return json({ error: 'Kein Thema übergeben.' }, 400)
   const sprache = SPRACHE[body.sprache || 'de'] || 'Deutsch'
-  const anzahl = Math.min(Math.max(Number(body.anzahl) || 5, 1), 12)
-  const niveau = body.niveau || 'einsteiger'
+  const anzahl = Math.min(Math.max(Number(body.anzahl) || 20, 1), 30)
+  const niveau = body.niveau || 'fortgeschritten'
+  const branche = BRANCHE[body.branche || 'sonstige'] || 'allgemein'
+  const position = (body.position || '').trim()
+  const fachgebiete = Array.isArray(body.fachgebiete) ? body.fachgebiete.filter(Boolean).slice(0, 8) : []
 
   const key = process.env.ANTHROPIC_API_KEY || process.env.KALYX_AI_KEY
   if (!key) return json({ error: 'KI-Schlüssel fehlt. Bitte ANTHROPIC_API_KEY in Vercel setzen.' }, 500)
   const model = process.env.KALYX_AI_MODEL || 'claude-haiku-4-5-20251001'
 
   const certLine = body.certPrep
-    ? `Es handelt sich um Vorbereitungsfragen auf "${(body.externalCert || '').trim() || 'eine externe Zertifizierung'}". Es ist Übungsmaterial, nicht die offizielle Prüfung.`
+    ? `Dies sind Vorbereitungsfragen auf "${(body.externalCert || '').trim() || 'eine externe Zertifizierung'}". Es ist anspruchsvolles Übungsmaterial, NICHT die offizielle Prüfung.`
     : ''
+  const fgLine = fachgebiete.length ? `Verteile die Fragen sinnvoll auf diese Fachgebiete: ${fachgebiete.join(', ')}.` : 'Gliedere die Fragen in sinnvolle Fachgebiete (Feld "topic").'
+  const posLine = position ? `Zielgruppe / Position: ${position}.` : ''
 
   const system = [
-    'Du erstellst sorgfältige Multiple-Choice-Übungsfragen für die Compliance-Lernplattform KALYX.',
-    'Regeln (Ehrlichkeit, Genauigkeit):',
-    '- Erfinde KEINE konkreten Gesetzesartikel, Paragraphen, Normen-Nummern, Jahreszahlen oder Statistiken. Frage Konzepte und Verständnis ab, nicht auswendig gelernte Nummern.',
-    '- Genau eine Antwort ist eindeutig richtig, die anderen sind plausibel, aber klar falsch.',
-    '- Die Erklärung begründet kurz, warum die richtige Antwort stimmt.',
+    `Du bist Fachautor:in für anspruchsvolle Compliance- und Fachprüfungen der Lernplattform KALYX. Branche: ${branche}.`,
+    posLine,
+    'Erstelle herausfordernde, praxisnahe Multiple-Choice-Übungsfragen auf Prüfungsniveau.',
+    'Regeln (Ehrlichkeit & Qualität, strikt einzuhalten):',
+    '- Erfinde KEINE konkreten Gesetzesartikel, Paragraphen, Normen-Nummern, Jahreszahlen oder Statistiken. Prüfe Verständnis, Anwendung und Urteilsvermögen, nicht auswendig gelernte Nummern.',
+    '- Genau EINE Antwort ist eindeutig richtig; die Distraktoren sind plausibel, aber klar falsch (typische Denkfehler).',
+    '- Anspruchsvoll heisst: Fallbezug, Szenarien, "Was ist die beste Vorgehensweise"-Fragen, nicht nur Definitionen.',
+    '- Jede Frage erhält ein Fachgebiet (topic) und einen Schwierigkeitsgrad (difficulty: leicht | mittel | schwer). Mische die Grade, Schwerpunkt mittel/schwer.',
+    '- Die Erklärung begründet kurz, warum richtig richtig und warum die übrigen falsch sind.',
     certLine,
+    fgLine,
     `Sprache aller Texte: ${sprache}. Niveau: ${niveau}.`,
-    'Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, ohne weiteren Text, in genau diesem Schema:',
-    '{"questions":[{"topic":string,"question":string,"options":[string,string,string,string],"correct_index":number,"explanation":string}]}',
-    `Erzeuge genau ${anzahl} Fragen. Jede Frage hat genau 4 Optionen. "correct_index" ist 0,1,2 oder 3.`,
+    'Antworte AUSSCHLIESSLICH mit gültigem JSON, ohne Markdown, ohne weiteren Text, exakt in diesem Schema:',
+    '{"questions":[{"topic":string,"difficulty":"leicht"|"mittel"|"schwer","question":string,"options":[string,string,string,string],"correct_index":number,"explanation":string}]}',
+    `Erzeuge genau ${anzahl} Fragen. Jede Frage hat genau 4 Optionen. "correct_index" ist 0,1,2 oder 3. Halte die Texte präzise, damit alle Fragen ins JSON passen.`,
   ].filter(Boolean).join('\n')
 
   let data: any
@@ -43,7 +56,7 @@ export async function POST(req: Request) {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model, max_tokens: 3000, system, messages: [{ role: 'user', content: `Thema: ${thema}` }] }),
+      body: JSON.stringify({ model, max_tokens: 8000, system, messages: [{ role: 'user', content: `Kursthema: ${thema}` }] }),
     })
     if (!resp.ok) { const t = await resp.text(); return json({ error: 'KI-Dienst nicht erreichbar (' + resp.status + ').', detail: t.slice(0, 300) }, 502) }
     data = await resp.json()
@@ -52,13 +65,15 @@ export async function POST(req: Request) {
   const text = Array.isArray(data?.content) ? data.content.map((b: any) => (b?.type === 'text' ? b.text : '')).join('') : ''
   const parsed = extractJson(text)
   const arr = parsed?.questions
-  if (!Array.isArray(arr)) return json({ error: 'Antwort konnte nicht gelesen werden. Bitte erneut versuchen.' }, 502)
+  if (!Array.isArray(arr)) return json({ error: 'Antwort konnte nicht gelesen werden. Bitte erneut versuchen (ggf. weniger Fragen).' }, 502)
 
-  const questions = arr.slice(0, 12).map((q: any) => {
+  const ALLOWED = ['leicht', 'mittel', 'schwer']
+  const questions = arr.slice(0, 30).map((q: any) => {
     let opts = Array.isArray(q?.options) ? q.options.map((o: any) => String(o)).slice(0, 4) : []
     while (opts.length < 4) opts.push('—')
     let ci = Number(q?.correct_index); if (!(ci >= 0 && ci <= 3)) ci = 0
-    return { topic: String(q?.topic || '').slice(0, 120), question: String(q?.question || '').slice(0, 600), options: opts, correct_index: ci, explanation: String(q?.explanation || '').slice(0, 800) }
+    let diff = String(q?.difficulty || 'mittel').toLowerCase(); if (!ALLOWED.includes(diff)) diff = 'mittel'
+    return { topic: String(q?.topic || '').slice(0, 120), difficulty: diff, question: String(q?.question || '').slice(0, 800), options: opts, correct_index: ci, explanation: String(q?.explanation || '').slice(0, 1000) }
   }).filter((q: any) => q.question)
   return json({ questions }, 200)
 }
