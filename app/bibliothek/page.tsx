@@ -97,7 +97,22 @@ export default function BibliothekPage(){
 
   return(<AppShell active="lernen">
     <div style={eyebrow}>Kursbibliothek</div>
-    <h1 style={{fontFamily:FH,fontSize:32,fontWeight:600,color:NAVY,margin:'4px 0 18px'}}>Kurse entdecken</h1>
+    <h1 style={{fontFamily:FH,fontSize:32,fontWeight:600,color:NAVY,margin:'4px 0 14px'}}>Kurse entdecken</h1>
+
+    {/* Erklärung: Nutzung & Inhalt */}
+    <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:14,padding:'18px 20px',marginBottom:18,boxShadow:'0 1px 2px rgba(0,0,0,.03)'}}>
+      <div style={{fontFamily:FM,fontSize:11,letterSpacing:'.14em',textTransform:'uppercase',color:GOLD,marginBottom:8}}>So funktioniert die Bibliothek</div>
+      <p style={{fontSize:13.5,color:GRAY,lineHeight:1.6,margin:'0 0 10px'}}>
+        Hier findest du alle Kurse: den <b style={{color:NAVY}}>globalen KALYX-Katalog</b> (Etikett „Katalog", für alle verfügbar) und <b style={{color:NAVY}}>eure eigenen Kurse</b> (Etikett „Eigen"). Mit Suche und den Filtern Typ und Niveau findest du schnell das Passende.
+      </p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
+        <div style={{fontSize:13,color:GRAY,lineHeight:1.55}}><b style={{color:GREEN}}>1 · Stöbern</b><br/>Kurs anklicken, Beschreibung und Module ansehen.</div>
+        <div style={{fontSize:13,color:GRAY,lineHeight:1.55}}><b style={{color:GREEN}}>2 · Lernen &amp; Prüfung</b><br/>Im Kurs die Übungsprüfung ablegen, mit Auswertung.</div>
+        <div style={{fontSize:13,color:GRAY,lineHeight:1.55}}><b style={{color:GREEN}}>3 · Nachweis</b><br/>Bestehen erzeugt automatisch ein Zertifikat unter „Nachweise".</div>
+        <div style={{fontSize:13,color:GRAY,lineHeight:1.55}}><b style={{color:GREEN}}>Eigene Kurse</b><br/>Mit „+ Neuer Kurs" anlegen oder über den KI-Kursersteller erzeugen.</div>
+      </div>
+      <p style={{fontSize:12,color:GRAY,marginTop:10}}>Hinweis: Vorbereitungskurse sind Übungsmaterial und ersetzen keine offizielle Prüfung.</p>
+    </div>
 
     {loading ? <div style={{color:GRAY,fontFamily:FB}}>Lade Bibliothek …</div> : (<>
       {/* Toolbar */}
@@ -181,7 +196,7 @@ export default function BibliothekPage(){
                   <div><div style={{fontSize:14.5,fontWeight:600,color:NAVY}}>{m.title}</div>{m.content && <div style={{fontSize:13,color:GRAY,marginTop:2}}>{m.content.length>160?m.content.slice(0,160)+'…':m.content}</div>}</div>
                 </div>
               ))}
-          <div style={{marginTop:20,display:'flex',justifyContent:'flex-end'}}><button className="kx-btn" style={btnGhost} onClick={()=>setDetail(null)}>Schließen</button></div>
+          <div style={{marginTop:20,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}><a href={`/pruefung?kurs=${detail.id}`} className="kx-btn" style={{...btn,textDecoration:'none',display:'inline-block'}}>Lernen &amp; Prüfung →</a><button className="kx-btn" style={btnGhost} onClick={()=>setDetail(null)}>Schließen</button></div>
         </div>
       </div>
     )}
