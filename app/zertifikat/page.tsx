@@ -1,0 +1,85 @@
+// Ziel-Pfad im Repo: app/zertifikat/page.tsx  (NEU)
+//
+// Druckbare Zertifikatsansicht. Aufruf: /zertifikat?nr=<cert_number>
+// Eigenständig (ohne Seitenleiste) für sauberen Druck/PDF.
+'use client'
+
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
+
+const NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', CREAM='#F5F4EF', LINE='#E4E0D8', GRAY='#6B7280'
+const FH="'Cormorant', Georgia, serif"; const FB="'Albert Sans', system-ui, sans-serif"; const FM="'IBM Plex Mono', ui-monospace, monospace"
+
+type Cert={cert_number:string;title:string;recipient_name:string|null;score:number|null;status:string;issued_at:string}
+
+export default function ZertifikatPage(){
+  const [cert,setCert]=useState<Cert|null>(null)
+  const [loading,setLoading]=useState(true)
+  const [err,setErr]=useState('')
+
+  useEffect(()=>{
+    if(typeof document!=='undefined' && !document.getElementById('kalyx-fonts')){
+      const l=document.createElement('link');l.id='kalyx-fonts';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap';document.head.appendChild(l)
+    }
+    if(typeof document!=='undefined' && !document.getElementById('kalyx-print')){
+      const s=document.createElement('style');s.id='kalyx-print';s.textContent='@media print{.kx-noprint{display:none!important}body{background:#fff!important}}';document.head.appendChild(s)
+    }
+    let on=true;(async()=>{
+      const nr=new URLSearchParams(window.location.search).get('nr')||''
+      if(!nr){setErr('Keine Zertifikatsnummer angegeben.');setLoading(false);return}
+      const {data:sess}=await supabase.auth.getSession()
+      if(!sess.session){window.location.href='/anmelden';return}
+      const {data}=await supabase.from('certificates').select('cert_number,title,recipient_name,score,status,issued_at').eq('cert_number',nr).maybeSingle()
+      if(!on)return
+      if(!data){setErr('Zertifikat nicht gefunden.')}else setCert(data as Cert)
+      setLoading(false)
+    })();return()=>{on=false}
+  },[])
+
+  const fmtDate=(s:string)=>{try{return new Date(s).toLocaleDateString('de-CH',{day:'numeric',month:'long',year:'numeric'})}catch{return s}}
+  const wrap:React.CSSProperties={minHeight:'100vh',background:CREAM,fontFamily:FB,padding:'30px 16px',display:'flex',flexDirection:'column',alignItems:'center'}
+
+  if(loading) return <div style={wrap}><p style={{color:GRAY,marginTop:40}}>Lade Zertifikat …</p></div>
+  if(err||!cert) return <div style={wrap}><p style={{color:GRAY,marginTop:40}}>{err||'Nicht gefunden.'}</p><a href="/nachweise" style={{color:GREEN}}>Zurück zu den Nachweisen</a></div>
+
+  return(<div style={wrap}>
+    <div style={{maxWidth:820,width:'100%'}}>
+      <div className="kx-noprint" style={{display:'flex',justifyContent:'space-between',marginBottom:14}}>
+        <a href="/nachweise" style={{fontFamily:FB,fontSize:13.5,color:GREEN,textDecoration:'none'}}>← Nachweise</a>
+        <button onClick={()=>window.print()} style={{fontFamily:FB,fontSize:13.5,fontWeight:600,color:'#fff',background:GREEN,border:'none',borderRadius:9,padding:'9px 18px',cursor:'pointer'}}>Drucken / als PDF speichern</button>
+      </div>
+
+      {/* Urkunde */}
+      <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:6,padding:'56px 60px',boxShadow:'0 10px 40px rgba(0,0,0,.08)',position:'relative'}}>
+        <div style={{position:'absolute',inset:14,border:`2px solid ${GOLD}`,borderRadius:4,pointerEvents:'none',opacity:.5}}/>
+        <div style={{position:'relative',textAlign:'center'}}>
+          <div style={{fontFamily:FH,fontWeight:700,fontSize:30,color:NAVY,letterSpacing:'.14em'}}>KALYX</div>
+          <div style={{fontFamily:FM,fontSize:11,letterSpacing:'.28em',color:GOLD,textTransform:'uppercase',marginTop:6}}>Abschlusszertifikat</div>
+          <div style={{width:60,height:2,background:GOLD,margin:'22px auto'}}/>
+          <div style={{fontFamily:FB,fontSize:14,color:GRAY}}>Hiermit wird bestätigt, dass</div>
+          <div style={{fontFamily:FH,fontSize:30,fontWeight:600,color:NAVY,margin:'10px 0'}}>{cert.recipient_name||'—'}</div>
+          <div style={{fontFamily:FB,fontSize:14,color:GRAY}}>den folgenden Kurs erfolgreich absolviert und die Prüfung bestanden hat:</div>
+          <div style={{fontFamily:FH,fontSize:24,fontWeight:600,color:GREEN,margin:'12px 0 4px'}}>{cert.title}</div>
+          {cert.score!=null && <div style={{fontFamily:FM,fontSize:13,color:GRAY}}>Ergebnis: {Math.round(cert.score)}%</div>}
+
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:46,gap:20}}>
+            <div style={{textAlign:'left'}}>
+              <div style={{fontFamily:FM,fontSize:10.5,color:GRAY,letterSpacing:'.06em'}}>AUSGESTELLT</div>
+              <div style={{fontFamily:FB,fontSize:14,color:NAVY}}>{fmtDate(cert.issued_at)}</div>
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div style={{fontFamily:FM,fontSize:10.5,color:GRAY,letterSpacing:'.06em'}}>ZERTIFIKATSNUMMER</div>
+              <div style={{fontFamily:FM,fontSize:13,color:NAVY}}>{cert.cert_number}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style={{fontFamily:FB,fontSize:12,color:GRAY,textAlign:'center',marginTop:18,lineHeight:1.6}}>
+        KALYX-Abschlusszertifikat über einen auf der Plattform absolvierten Kurs samt bestandener Prüfung.
+        Dies ist kein offizieller Branchenabschluss. Echtheit prüfbar über die Zertifikatsnummer.<br/>
+        Pilotbetrieb · Daten in der EU gespeichert.
+      </p>
+    </div>
+  </div>)
+}
