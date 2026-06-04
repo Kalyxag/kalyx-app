@@ -18,7 +18,7 @@ const FM="'IBM Plex Mono', ui-monospace, monospace"
 function injectCI(){
   if(typeof document==='undefined')return
   if(!document.getElementById('kalyx-fonts')){const l=document.createElement('link');l.id='kalyx-fonts';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap';document.head.appendChild(l)}
-  if(!document.getElementById('kalyx-ui')){const s=document.createElement('style');s.id='kalyx-ui';s.textContent=`
+  if(!document.getElementById('kalyx-shell')){const s=document.createElement('style');s.id='kalyx-shell';s.textContent=`
     *{box-sizing:border-box}
     .kx-input{transition:border-color .15s ease,box-shadow .15s ease}
     .kx-input:focus{border-color:${GREEN};box-shadow:0 0 0 3px rgba(20,97,62,.12);outline:none}
