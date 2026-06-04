@@ -63,13 +63,12 @@ const ROLE:Record<string,string>={admin:'Administrator',manager:'Manager',learne
 const MAIN_NAV=[
   {key:'uebersicht',label:'Übersicht',href:'/arbeitsbereich',icon:I.home},
   {key:'lernen',label:'Lernen',href:'/bibliothek',icon:I.book},
-  {key:'skills',label:'Skills',icon:I.grid,soon:true},
-  {key:'nachweise',label:'Nachweise',icon:I.badge,soon:true},
-  {key:'team',label:'Team',icon:I.users,soon:true},
+  {key:'skills',label:'Skills',href:'/skills',icon:I.grid},
+  {key:'nachweise',label:'Nachweise',href:'/nachweise',icon:I.badge},
+  {key:'team',label:'Team',href:'/team',icon:I.users},
 ]
 const ADMIN_NAV=[
   {key:'ki',label:'KI-Kursersteller',href:'/kursersteller',icon:I.spark},
-  {key:'kunde',label:'Neuer Kunde',icon:I.plus,soon:true},
 ]
 
 export default function AppShell({active,children}:{active:string;children:ReactNode}){
@@ -146,4 +145,3 @@ export default function AppShell({active,children}:{active:string;children:React
     </div>
   </div>)
 }
-
