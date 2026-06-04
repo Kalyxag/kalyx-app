@@ -87,16 +87,34 @@ async function run(req: Request) {
   const certsByT = countBy(certs, r => r.status === 'gueltig')
   const bestByT = maxScoreBy(attempts)
 
+  // Lizenz-/Paketdaten laden (tenant_billing). Fehlt die Tabelle noch, bleibt es leer.
+  let billingVorhanden = true
+  const billingByT = new Map<string, any>()
+  {
+    const b = await admin.from('tenant_billing').select('tenant_id,plan,seats,addons,billing_interval,status')
+    if (b.error) {
+      billingVorhanden = false
+    } else {
+      for (const row of (b.data as any[]) || []) if (row.tenant_id) billingByT.set(row.tenant_id, row)
+    }
+  }
+
   const isDemo = (t: TenantRow) => demoFromColumn ? !!t.is_demo : DEMO_SLUGS_FALLBACK.includes(t.slug)
 
   const mandanten = tenants.map(t => {
     const p = profileBy.get(t.id) || {}
+    const bill = billingByT.get(t.id) || {}
     return {
       slug: t.slug,
       name: p.display_name || p.legal_name || t.slug,
       sector: p.sector || null,
       is_demo: isDemo(t),
       status: t.status || null,
+      paket: bill.plan || null,
+      lizenzen: typeof bill.seats === 'number' ? bill.seats : null,
+      addons: Array.isArray(bill.addons) ? bill.addons : [],
+      abrechnung: bill.billing_interval || null,
+      konto_status: bill.status || null,
       mitglieder: usersByT.get(t.id) || 0,
       kurse_eigen: ownCoursesByT.get(t.id) || 0,
       pruefungen_bestanden: passedByT.get(t.id) || 0,
@@ -124,6 +142,7 @@ async function run(req: Request) {
   return NextResponse.json({
     ok: true,
     demo_quelle: demoFromColumn ? 'spalte is_demo' : 'bekannte Demo-Liste (Spalte fehlt)',
+    billing_vorhanden: billingVorhanden,
     global: { kunden: kunden.length, demo: demo.length, ...block(mandanten) },
     nur_kunden: block(kunden),
     nur_demo: block(demo),
