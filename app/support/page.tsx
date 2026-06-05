@@ -6,7 +6,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = '#14613E', GOLD = '#B8904A'
 const INK = '#1d2733', MUTE = '#5b6b7a', LINE = '#e4e1d8', CARD = '#ffffff'
@@ -20,9 +20,13 @@ const SECTOR_LABEL: Record<string, string> = {
 }
 const PLAN_LABEL: Record<string, string> = { klein: 'KLEIN', mittel: 'MITTEL', gross: 'GROSS', konzern: 'KONZERN' }
 const ADDON_LABEL: Record<string, string> = { bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
+const ADDON_ORDER = ['bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
 const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
 const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
 const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
+
+const lblStyle: CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginTop: 12, marginBottom: 4 }
+const inStyle: CSSProperties = { width: '100%', padding: '11px 13px', borderRadius: 10, border: '1px solid ' + LINE, background: CARD, fontSize: 14, fontFamily: FB }
 
 type Block = { mandanten: number; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
 type Mandant = { slug: string; name: string; sector: string | null; is_demo: boolean; status: string | null; paket: string | null; lizenzen: number | null; addons: string[]; abrechnung: string | null; konto_status: string | null; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
@@ -36,6 +40,7 @@ function injectCI() {
   s.textContent = "@import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');"
     + "*{box-sizing:border-box}html,body{margin:0;padding:0}body{background:" + CREAM + ";color:" + INK + ";font-family:" + FB + "}"
     + ".kx-in{outline:none}.kx-in:focus{border-color:" + GREEN + " !important}"
+    + ".kx-row:hover{background:#faf9f5}"
   document.head.appendChild(s)
 }
 
@@ -45,6 +50,55 @@ export default function SupportPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<'alle' | 'kunden' | 'demo'>('alle')
+
+  // Detail-Panel (Kundenakte) + Bearbeiten
+  const [sel, setSel] = useState<Mandant | null>(null)
+  const [ePlan, setEPlan] = useState('klein')
+  const [eSeats, setESeats] = useState('1')
+  const [eAddons, setEAddons] = useState<string[]>([])
+  const [eStatus, setEStatus] = useState('pilot')
+  const [eInterval, setEInterval] = useState('monatlich')
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState('')
+
+  function openDetail(m: Mandant) {
+    setSel(m)
+    setEPlan(m.paket || 'klein')
+    setESeats(String(typeof m.lizenzen === 'number' ? m.lizenzen : 1))
+    setEAddons(Array.isArray(m.addons) ? m.addons : [])
+    setEStatus(m.konto_status || 'pilot')
+    setEInterval(m.abrechnung || 'monatlich')
+    setSaveMsg('')
+  }
+
+  function toggleAddon(a: string) {
+    setEAddons(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])
+  }
+
+  async function saveDetail() {
+    if (!sel) return
+    setSaving(true); setSaveMsg('')
+    try {
+      const res = await fetch('/api/admin-tenant?token=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: sel.slug, plan: ePlan, seats: Number(eSeats), addons: eAddons, status: eStatus, billing_interval: eInterval }),
+      })
+      const j = await res.json()
+      if (!res.ok || !j.ok) { setSaveMsg(j.error || 'Speichern fehlgeschlagen.'); return }
+      // lokale Daten aktualisieren, damit Tabelle und Akte sofort stimmen
+      setData(d => {
+        if (!d) return d
+        const upd = d.mandanten.map(x => x.slug === sel.slug
+          ? { ...x, paket: ePlan, lizenzen: Number(eSeats), addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval }
+          : x)
+        return { ...d, mandanten: upd }
+      })
+      setSel(s => s ? { ...s, paket: ePlan, lizenzen: Number(eSeats), addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval } : s)
+      setSaveMsg('Gespeichert.')
+    } catch {
+      setSaveMsg('Verbindung fehlgeschlagen.')
+    } finally { setSaving(false) }
+  }
 
   useEffect(() => {
     injectCI()
@@ -165,7 +219,8 @@ export default function SupportPage() {
               </thead>
               <tbody>
                 {rows.map((m, idx) => (
-                  <tr key={m.slug} style={{ borderBottom: idx === rows.length - 1 ? 'none' : '1px solid ' + LINE }}>
+                  <tr key={m.slug} onClick={() => openDetail(m)} className="kx-row"
+                    style={{ borderBottom: idx === rows.length - 1 ? 'none' : '1px solid ' + LINE, cursor: 'pointer' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 600, color: INK }}>{m.name}</td>
                     <td style={{ padding: '12px 14px', color: MUTE, fontSize: 13 }}>{m.sector ? (SECTOR_LABEL[m.sector] || m.sector) : '-'}</td>
                     <td style={{ padding: '12px 14px' }}>
@@ -204,8 +259,82 @@ export default function SupportPage() {
           </div>
         </div>
 
-        <div style={{ fontSize: 11.5, color: MUTE, marginTop: 14, fontFamily: FM }}>Quelle Demo-Markierung: {data.demo_quelle}</div>
+        <div style={{ fontSize: 11.5, color: MUTE, marginTop: 14, fontFamily: FM }}>Quelle Demo-Markierung: {data.demo_quelle}{data.billing_vorhanden === false ? ' · Hinweis: Tabelle tenant_billing fehlt noch (SQL ausfuehren)' : ''}</div>
       </div>
+
+      {sel && (
+        <div onClick={() => setSel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(11,25,41,0.45)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, height: '100%', background: CREAM, boxShadow: '-20px 0 50px rgba(0,0,0,0.25)', overflowY: 'auto' }}>
+            <div style={{ background: NAVY, color: '#fff', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: GREEN, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FH, fontSize: 22, fontWeight: 700, flexShrink: 0 }}>
+                {sel.name.split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>{sel.name}</div>
+                <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>
+                  {(sel.sector ? (SECTOR_LABEL[sel.sector] || sel.sector) : 'Branche unbekannt') + ' · ' + (sel.is_demo ? 'Demo' : 'Kunde')}
+                </div>
+              </div>
+              <button onClick={() => setSel(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 13 }}>Schliessen</button>
+            </div>
+
+            <div style={{ padding: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+                {([['Mitglieder', sel.mitglieder], ['Eigene Kurse', sel.kurse_eigen], ['Bestanden', sel.pruefungen_bestanden], ['Nachweise', sel.nachweise]] as [string, number][]).map(([l, v], i) => (
+                  <div key={i} style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 12, padding: '14px 16px' }}>
+                    <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 700, color: NAVY, lineHeight: 1 }}>{v}</div>
+                    <div style={{ fontSize: 12, color: MUTE, marginTop: 4 }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 6 }}>Paket und Lizenzen</div>
+
+              <label style={lblStyle}>Paket</label>
+              <select className="kx-in" value={ePlan} onChange={e => setEPlan(e.target.value)} style={inStyle}>
+                {Object.keys(PLAN_LABEL).map(p => <option key={p} value={p}>{PLAN_LABEL[p]}</option>)}
+              </select>
+
+              <label style={lblStyle}>Lizenzen (Personen)</label>
+              <input className="kx-in" type="number" min={0} value={eSeats} onChange={e => setESeats(e.target.value)} style={inStyle} />
+
+              <label style={lblStyle}>Abrechnung</label>
+              <select className="kx-in" value={eInterval} onChange={e => setEInterval(e.target.value)} style={inStyle}>
+                <option value="monatlich">monatlich</option>
+                <option value="jaehrlich">jaehrlich</option>
+              </select>
+
+              <label style={lblStyle}>Status</label>
+              <select className="kx-in" value={eStatus} onChange={e => setEStatus(e.target.value)} style={inStyle}>
+                {Object.keys(STATUS_LABEL).map(s => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+              </select>
+
+              <label style={{ ...lblStyle, marginTop: 16 }}>Add-ons</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                {ADDON_ORDER.map(a => {
+                  const on = eAddons.includes(a)
+                  return (
+                    <button key={a} onClick={() => toggleAddon(a)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 10, border: '1px solid ' + (on ? GREEN : LINE), background: on ? '#eef5f0' : CARD, color: INK, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+                      <span>{ADDON_LABEL[a] || a}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: on ? GREEN : MUTE }}>{on ? 'gebucht' : 'aus'}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button onClick={() => void saveDetail()} disabled={saving}
+                style={{ width: '100%', marginTop: 22, padding: '13px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
+                {saving ? 'Speichert ...' : 'Aenderungen speichern'}
+              </button>
+              {saveMsg && <div style={{ marginTop: 10, fontSize: 13, color: saveMsg === 'Gespeichert.' ? GREEN : '#b3261e', textAlign: 'center' }}>{saveMsg}</div>}
+
+              <div style={{ fontSize: 11, color: MUTE, marginTop: 16, fontFamily: FM, lineHeight: 1.5 }}>
+                {'Mandant: ' + sel.slug + (sel.is_demo ? ' · Demo-Konto (zaehlt nicht als Umsatz)' : '')}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
