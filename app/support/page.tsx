@@ -8,6 +8,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import { INTEGRATIONS, INTEGRATION_KATEGORIEN, INTEGRATION_MAP } from '@/lib/integrations/catalog'
+import { PLAN_PREIS_PRO_PERSON, ADDON_PREIS, SETUP_GEBUEHR, SETUP_RABATT_STANDARD, JAHRESRABATT, mrrMandant, arrMandant, lizenzMrr } from '@/lib/billing/preise'
 
 const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = '#14613E', GOLD = '#B8904A'
 const INK = '#1d2733', MUTE = '#5b6b7a', LINE = '#e4e1d8', CARD = '#ffffff'
@@ -20,8 +21,8 @@ const SECTOR_LABEL: Record<string, string> = {
   industrie: 'Industrie', sonstige: 'Sonstige',
 }
 const PLAN_LABEL: Record<string, string> = { klein: 'KLEIN', mittel: 'MITTEL', gross: 'GROSS', konzern: 'KONZERN' }
-const ADDON_LABEL: Record<string, string> = { bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
-const ADDON_ORDER = ['bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
+const ADDON_LABEL: Record<string, string> = { ki_budget: 'KI-Kursbudget', api: 'API-Anbindung', support: 'Erweiterter Support', bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
+const ADDON_ORDER = ['ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
 const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
 const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
 const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
@@ -49,12 +50,139 @@ function injectCI() {
   document.head.appendChild(s)
 }
 
+const fmtCHF = (n: number) => 'CHF ' + Math.round(n).toLocaleString('de-CH')
+
+function UmsatzKachel({ label, value, sub, akzent }: { label: string; value: string; sub?: string; akzent?: boolean }) {
+  return (
+    <div style={{ flex: '1 1 180px', minWidth: 160, background: akzent ? GREEN : CARD, border: '1px solid ' + (akzent ? GREEN : LINE), borderRadius: 14, padding: '18px 20px' }}>
+      <div style={{ fontSize: 11.5, letterSpacing: 0.5, textTransform: 'uppercase', color: akzent ? 'rgba(255,255,255,.75)' : MUTE, fontWeight: 700 }}>{label}</div>
+      <div style={{ fontFamily: FH, fontSize: 30, fontWeight: 700, color: akzent ? '#fff' : INK, marginTop: 6, lineHeight: 1.1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12.5, color: akzent ? 'rgba(255,255,255,.8)' : MUTE, marginTop: 4 }}>{sub}</div>}
+    </div>
+  )
+}
+
+function UmsatzPanel({ mandanten, setupRabatt, setSetupRabatt }: { mandanten: Mandant[]; setupRabatt: number; setSetupRabatt: (n: number) => void }) {
+  const kunden = mandanten.filter(m => !m.is_demo)
+  const demo = mandanten.filter(m => m.is_demo)
+  const zahlende = kunden.filter(m => mrrMandant(m) > 0)
+  const mrrK = kunden.reduce((s, m) => s + mrrMandant(m), 0)
+  const arrK = kunden.reduce((s, m) => s + arrMandant(m), 0)
+  const mrrD = demo.reduce((s, m) => s + mrrMandant(m), 0)
+  const proKunde = zahlende.length > 0 ? mrrK / zahlende.length : 0
+
+  const proPlan = ['klein', 'mittel', 'gross', 'konzern'].map(p => {
+    const list = zahlende.filter(m => m.paket === p)
+    return { plan: p, kunden: list.length, seats: list.reduce((s, m) => s + (m.lizenzen || 0), 0), mrr: list.reduce((s, m) => s + lizenzMrr(m), 0) }
+  }).filter(x => x.kunden > 0)
+
+  const proAddon = Object.keys(ADDON_PREIS).map(a => {
+    const anzahl = kunden.filter(m => (m.addons || []).includes(a)).length
+    return { addon: a, anzahl, mrr: anzahl * (ADDON_PREIS[a] || 0) }
+  }).filter(x => x.anzahl > 0)
+
+  const setupBrutto = zahlende.length * SETUP_GEBUEHR
+  const setupNetto = Math.round(setupBrutto * (1 - setupRabatt))
+  const rabattProzent = Math.round(setupRabatt * 100)
+
+  const th: CSSProperties = { padding: '10px 14px', fontSize: 11, letterSpacing: 0.5, textTransform: 'uppercase', color: MUTE, fontWeight: 700, borderBottom: '1px solid ' + LINE }
+  const td: CSSProperties = { padding: '11px 14px', fontSize: 13.5, color: INK }
+  const tdR: CSSProperties = { padding: '11px 14px', fontSize: 13.5, color: INK, textAlign: 'right', fontFamily: FM }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+        <UmsatzKachel label="Wiederkehrend pro Monat" value={fmtCHF(mrrK)} sub="MRR aus zahlenden Kunden" akzent />
+        <UmsatzKachel label="Hochrechnung pro Jahr" value={fmtCHF(arrK)} sub="ARR, Jahresrabatt beruecksichtigt" />
+        <UmsatzKachel label="Zahlende Kunden" value={String(zahlende.length)} sub={kunden.length + ' Kundenkonten insgesamt'} />
+        <UmsatzKachel label="Pro Kunde im Schnitt" value={fmtCHF(proKunde)} sub="MRR je zahlendem Kunden" />
+      </div>
+
+      <div style={{ background: '#f8f1e4', border: '1px solid ' + GOLD, borderRadius: 12, padding: '14px 18px', marginBottom: 22 }}>
+        <div style={{ fontSize: 13.5, color: '#6f5a24', lineHeight: 1.5 }}>
+          <strong style={{ fontWeight: 700 }}>Demo-Potenzial:</strong> Die {demo.length} Demo-Konten wuerden nach diesem Modell rechnerisch {fmtCHF(mrrD)} pro Monat ergeben. Diese Zahl dient nur der Orientierung und zaehlt bewusst nicht zum Umsatz.
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16, marginBottom: 22 }}>
+        <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', fontFamily: FH, fontSize: 18, fontWeight: 700, color: INK, borderBottom: '1px solid ' + LINE }}>Nach Paket</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead><tr style={{ background: '#faf9f5' }}><th style={{ ...th, textAlign: 'left' }}>Paket</th><th style={{ ...th, textAlign: 'right' }}>Kunden</th><th style={{ ...th, textAlign: 'right' }}>Lizenzen</th><th style={{ ...th, textAlign: 'right' }}>MRR</th></tr></thead>
+            <tbody>
+              {proPlan.map(r => (
+                <tr key={r.plan} style={{ borderBottom: '1px solid ' + LINE }}>
+                  <td style={td}><span style={{ fontFamily: FM, fontWeight: 700 }}>{PLAN_LABEL[r.plan] || r.plan}</span> <span style={{ color: MUTE, fontSize: 12 }}>· {PLAN_PREIS_PRO_PERSON[r.plan]}/P.</span></td>
+                  <td style={tdR}>{r.kunden}</td><td style={tdR}>{r.seats}</td><td style={tdR}>{fmtCHF(r.mrr)}</td>
+                </tr>
+              ))}
+              {proPlan.length === 0 && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: MUTE }}>Noch keine zahlenden Kunden.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ padding: '14px 16px', fontFamily: FH, fontSize: 18, fontWeight: 700, color: INK, borderBottom: '1px solid ' + LINE }}>Nach Add-on</div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead><tr style={{ background: '#faf9f5' }}><th style={{ ...th, textAlign: 'left' }}>Add-on</th><th style={{ ...th, textAlign: 'right' }}>Gebucht</th><th style={{ ...th, textAlign: 'right' }}>MRR</th></tr></thead>
+            <tbody>
+              {proAddon.map(r => (
+                <tr key={r.addon} style={{ borderBottom: '1px solid ' + LINE }}>
+                  <td style={td}>{ADDON_LABEL[r.addon] || r.addon} <span style={{ color: MUTE, fontSize: 12 }}>· {ADDON_PREIS[r.addon]}/Mt.</span></td>
+                  <td style={tdR}>{r.anzahl}x</td><td style={tdR}>{fmtCHF(r.mrr)}</td>
+                </tr>
+              ))}
+              {proAddon.length === 0 && <tr><td colSpan={3} style={{ ...td, textAlign: 'center', color: MUTE }}>Noch keine Add-ons gebucht.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, padding: '18px 20px', marginBottom: 22 }}>
+        <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 700, color: INK, marginBottom: 4 }}>Einmalige Einrichtung</div>
+        <div style={{ fontSize: 13, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Einmalig {fmtCHF(SETUP_GEBUEHR)} je neuem Kunden. Im Pilot ueblicherweise voll rabattiert. Verschiebe den Regler, um den Effekt zu sehen.</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <input type="range" min={0} max={100} value={rabattProzent} onChange={e => setSetupRabatt(Number(e.target.value) / 100)} style={{ flex: '1 1 220px', accentColor: GREEN }} />
+          <div style={{ fontFamily: FM, fontSize: 13, color: INK, minWidth: 92 }}>Rabatt {rabattProzent}%</div>
+          <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 700, color: GREEN }}>{fmtCHF(setupNetto)}</div>
+        </div>
+        <div style={{ fontSize: 12, color: MUTE, marginTop: 8 }}>{zahlende.length} zahlende Kunden, brutto {fmtCHF(setupBrutto)}.</div>
+      </div>
+
+      <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, overflow: 'hidden', marginBottom: 18 }}>
+        <div style={{ padding: '14px 16px', fontFamily: FH, fontSize: 18, fontWeight: 700, color: INK, borderBottom: '1px solid ' + LINE }}>Umsatz je Mandant</div>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 620 }}>
+            <thead><tr style={{ background: '#faf9f5' }}><th style={{ ...th, textAlign: 'left' }}>Firma</th><th style={{ ...th, textAlign: 'left' }}>Typ</th><th style={{ ...th, textAlign: 'left' }}>Paket</th><th style={{ ...th, textAlign: 'right' }}>Lizenzen</th><th style={{ ...th, textAlign: 'right' }}>MRR</th></tr></thead>
+            <tbody>
+              {[...kunden, ...demo].map(m => (
+                <tr key={m.slug} style={{ borderBottom: '1px solid ' + LINE, opacity: m.is_demo ? 0.55 : 1 }}>
+                  <td style={{ ...td, fontWeight: 600 }}>{m.name}</td>
+                  <td style={td}><span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: m.is_demo ? '#f3eccf' : '#dcefe4', color: m.is_demo ? '#8a6d1f' : GREEN }}>{m.is_demo ? 'Demo' : 'Kunde'}</span></td>
+                  <td style={{ ...td, fontFamily: FM, fontSize: 12.5 }}>{m.paket ? (PLAN_LABEL[m.paket] || m.paket) : '-'}</td>
+                  <td style={tdR}>{typeof m.lizenzen === 'number' ? m.lizenzen : '-'}</td>
+                  <td style={{ ...tdR, fontWeight: 700, color: m.is_demo ? MUTE : INK }}>{fmtCHF(mrrMandant(m))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 12, color: MUTE, lineHeight: 1.6, fontFamily: FM }}>
+        Rechenannahmen: Lizenz je Person und Monat (KLEIN {PLAN_PREIS_PRO_PERSON.klein}, MITTEL {PLAN_PREIS_PRO_PERSON.mittel}, GROSS {PLAN_PREIS_PRO_PERSON.gross}, KONZERN {PLAN_PREIS_PRO_PERSON.konzern}). Add-ons als feste Monatspauschale. Jahresrabatt {Math.round(JAHRESRABATT * 100)}% bei jaehrlicher Zahlung. Alle Betraege sind Vorschlagswerte und werden zentral in lib/billing/preise.ts gepflegt.
+      </div>
+    </div>
+  )
+}
+
 export default function SupportPage() {
   const [token, setToken] = useState('')
   const [data, setData] = useState<Data | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState<'alle' | 'kunden' | 'demo'>('alle')
+  const [ansicht, setAnsicht] = useState<'mandanten' | 'umsatz'>('mandanten')
+  const [setupRabatt, setSetupRabatt] = useState(SETUP_RABATT_STANDARD)
 
   // Detail-Panel (Kundenakte) + Bearbeiten
   const [sel, setSel] = useState<Mandant | null>(null)
@@ -74,6 +202,7 @@ export default function SupportPage() {
   const [integItems, setIntegItems] = useState<Record<string, any>>({})
   const [iStatus, setIStatus] = useState<Record<string, string>>({})
   const [iUrl, setIUrl] = useState<Record<string, string>>({})
+  const [iShowNames, setIShowNames] = useState<Record<string, boolean>>({})
   const [integLoading, setIntegLoading] = useState(false)
   const [integError, setIntegError] = useState('')
   const [integSaving, setIntegSaving] = useState(false)
@@ -82,7 +211,7 @@ export default function SupportPage() {
   const [testMsg, setTestMsg] = useState<Record<string, string>>({})
 
   async function loadInteg(slug: string) {
-    setIntegItems({}); setIStatus({}); setIUrl({}); setIntegError(''); setIntegMsg(''); setTestMsg({})
+    setIntegItems({}); setIStatus({}); setIUrl({}); setIShowNames({}); setIntegError(''); setIntegMsg(''); setTestMsg({})
     setIntegLoading(true)
     try {
       const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token) + '&slug=' + encodeURIComponent(slug), { cache: 'no-store' })
@@ -90,12 +219,13 @@ export default function SupportPage() {
       if (!res.ok || !j.ok) { setIntegError(j.tabelle_fehlt ? 'Tabelle tenant_integrations fehlt noch (SQL ausfuehren).' : (j.error || 'Integrationen konnten nicht geladen werden.')); return }
       const it = j.items || {}
       setIntegItems(it)
-      const st: Record<string, string> = {}, ur: Record<string, string> = {}
+      const st: Record<string, string> = {}, ur: Record<string, string> = {}, sn: Record<string, boolean> = {}
       for (const def of INTEGRATIONS) {
         st[def.key] = it[def.key]?.status || 'inaktiv'
         ur[def.key] = it[def.key]?.config?.webhook_url || ''
+        sn[def.key] = !!it[def.key]?.config?.show_names
       }
-      setIStatus(st); setIUrl(ur)
+      setIStatus(st); setIUrl(ur); setIShowNames(sn)
     } catch { setIntegError('Verbindung fehlgeschlagen.') }
     finally { setIntegLoading(false) }
   }
@@ -105,7 +235,7 @@ export default function SupportPage() {
     setIntegSaving(true); setIntegMsg('')
     const items = INTEGRATIONS
       .filter(def => (iStatus[def.key] && iStatus[def.key] !== 'inaktiv') || integItems[def.key] || (iUrl[def.key] || '').trim())
-      .map(def => ({ key: def.key, status: iStatus[def.key] || 'inaktiv', config: def.configFelder ? { webhook_url: (iUrl[def.key] || '').trim() } : {} }))
+      .map(def => ({ key: def.key, status: iStatus[def.key] || 'inaktiv', config: def.configFelder ? { webhook_url: (iUrl[def.key] || '').trim(), show_names: !!iShowNames[def.key] } : {} }))
     try {
       const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -127,7 +257,7 @@ export default function SupportPage() {
     try {
       const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: sel.slug, mode: 'test', key, url }),
+        body: JSON.stringify({ slug: sel.slug, mode: 'test', key, url, show_names: !!iShowNames[key] }),
       })
       const j = await res.json().catch(() => ({}))
       if (j.ok) setTestMsg(m => ({ ...m, [key]: 'Testnachricht gesendet. Bitte im Kanal pruefen.' }))
@@ -262,6 +392,13 @@ export default function SupportPage() {
     </button>
   )
 
+  const Ansicht = ({ id, text }: { id: 'mandanten' | 'umsatz'; text: string }) => (
+    <button onClick={() => setAnsicht(id)}
+      style={{ padding: '9px 20px', borderRadius: 999, border: '1px solid ' + (ansicht === id ? GREEN : LINE), background: ansicht === id ? GREEN : CARD, color: ansicht === id ? '#fff' : INK, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+      {text}
+    </button>
+  )
+
   return (
     <div style={{ minHeight: '100vh', background: CREAM }}>
       <div style={{ background: NAVY, color: '#fff', padding: '22px 24px' }}>
@@ -278,6 +415,15 @@ export default function SupportPage() {
       </div>
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px' }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+          <Ansicht id="mandanten" text="Mandanten" />
+          <Ansicht id="umsatz" text="Umsatz" />
+        </div>
+
+        {ansicht === 'umsatz' ? (
+          <UmsatzPanel mandanten={data.mandanten} setupRabatt={setupRabatt} setSetupRabatt={setSetupRabatt} />
+        ) : (
+        <>
         <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
           <Tab id="alle" text={'Alle (' + data.global.mandanten + ')'} />
           <Tab id="kunden" text={'Kunden (' + data.global.kunden + ')'} />
@@ -353,6 +499,8 @@ export default function SupportPage() {
         </div>
 
         <div style={{ fontSize: 11.5, color: MUTE, marginTop: 14, fontFamily: FM }}>Quelle Demo-Markierung: {data.demo_quelle}{data.billing_vorhanden === false ? ' · Hinweis: Tabelle tenant_billing fehlt noch (SQL ausfuehren)' : ''}</div>
+        </>
+        )}
       </div>
 
       {sel && (
@@ -485,7 +633,12 @@ export default function SupportPage() {
                                     placeholder={f.placeholder || f.label}
                                     style={{ ...inStyle, fontFamily: FM, fontSize: 12.5 }} />
                                 ))}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 10, fontSize: 13, color: INK, cursor: 'pointer' }}>
+                                  <input type="checkbox" checked={!!iShowNames[def.key]} onChange={e => setIShowNames(s => ({ ...s, [def.key]: e.target.checked }))} />
+                                  <span>Klarnamen in Benachrichtigungen anzeigen</span>
+                                </label>
+                                <div style={{ fontSize: 11.5, color: MUTE, marginTop: 4, lineHeight: 1.5 }}>{iShowNames[def.key] ? 'Meldungen enthalten den Namen, z.B. "Max Muster hat eine Pruefung bestanden."' : 'Datensparsam (empfohlen): ohne Namen, z.B. "Eine lernende Person hat eine Pruefung bestanden."'}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
                                   <button onClick={() => void testWebhook(def.key)} disabled={!!testing[def.key]}
                                     style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid ' + GREEN, background: '#fff', color: GREEN, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                                     {testing[def.key] ? 'Sendet ...' : 'Test senden'}
