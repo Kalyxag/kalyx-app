@@ -4,6 +4,13 @@
 
 const GREEN = '14613E'
 
+// Baut den Meldungstext datensparsam. Ohne Klarnamen-Freigabe wird die Person
+// neutral bezeichnet, sodass keine personenbezogenen Daten nach aussen gehen.
+export function buildEventText(showNames: boolean, personName: string | null, action: string): string {
+  const subjekt = showNames && personName && personName.trim() ? personName.trim() : 'Eine lernende Person'
+  return subjekt + ' ' + action
+}
+
 export type WebhookResult = {
   ok: boolean
   status: number
