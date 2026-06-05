@@ -7,6 +7,7 @@
 'use client'
 
 import { useEffect, useState, type CSSProperties } from 'react'
+import { INTEGRATIONS, INTEGRATION_KATEGORIEN, INTEGRATION_MAP } from '@/lib/integrations/catalog'
 
 const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = '#14613E', GOLD = '#B8904A'
 const INK = '#1d2733', MUTE = '#5b6b7a', LINE = '#e4e1d8', CARD = '#ffffff'
@@ -24,6 +25,10 @@ const ADDON_ORDER = ['bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADD
 const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
 const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
 const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
+
+// Integrations-Status
+const ISTATUS_LABEL: Record<string, string> = { aktiv: 'Aktiv', vorbereitung: 'In Vorbereitung', inaktiv: 'Nicht gebucht' }
+const ISTATUS_FG: Record<string, string> = { aktiv: '#14613e', vorbereitung: '#8a6d1f', inaktiv: '#5b6b7a' }
 
 const lblStyle: CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginTop: 12, marginBottom: 4 }
 const inStyle: CSSProperties = { width: '100%', padding: '11px 13px', borderRadius: 10, border: '1px solid ' + LINE, background: CARD, fontSize: 14, fontFamily: FB }
@@ -65,6 +70,72 @@ export default function SupportPage() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
 
+  // Integrationen
+  const [integItems, setIntegItems] = useState<Record<string, any>>({})
+  const [iStatus, setIStatus] = useState<Record<string, string>>({})
+  const [iUrl, setIUrl] = useState<Record<string, string>>({})
+  const [integLoading, setIntegLoading] = useState(false)
+  const [integError, setIntegError] = useState('')
+  const [integSaving, setIntegSaving] = useState(false)
+  const [integMsg, setIntegMsg] = useState('')
+  const [testing, setTesting] = useState<Record<string, boolean>>({})
+  const [testMsg, setTestMsg] = useState<Record<string, string>>({})
+
+  async function loadInteg(slug: string) {
+    setIntegItems({}); setIStatus({}); setIUrl({}); setIntegError(''); setIntegMsg(''); setTestMsg({})
+    setIntegLoading(true)
+    try {
+      const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token) + '&slug=' + encodeURIComponent(slug), { cache: 'no-store' })
+      const j = await res.json()
+      if (!res.ok || !j.ok) { setIntegError(j.tabelle_fehlt ? 'Tabelle tenant_integrations fehlt noch (SQL ausfuehren).' : (j.error || 'Integrationen konnten nicht geladen werden.')); return }
+      const it = j.items || {}
+      setIntegItems(it)
+      const st: Record<string, string> = {}, ur: Record<string, string> = {}
+      for (const def of INTEGRATIONS) {
+        st[def.key] = it[def.key]?.status || 'inaktiv'
+        ur[def.key] = it[def.key]?.config?.webhook_url || ''
+      }
+      setIStatus(st); setIUrl(ur)
+    } catch { setIntegError('Verbindung fehlgeschlagen.') }
+    finally { setIntegLoading(false) }
+  }
+
+  async function saveInteg() {
+    if (!sel) return
+    setIntegSaving(true); setIntegMsg('')
+    const items = INTEGRATIONS
+      .filter(def => (iStatus[def.key] && iStatus[def.key] !== 'inaktiv') || integItems[def.key] || (iUrl[def.key] || '').trim())
+      .map(def => ({ key: def.key, status: iStatus[def.key] || 'inaktiv', config: def.configFelder ? { webhook_url: (iUrl[def.key] || '').trim() } : {} }))
+    try {
+      const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: sel.slug, mode: 'save', items }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || !j.ok) { setIntegMsg(j.error || ('Speichern fehlgeschlagen (Status ' + res.status + ').')); return }
+      setIntegMsg('Gespeichert.')
+      void loadInteg(sel.slug)
+    } catch { setIntegMsg('Verbindung fehlgeschlagen.') }
+    finally { setIntegSaving(false) }
+  }
+
+  async function testWebhook(key: string) {
+    if (!sel) return
+    const url = (iUrl[key] || '').trim()
+    if (!/^https:\/\//i.test(url)) { setTestMsg(m => ({ ...m, [key]: 'Bitte zuerst eine gueltige https-URL eintragen.' })); return }
+    setTesting(t => ({ ...t, [key]: true })); setTestMsg(m => ({ ...m, [key]: '' }))
+    try {
+      const res = await fetch('/api/admin-integrations?token=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: sel.slug, mode: 'test', key, url }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (j.ok) setTestMsg(m => ({ ...m, [key]: 'Testnachricht gesendet. Bitte im Kanal pruefen.' }))
+      else setTestMsg(m => ({ ...m, [key]: 'Fehlgeschlagen: ' + (j.result?.error || j.error || ('Status ' + res.status)) }))
+    } catch { setTestMsg(m => ({ ...m, [key]: 'Verbindung fehlgeschlagen.' })) }
+    finally { setTesting(t => ({ ...t, [key]: false })) }
+  }
+
   async function openDetail(m: Mandant) {
     setSel(m)
     setEPlan(m.paket || 'klein')
@@ -87,6 +158,7 @@ export default function SupportPage() {
       }
     } catch { setDetailError('Verbindung fehlgeschlagen.') }
     finally { setDetailLoading(false) }
+    void loadInteg(m.slug)
   }
 
   function toggleAddon(a: string) {
@@ -374,6 +446,76 @@ export default function SupportPage() {
                 {saving ? 'Speichert ...' : 'Aenderungen speichern'}
               </button>
               {saveMsg && <div style={{ marginTop: 10, fontSize: 13, color: saveMsg === 'Gespeichert.' ? GREEN : '#b3261e', textAlign: 'center' }}>{saveMsg}</div>}
+
+              {/* ---- Integrationen ---- */}
+              <div style={{ borderTop: '1px solid ' + LINE, marginTop: 28, paddingTop: 22 }}>
+                <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Integrationen</div>
+                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Pro Kunde freischalten. "Aktiv" ist nur moeglich, wo die Anbindung schon gebaut ist. Alles andere laeuft in der App als "in Vorbereitung".</div>
+
+                {integLoading && <div style={{ fontSize: 13, color: MUTE }}>Laedt Integrationen ...</div>}
+                {integError && <div style={{ fontSize: 13, color: '#b3261e' }}>{integError}</div>}
+
+                {!integLoading && !integError && INTEGRATION_KATEGORIEN.map(kat => {
+                  const list = INTEGRATIONS.filter(d => d.kategorie === kat)
+                  if (list.length === 0) return null
+                  return (
+                    <div key={kat} style={{ marginBottom: 18 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: INK, marginBottom: 8 }}>{kat}</div>
+                      {list.map(def => {
+                        const st = iStatus[def.key] || 'inaktiv'
+                        const lr = integItems[def.key]?.last_result
+                        return (
+                          <div key={def.key} style={{ border: '1px solid ' + LINE, borderRadius: 10, padding: '11px 13px', marginBottom: 8, background: CARD }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{def.name}</div>
+                                <div style={{ fontSize: 11, color: MUTE, fontFamily: FM, marginTop: 2 }}>{def.protokoll}{def.implementiert ? '' : ' · noch nicht verfuegbar'}</div>
+                              </div>
+                              <select value={st} onChange={e => setIStatus(s => ({ ...s, [def.key]: e.target.value }))}
+                                style={{ ...inStyle, width: 'auto', padding: '7px 9px', fontSize: 13, color: ISTATUS_FG[st], fontWeight: 600 }}>
+                                {def.implementiert && <option value="aktiv">{ISTATUS_LABEL.aktiv}</option>}
+                                <option value="vorbereitung">{ISTATUS_LABEL.vorbereitung}</option>
+                                <option value="inaktiv">{ISTATUS_LABEL.inaktiv}</option>
+                              </select>
+                            </div>
+                            {def.implementiert && def.configFelder && st === 'aktiv' && (
+                              <div style={{ marginTop: 10 }}>
+                                {def.configFelder.map(f => (
+                                  <input key={f.key} value={iUrl[def.key] || ''} onChange={e => setIUrl(u => ({ ...u, [def.key]: e.target.value }))}
+                                    placeholder={f.placeholder || f.label}
+                                    style={{ ...inStyle, fontFamily: FM, fontSize: 12.5 }} />
+                                ))}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                                  <button onClick={() => void testWebhook(def.key)} disabled={!!testing[def.key]}
+                                    style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid ' + GREEN, background: '#fff', color: GREEN, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                                    {testing[def.key] ? 'Sendet ...' : 'Test senden'}
+                                  </button>
+                                  {testMsg[def.key] && <span style={{ fontSize: 12, color: testMsg[def.key].startsWith('Testnachricht') ? GREEN : '#b3261e' }}>{testMsg[def.key]}</span>}
+                                </div>
+                                {lr && (
+                                  <div style={{ fontSize: 11, color: lr.ok ? GREEN : '#b3261e', fontFamily: FM, marginTop: 6 }}>
+                                    Letzter Versand: {lr.ok ? 'erfolgreich' : ('Fehler ' + (lr.error || lr.status))} · {new Date(lr.gesendet_am).toLocaleString('de-CH')}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+
+                {!integLoading && !integError && (
+                  <>
+                    <button onClick={() => void saveInteg()} disabled={integSaving}
+                      style={{ width: '100%', marginTop: 6, padding: '12px 16px', borderRadius: 10, border: 'none', background: NAVY, color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: integSaving ? 0.7 : 1 }}>
+                      {integSaving ? 'Speichert ...' : 'Integrationen speichern'}
+                    </button>
+                    {integMsg && <div style={{ marginTop: 10, fontSize: 13, color: integMsg === 'Gespeichert.' ? GREEN : '#b3261e', textAlign: 'center' }}>{integMsg}</div>}
+                  </>
+                )}
+              </div>
 
               <div style={{ fontSize: 11, color: MUTE, marginTop: 16, fontFamily: FM, lineHeight: 1.5 }}>
                 {'Mandant: ' + sel.slug + (sel.is_demo ? ' · Demo-Konto (zaehlt nicht als Umsatz)' : '')}
