@@ -132,7 +132,18 @@ export default function PruefungPage(){
         else{
           const num='KX-'+new Date().getFullYear()+'-'+Math.random().toString(36).slice(2,10).toUpperCase()
           const {error:cerr}=await supabase.from('certificates').insert({tenant_id:tenantId,course_id:course.id,user_id:uid,attempt_id:(att as any)?.id||null,cert_number:num,title:course.title,recipient_name:email||null,score,status:'gueltig'})
-          if(!cerr) setCertNumber(num)
+          if(!cerr){
+            setCertNumber(num)
+            // Slack/Teams-Benachrichtigung serverseitig ausloesen (fire-and-forget, stoert den Ablauf nie)
+            try{
+              const {data:sess}=await supabase.auth.getSession()
+              const tok=sess.session?.access_token
+              if(tok){
+                fetch('/api/notify-event',{method:'POST',headers:{'content-type':'application/json'},
+                  body:JSON.stringify({access_token:tok,course_id:course.id})}).catch(()=>{})
+              }
+            }catch{}
+          }
         }
       }
     }
