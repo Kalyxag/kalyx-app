@@ -18,10 +18,15 @@ const SECTOR_LABEL: Record<string, string> = {
   finance: 'Finance', pharma: 'Pharma', bildung: 'Bildung', retail: 'Retail',
   industrie: 'Industrie', sonstige: 'Sonstige',
 }
+const PLAN_LABEL: Record<string, string> = { klein: 'KLEIN', mittel: 'MITTEL', gross: 'GROSS', konzern: 'KONZERN' }
+const ADDON_LABEL: Record<string, string> = { bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
+const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
+const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
+const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
 
 type Block = { mandanten: number; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
-type Mandant = { slug: string; name: string; sector: string | null; is_demo: boolean; status: string | null; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
-type Data = { ok: boolean; demo_quelle: string; global: Block & { kunden: number; demo: number }; nur_kunden: Block; nur_demo: Block; mandanten: Mandant[] }
+type Mandant = { slug: string; name: string; sector: string | null; is_demo: boolean; status: string | null; paket: string | null; lizenzen: number | null; addons: string[]; abrechnung: string | null; konto_status: string | null; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
+type Data = { ok: boolean; demo_quelle: string; billing_vorhanden?: boolean; global: Block & { kunden: number; demo: number }; nur_kunden: Block; nur_demo: Block; mandanten: Mandant[] }
 
 function injectCI() {
   if (typeof document === 'undefined') return
@@ -153,8 +158,8 @@ export default function SupportPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
               <thead>
                 <tr style={{ background: '#faf9f5', textAlign: 'left' }}>
-                  {['Firma', 'Branche', 'Typ', 'Mitglieder', 'Eigene Kurse', 'Bestanden', 'Nachweise', 'Bestnote'].map((h, i) => (
-                    <th key={i} style={{ padding: '12px 14px', fontSize: 11.5, letterSpacing: 0.5, textTransform: 'uppercase', color: MUTE, fontWeight: 700, borderBottom: '1px solid ' + LINE, textAlign: i >= 3 ? 'right' : 'left' }}>{h}</th>
+                  {['Firma', 'Branche', 'Typ', 'Paket', 'Mitglieder', 'Eigene Kurse', 'Bestanden', 'Nachweise', 'Bestnote'].map((h, i) => (
+                    <th key={i} style={{ padding: '12px 14px', fontSize: 11.5, letterSpacing: 0.5, textTransform: 'uppercase', color: MUTE, fontWeight: 700, borderBottom: '1px solid ' + LINE, textAlign: i >= 4 ? 'right' : 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -168,6 +173,22 @@ export default function SupportPage() {
                         {m.is_demo ? 'Demo' : 'Kunde'}
                       </span>
                     </td>
+                    <td style={{ padding: '12px 14px', fontSize: 12.5 }}>
+                      {m.paket ? (
+                        <div>
+                          <span style={{ fontWeight: 700, color: INK, fontFamily: FM }}>{PLAN_LABEL[m.paket] || m.paket}</span>
+                          {typeof m.lizenzen === 'number' ? <span style={{ color: MUTE }}> · {m.lizenzen} Liz.</span> : null}
+                          {m.konto_status ? (
+                            <span style={{ marginLeft: 6, fontSize: 10.5, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: STATUS_BG[m.konto_status] || '#eee', color: STATUS_FG[m.konto_status] || INK }}>
+                              {STATUS_LABEL[m.konto_status] || m.konto_status}
+                            </span>
+                          ) : null}
+                          {m.addons && m.addons.length > 0 ? (
+                            <div style={{ marginTop: 3, fontSize: 11, color: MUTE }}>{m.addons.map(a => ADDON_LABEL[a] || a).join(', ')}</div>
+                          ) : null}
+                        </div>
+                      ) : <span style={{ color: MUTE }}>-</span>}
+                    </td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.mitglieder}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.kurse_eigen}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.pruefungen_bestanden}</td>
@@ -176,7 +197,7 @@ export default function SupportPage() {
                   </tr>
                 ))}
                 {rows.length === 0 && (
-                  <tr><td colSpan={8} style={{ padding: '28px 14px', textAlign: 'center', color: MUTE }}>Keine Eintraege in dieser Ansicht.</td></tr>
+                  <tr><td colSpan={9} style={{ padding: '28px 14px', textAlign: 'center', color: MUTE }}>Keine Eintraege in dieser Ansicht.</td></tr>
                 )}
               </tbody>
             </table>
