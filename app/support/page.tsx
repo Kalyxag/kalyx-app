@@ -58,17 +58,35 @@ export default function SupportPage() {
   const [eAddons, setEAddons] = useState<string[]>([])
   const [eStatus, setEStatus] = useState('pilot')
   const [eInterval, setEInterval] = useState('monatlich')
+  const [eNotes, setENotes] = useState('')
+  const [detail, setDetail] = useState<any>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
 
-  function openDetail(m: Mandant) {
+  async function openDetail(m: Mandant) {
     setSel(m)
     setEPlan(m.paket || 'klein')
     setESeats(String(typeof m.lizenzen === 'number' ? m.lizenzen : 1))
     setEAddons(Array.isArray(m.addons) ? m.addons : [])
     setEStatus(m.konto_status || 'pilot')
     setEInterval(m.abrechnung || 'monatlich')
-    setSaveMsg('')
+    setENotes(''); setSaveMsg('')
+    setDetail(null); setDetailError(''); setDetailLoading(true)
+    try {
+      const res = await fetch('/api/admin-tenant?token=' + encodeURIComponent(token) + '&slug=' + encodeURIComponent(m.slug), { cache: 'no-store' })
+      const j = await res.json()
+      if (!res.ok || !j.ok) { setDetailError(j.error || 'Details konnten nicht geladen werden.') }
+      else {
+        setDetail(j)
+        if (j.billing) {
+          setEPlan(j.billing.plan); setESeats(String(j.billing.seats)); setEAddons(j.billing.addons || [])
+          setEStatus(j.billing.status); setEInterval(j.billing.billing_interval); setENotes(j.billing.notes || '')
+        }
+      }
+    } catch { setDetailError('Verbindung fehlgeschlagen.') }
+    finally { setDetailLoading(false) }
   }
 
   function toggleAddon(a: string) {
@@ -77,26 +95,29 @@ export default function SupportPage() {
 
   async function saveDetail() {
     if (!sel) return
+    const seatsNum = parseInt(eSeats, 10)
+    if (!Number.isFinite(seatsNum) || seatsNum < 0) { setSaveMsg('Bitte eine gueltige Lizenzzahl eingeben (0 oder mehr).'); return }
     setSaving(true); setSaveMsg('')
     try {
       const res = await fetch('/api/admin-tenant?token=' + encodeURIComponent(token), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: sel.slug, plan: ePlan, seats: Number(eSeats), addons: eAddons, status: eStatus, billing_interval: eInterval }),
+        body: JSON.stringify({ slug: sel.slug, plan: ePlan, seats: seatsNum, addons: eAddons, status: eStatus, billing_interval: eInterval, notes: eNotes }),
       })
-      const j = await res.json()
-      if (!res.ok || !j.ok) { setSaveMsg(j.error || 'Speichern fehlgeschlagen.'); return }
-      // lokale Daten aktualisieren, damit Tabelle und Akte sofort stimmen
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || !j.ok) { setSaveMsg(j.error || ('Speichern fehlgeschlagen (Status ' + res.status + ').')); return }
       setData(d => {
         if (!d) return d
         const upd = d.mandanten.map(x => x.slug === sel.slug
-          ? { ...x, paket: ePlan, lizenzen: Number(eSeats), addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval }
+          ? { ...x, paket: ePlan, lizenzen: seatsNum, addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval }
           : x)
         return { ...d, mandanten: upd }
       })
-      setSel(s => s ? { ...s, paket: ePlan, lizenzen: Number(eSeats), addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval } : s)
+      setSel(s => s ? { ...s, paket: ePlan, lizenzen: seatsNum, addons: [...eAddons], konto_status: eStatus, abrechnung: eInterval } : s)
+      const now = new Date().toISOString()
+      setDetail((dd: any) => dd ? { ...dd, billing: { ...(dd.billing || {}), notes: eNotes, updated_at: now } } : dd)
       setSaveMsg('Gespeichert.')
     } catch {
-      setSaveMsg('Verbindung fehlgeschlagen.')
+      setSaveMsg('Verbindung fehlgeschlagen. Bitte erneut versuchen.')
     } finally { setSaving(false) }
   }
 
@@ -288,6 +309,24 @@ export default function SupportPage() {
                 ))}
               </div>
 
+              <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 6 }}>Profil und Kontakt</div>
+              {detailLoading && <div style={{ fontSize: 13, color: MUTE, marginBottom: 18 }}>Laedt Details ...</div>}
+              {detailError && <div style={{ fontSize: 13, color: '#b3261e', marginBottom: 18 }}>{detailError}</div>}
+              {detail && detail.profil && (
+                <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 12, padding: '14px 16px', marginBottom: 22, fontSize: 13.5, lineHeight: 1.8 }}>
+                  {(([['Ansprechpartner', detail.profil.contact_name], ['E-Mail', detail.profil.contact_email], ['Telefon', detail.profil.contact_phone], ['Website', detail.profil.website], ['Rechtsname', detail.profil.legal_name], ['UID / HR', detail.profil.uid], ['Land', detail.profil.country], ['Groesse', detail.profil.company_size]]) as [string, string | null][])
+                    .filter(([, v]) => v).map(([l, v], i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                        <span style={{ color: MUTE }}>{l}</span>
+                        <span style={{ color: INK, textAlign: 'right', wordBreak: 'break-word' }}>{v}</span>
+                      </div>
+                    ))}
+                  {[detail.profil.contact_name, detail.profil.contact_email, detail.profil.website, detail.profil.legal_name].every(x => !x) && (
+                    <div style={{ color: MUTE }}>Noch keine Kontaktdaten hinterlegt.</div>
+                  )}
+                </div>
+              )}
+
               <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 6 }}>Paket und Lizenzen</div>
 
               <label style={lblStyle}>Paket</label>
@@ -321,6 +360,14 @@ export default function SupportPage() {
                   )
                 })}
               </div>
+
+              <label style={{ ...lblStyle, marginTop: 16 }}>Interne Notiz (nur fuer das Team)</label>
+              <textarea className="kx-in" value={eNotes} onChange={e => setENotes(e.target.value)} rows={4}
+                placeholder="Gespraechsnotizen, naechste Schritte, Vereinbarungen ..."
+                style={{ ...inStyle, resize: 'vertical', minHeight: 92, lineHeight: 1.5 }} />
+              {detail && detail.billing && detail.billing.updated_at && (
+                <div style={{ fontSize: 11.5, color: MUTE, marginTop: 6, fontFamily: FM }}>Zuletzt bearbeitet: {new Date(detail.billing.updated_at).toLocaleString('de-CH')}</div>
+              )}
 
               <button onClick={() => void saveDetail()} disabled={saving}
                 style={{ width: '100%', marginTop: 22, padding: '13px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
