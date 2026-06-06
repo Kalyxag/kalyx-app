@@ -2,8 +2,8 @@
 //
 // Persoenlicher Fortschritt (Level, Ring, Abzeichen) und die kurs-basierte
 // Skills-Matrix: Pflichtthemen als Soll, bestandene als Ist, der Rest als Luecke.
-// Fuer Leitungsrollen zusaetzlich die Abdeckung je Abteilung und Mandant
-// (serverseitig ueber /api/skill-graph). Keine neuen Tabellen.
+// Für Leitungsrollen zusätzlich die Abdeckung je Abteilung und Mandant
+// (serverseitig über /api/skill-graph). Keine neuen Tabellen.
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -71,7 +71,7 @@ export default function SkillsPage(){
       .sort((a,b)=>Number(a.done)-Number(b.done))
     const mtxDone=mtx.filter(m=>m.done).length
 
-    // Team-Sicht fuer Leitung (Abteilung + Mandant), serverseitig und nur fuer Admin/Manager
+    // Team-Sicht für Leitung (Abteilung + Mandant), serverseitig und nur für Admin/Manager
     const lvl=(au as any)?.access_level
     const leitung=lvl==='admin'||lvl==='manager'
     let teamData:any=null
