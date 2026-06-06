@@ -101,8 +101,19 @@ export async function POST(req: Request) {
       let versendet = false
 
       if (per === 'mail') {
+        // Kontext fuer die E-Mail: Firmenname und einladende Person.
+        let firma = ''
+        try {
+          const cp = await admin.from('company_profiles').select('display_name').eq('tenant_id', tid).maybeSingle()
+          firma = (cp.data as any)?.display_name || ''
+        } catch {}
+        let eingeladen_von = ''
+        try {
+          const c = await admin.from('app_users').select('full_name,email').eq('id', caller.id).maybeSingle()
+          eingeladen_von = (c.data as any)?.full_name || (c.data as any)?.email || ''
+        } catch {}
         // Weg 1: Einladung per Supabase verschicken (braucht aktiven Mailversand).
-        const inv = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name } })
+        const inv = await admin.auth.admin.inviteUserByEmail(email, { redirectTo, data: { full_name, firma, eingeladen_von } })
         if (!inv.error && inv.data?.user) {
           userId = inv.data.user.id
           versendet = true
