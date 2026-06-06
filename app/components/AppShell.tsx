@@ -79,6 +79,9 @@ export default function AppShell({active,children}:{active:string;children:React
   const [email,setEmail]=useState('')
   const [role,setRole]=useState('')
   const [today,setToday]=useState('')
+  const [brandName,setBrandName]=useState('')
+  const [logoUrl,setLogoUrl]=useState('')
+  const [accent,setAccent]=useState('')
 
   useEffect(()=>{injectCI();setToday(new Date().toLocaleDateString('de-CH',{day:'numeric',month:'long',year:'numeric'}));let on=true;(async()=>{
     const {data}=await supabase.auth.getSession();const session=data.session
@@ -86,9 +89,12 @@ export default function AppShell({active,children}:{active:string;children:React
     const {data:au}=await supabase.from('app_users').select('tenant_id,access_level').eq('id',session.user.id).maybeSingle()
     const tid=(au as any)?.tenant_id; if(!tid){router.replace('/anmelden');return}
     const {data:cp}=await supabase.from('company_profiles').select('display_name').eq('tenant_id',tid).maybeSingle()
+    const {data:br}=await supabase.from('branding').select('*').eq('tenant_id',tid).maybeSingle()
     if(!on)return
     setEmail(session.user.email||''); setRole((au as any)?.access_level||'')
     setCompany((cp as any)?.display_name||'')
+    const b:any=br||{}
+    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||b.color||'')
   })();return()=>{on=false}},[router])
 
   async function logout(){await supabase.auth.signOut();router.replace('/anmelden')}
@@ -99,12 +105,16 @@ export default function AppShell({active,children}:{active:string;children:React
 
   return(<div className="kx-shell">
     <aside className="kx-aside">
-      {/* Logo */}
+      {/* Logo (White-Label: Mandanten-Branding, sonst KALYX) */}
       <div style={{display:'flex',alignItems:'center',gap:10,padding:'4px 8px 16px'}}>
-        <div style={{width:30,height:30,borderRadius:9,background:GREEN,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-          <span style={{fontFamily:FH,fontWeight:700,color:'#fff',fontSize:17}}>K</span>
-        </div>
-        <span style={{fontFamily:FB,fontWeight:700,fontSize:18,color:'#fff',letterSpacing:'.06em'}}>KALYX</span>
+        {logoUrl ? (
+          <img src={logoUrl} alt={brandName||'Logo'} style={{maxWidth:150,maxHeight:36,objectFit:'contain'}}/>
+        ) : (<>
+          <div style={{width:30,height:30,borderRadius:9,background:accent||GREEN,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <span style={{fontFamily:FH,fontWeight:700,color:'#fff',fontSize:17}}>{(brandName||'KALYX').trim().charAt(0).toUpperCase()||'K'}</span>
+          </div>
+          <span style={{fontFamily:FB,fontWeight:700,fontSize:18,color:'#fff',letterSpacing:'.06em'}}>{brandName||'KALYX'}</span>
+        </>)}
       </div>
       {/* Mandant */}
       <div className="kx-only-wide">
