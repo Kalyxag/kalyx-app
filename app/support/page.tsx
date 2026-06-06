@@ -21,8 +21,8 @@ const SECTOR_LABEL: Record<string, string> = {
   industrie: 'Industrie', sonstige: 'Sonstige',
 }
 const PLAN_LABEL: Record<string, string> = { klein: 'KLEIN', mittel: 'MITTEL', gross: 'GROSS', konzern: 'KONZERN' }
-const ADDON_LABEL: Record<string, string> = { ki_budget: 'KI-Kursbudget', api: 'API-Anbindung', support: 'Erweiterter Support', bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
-const ADDON_ORDER = ['ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
+const ADDON_LABEL: Record<string, string> = { white_label: 'White-Label', ki_budget: 'KI-Kursbudget', api: 'API-Anbindung', support: 'Erweiterter Support', bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
+const ADDON_ORDER = ['white_label', 'ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
 const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
 const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
 const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
@@ -189,6 +189,7 @@ export default function SupportPage() {
   const [ePlan, setEPlan] = useState('klein')
   const [eSeats, setESeats] = useState('1')
   const [eAddons, setEAddons] = useState<string[]>([])
+  const [eAngefragt, setEAngefragt] = useState<string[]>([])
   const [eStatus, setEStatus] = useState('pilot')
   const [eInterval, setEInterval] = useState('monatlich')
   const [eNotes, setENotes] = useState('')
@@ -271,6 +272,7 @@ export default function SupportPage() {
     setEPlan(m.paket || 'klein')
     setESeats(String(typeof m.lizenzen === 'number' ? m.lizenzen : 1))
     setEAddons(Array.isArray(m.addons) ? m.addons : [])
+    setEAngefragt([])
     setEStatus(m.konto_status || 'pilot')
     setEInterval(m.abrechnung || 'monatlich')
     setENotes(''); setSaveMsg('')
@@ -283,6 +285,7 @@ export default function SupportPage() {
         setDetail(j)
         if (j.billing) {
           setEPlan(j.billing.plan); setESeats(String(j.billing.seats)); setEAddons(j.billing.addons || [])
+          setEAngefragt(j.billing.angefragt || [])
           setEStatus(j.billing.status); setEInterval(j.billing.billing_interval); setENotes(j.billing.notes || '')
         }
       }
@@ -569,13 +572,19 @@ export default function SupportPage() {
               </select>
 
               <label style={{ ...lblStyle, marginTop: 16 }}>Add-ons</label>
+              {eAngefragt.filter(a => !eAddons.includes(a)).length > 0 && (
+                <div style={{ marginTop: 4, marginBottom: 4, padding: '9px 12px', borderRadius: 9, background: '#f8f1e4', border: '1px solid ' + GOLD, fontSize: 12.5, color: '#6f5a24', lineHeight: 1.5 }}>
+                  Offene Anfrage des Kunden: {eAngefragt.filter(a => !eAddons.includes(a)).map(a => ADDON_LABEL[a] || a).join(', ')}. Zum Freigeben anklicken und unten speichern.
+                </div>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
                 {ADDON_ORDER.map(a => {
                   const on = eAddons.includes(a)
+                  const req = !on && eAngefragt.includes(a)
                   return (
-                    <button key={a} onClick={() => toggleAddon(a)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 10, border: '1px solid ' + (on ? GREEN : LINE), background: on ? '#eef5f0' : CARD, color: INK, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
-                      <span>{ADDON_LABEL[a] || a}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: on ? GREEN : MUTE }}>{on ? 'gebucht' : 'aus'}</span>
+                    <button key={a} onClick={() => toggleAddon(a)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 10, border: '1px solid ' + (on ? GREEN : req ? GOLD : LINE), background: on ? '#eef5f0' : req ? '#f8f1e4' : CARD, color: INK, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+                      <span>{ADDON_LABEL[a] || a}{req ? <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: '#8a6d1f' }}>angefragt</span> : null}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: on ? GREEN : req ? '#8a6d1f' : MUTE }}>{on ? 'gebucht' : req ? 'freigeben?' : 'aus'}</span>
                     </button>
                   )
                 })}
