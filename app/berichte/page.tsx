@@ -1,10 +1,10 @@
 // Ziel-Pfad im Repo: app/berichte/page.tsx  (NEU)
 //
-// Analytics und Audit-Report fuer Admins und Manager:
+// Analytics und Audit-Report für Admins und Manager:
 // - Heatmap Abteilung mal Pflichtthema (Abdeckung in Prozent)
 // - Gesamtquote und Quote je Abteilung
 // - Detailtabelle je Person mit Bestehdatum
-// - Export als CSV (Semikolon, Excel-tauglich) und als PDF ueber die Druckansicht
+// - Export als CSV (Semikolon, Excel-tauglich) und als PDF über die Druckansicht
 // Daten kommen serverseitig von /api/audit-report. Keine neuen Tabellen.
 'use client'
 
