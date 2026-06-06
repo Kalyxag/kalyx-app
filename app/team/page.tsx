@@ -30,6 +30,11 @@ export default function TeamPage(){
   const [fLevel,setFLevel]=useState('learner'); const [fDept,setFDept]=useState(''); const [fPos,setFPos]=useState('')
   const [fBusy,setFBusy]=useState(false); const [fMsg,setFMsg]=useState(''); const [fErr,setFErr]=useState('')
   const [fLink,setFLink]=useState(''); const [showLinkHint,setShowLinkHint]=useState(false)
+  // Bearbeiten
+  const [myId,setMyId]=useState('')
+  const [edit,setEdit]=useState<Member|null>(null)
+  const [eName,setEName]=useState(''); const [eLevel,setELevel]=useState('learner'); const [eDept,setEDept]=useState(''); const [ePos,setEPos]=useState('')
+  const [eBusy,setEBusy]=useState(false); const [eMsg,setEMsg]=useState(''); const [eLink,setELink]=useState(''); const [confirmDel,setConfirmDel]=useState(false)
 
   async function ladeListe(){
     const {data}=await supabase.auth.getSession()
@@ -56,7 +61,7 @@ export default function TeamPage(){
     const us=(users as {access_level:string}[])||[]
     const lv:Record<string,number>={}; us.forEach(u=>{lv[u.access_level]=(lv[u.access_level]||0)+1})
     setMemberCount(us.length); setLevels(lv); setDepts((d as Dept[])||[]); setRoles((r as Role[])||[])
-    setIsAdmin(myLevel==='admin'); setCanList(myLevel==='admin'||myLevel==='manager')
+    setIsAdmin(myLevel==='admin'); setCanList(myLevel==='admin'||myLevel==='manager'); setMyId(session.user.id)
     if(myLevel==='admin'||myLevel==='manager') await ladeListe()
     setLoading(false)
   })();return()=>{on=false}},[router])
@@ -96,6 +101,51 @@ export default function TeamPage(){
       if(j?.ok&&j.link){ setFLink(j.link); setFMsg('Neuer Einladungslink für '+email+':') }
       else setFErr('Link konnte nicht erzeugt werden.')
     }catch{ setFErr('Verbindung fehlgeschlagen.') }
+  }
+
+  function oeffneEdit(m:Member){
+    setEdit(m); setEName(m.full_name||''); setELevel(m.access_level); setEDept(m.department||''); setEPos(m.position||'')
+    setEMsg(''); setELink(''); setConfirmDel(false)
+  }
+
+  async function speichereEdit(){
+    if(!edit) return
+    setEBusy(true); setEMsg('')
+    try{
+      const {data}=await supabase.auth.getSession()
+      const r=await fetch('/api/team-invite',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+        access_token:data.session?.access_token, action:'aktualisieren', user_id:edit.id,
+        access_level:eLevel, full_name:eName.trim(), department:eDept||null, position:ePos.trim()||null,
+      })})
+      const j=await r.json()
+      if(j?.ok){ await ladeListe(); setEdit(null) }
+      else setEMsg(j?.error||'Speichern fehlgeschlagen.')
+    }catch{ setEMsg('Verbindung fehlgeschlagen.') }
+    setEBusy(false)
+  }
+
+  async function neuerLink(){
+    if(!edit) return
+    setEMsg(''); setELink('')
+    try{
+      const {data}=await supabase.auth.getSession()
+      const r=await fetch('/api/team-invite',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:data.session?.access_token,action:'erneut',email:edit.email})})
+      const j=await r.json()
+      if(j?.ok&&j.link) setELink(j.link); else setEMsg('Link konnte nicht erzeugt werden.')
+    }catch{ setEMsg('Verbindung fehlgeschlagen.') }
+  }
+
+  async function entferne(){
+    if(!edit) return
+    setEBusy(true); setEMsg('')
+    try{
+      const {data}=await supabase.auth.getSession()
+      const r=await fetch('/api/team-invite',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:data.session?.access_token,action:'entfernen',user_id:edit.id})})
+      const j=await r.json()
+      if(j?.ok){ await ladeListe(); setEdit(null) }
+      else setEMsg(j?.error||'Entfernen fehlgeschlagen.')
+    }catch{ setEMsg('Verbindung fehlgeschlagen.') }
+    setEBusy(false)
   }
 
   const card:React.CSSProperties={background:'#fff',borderRadius:16,padding:'22px 22px',border:`1px solid ${LINE}`,boxShadow:'0 1px 2px rgba(0,0,0,.03),0 10px 28px rgba(0,0,0,.05)'}
@@ -163,7 +213,7 @@ export default function TeamPage(){
                       <td style={{padding:'10px 8px',color:NAVY}}>{LV[m.access_level]||m.access_level}</td>
                       <td style={{padding:'10px 8px',color:GRAY}}>{m.department||'-'}</td>
                       <td style={{padding:'10px 8px'}}><span style={{fontFamily:FM,fontSize:10.5,fontWeight:700,padding:'3px 9px',borderRadius:999,background:eingeladen?GOLD_PALE:GREEN_PALE,color:eingeladen?'#8a6d1f':GREEN}}>{eingeladen?'Eingeladen':'Aktiv'}</span></td>
-                      {isAdmin&&<td style={{padding:'10px 8px',textAlign:'right'}}>{eingeladen&&<button onClick={()=>erneut(m.email)} style={{fontFamily:FB,fontSize:12.5,fontWeight:600,color:GREEN,background:'none',border:'none',cursor:'pointer'}}>Link erneut</button>}</td>}
+                      {isAdmin&&<td style={{padding:'10px 8px',textAlign:'right'}}><button onClick={()=>oeffneEdit(m)} style={{fontFamily:FB,fontSize:12.5,fontWeight:600,color:GREEN,background:'none',border:'none',cursor:'pointer'}}>Bearbeiten</button></td>}
                     </tr>)
                   })}
                 </tbody>
@@ -187,5 +237,46 @@ export default function TeamPage(){
         })}
       </div>
     </>)}
+    {edit && (
+      <div onClick={()=>setEdit(null)} style={{position:'fixed',inset:0,background:'rgba(11,25,41,.45)',display:'flex',alignItems:'center',justifyContent:'center',padding:16,zIndex:50}}>
+        <div onClick={e=>e.stopPropagation()} style={{background:'#fff',borderRadius:16,maxWidth:460,width:'100%',padding:26,boxShadow:'0 20px 60px rgba(0,0,0,.25)',maxHeight:'90vh',overflowY:'auto'}}>
+          <h2 style={{fontFamily:FH,fontSize:22,fontWeight:600,color:NAVY,margin:'0 0 4px'}}>Person bearbeiten</h2>
+          <div style={{fontSize:13,color:GRAY,marginBottom:18}}>{edit.email}</div>
+          <label style={lbl}>Voller Name</label><input style={inp} value={eName} onChange={e=>setEName(e.target.value)}/>
+          <label style={{...lbl,marginTop:12}}>Rolle</label>
+          <select style={{...inp,opacity:edit.id===myId?0.6:1}} value={eLevel} onChange={e=>setELevel(e.target.value)} disabled={edit.id===myId}>
+            <option value="learner">Lernende</option><option value="manager">Manager</option><option value="admin">Administrator</option>
+          </select>
+          {edit.id===myId && <div style={{fontSize:11.5,color:GRAY,marginTop:4}}>Die eigene Rolle kann hier nicht geändert werden.</div>}
+          <label style={{...lbl,marginTop:12}}>Abteilung</label>
+          <select style={inp} value={eDept} onChange={e=>setEDept(e.target.value)}>
+            <option value="">Keine Angabe</option>{depts.map(d=><option key={d.id} value={d.name}>{d.name}</option>)}
+          </select>
+          <label style={{...lbl,marginTop:12}}>Position</label><input style={inp} value={ePos} onChange={e=>setEPos(e.target.value)}/>
+          {eMsg && <div style={{fontSize:12.5,color:RED,marginTop:10,lineHeight:1.5}}>{eMsg}</div>}
+          {eLink && <div style={{marginTop:8,padding:'10px 12px',background:GOLD_PALE,border:`1px solid ${GOLD}`,borderRadius:9,fontFamily:FM,fontSize:11.5,color:NAVY,wordBreak:'break-all',lineHeight:1.5}}>{eLink}</div>}
+          <div style={{display:'flex',gap:10,marginTop:18,flexWrap:'wrap'}}>
+            <button disabled={eBusy} onClick={speichereEdit} style={{fontFamily:FB,fontSize:14,fontWeight:600,color:'#fff',background:GREEN,border:'none',borderRadius:10,padding:'10px 18px',cursor:'pointer'}}>{eBusy?'…':'Speichern'}</button>
+            <button onClick={()=>setEdit(null)} style={{fontFamily:FB,fontSize:14,fontWeight:600,color:GRAY,background:'#fff',border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 18px',cursor:'pointer'}}>Abbrechen</button>
+            {edit.status==='eingeladen' && <button onClick={neuerLink} style={{fontFamily:FB,fontSize:14,fontWeight:600,color:GREEN,background:'#fff',border:`1.5px solid ${GREEN}`,borderRadius:10,padding:'10px 18px',cursor:'pointer'}}>Neuer Einladungslink</button>}
+          </div>
+          {edit.id!==myId && (
+            <div style={{marginTop:18,paddingTop:16,borderTop:`1px solid ${LINE}`}}>
+              {!confirmDel ? (
+                <button onClick={()=>setConfirmDel(true)} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:RED,background:'none',border:'none',cursor:'pointer',padding:0}}>Aus dem Team entfernen</button>
+              ):(
+                <div>
+                  <div style={{fontSize:13,color:NAVY,marginBottom:8,lineHeight:1.5}}>{edit.full_name||edit.email} wirklich entfernen? Das Konto wird dauerhaft gelöscht.</div>
+                  <div style={{display:'flex',gap:10}}>
+                    <button disabled={eBusy} onClick={entferne} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:'#fff',background:RED,border:'none',borderRadius:9,padding:'9px 16px',cursor:'pointer'}}>{eBusy?'…':'Ja, entfernen'}</button>
+                    <button onClick={()=>setConfirmDel(false)} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GRAY,background:'none',border:'none',cursor:'pointer'}}>Abbrechen</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    )}
   </AppShell>)
 }
