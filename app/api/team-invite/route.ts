@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: 'Keine Berechtigung.' }, { status: 403 })
       }
       const { data: rows } = await admin.from('app_users')
-        .select('id,email,full_name,access_level,department,position').eq('tenant_id', tid)
+        .select('*').eq('tenant_id', tid)
       const users = (rows as any[]) || []
       // Anmeldedaten je Person abrufen (für den abgeleiteten Status).
       const authByEmail = new Map<string, any>()
@@ -130,17 +130,24 @@ export async function POST(req: Request) {
 
       if (!userId) return NextResponse.json({ ok: false, error: 'Konto konnte nicht angelegt werden.' }, { status: 500 })
 
-      // app_users-Eintrag anlegen (Status bleibt active; eingeladen wird abgeleitet).
-      const row: any = { id: userId, tenant_id: tid, email, access_level, status: 'active', full_name, language: 'de' }
-      if (department) row.department = department
-      if (position) row.position = position
-      const ins = await admin.from('app_users').upsert(row, { onConflict: 'id' })
-      if (ins.error) {
-        // department-Spalte könnte fehlen: ohne optionale Felder erneut versuchen.
-        const slim: any = { id: userId, tenant_id: tid, email, access_level, status: 'active', full_name, language: 'de' }
-        const ins2 = await admin.from('app_users').upsert(slim, { onConflict: 'id' })
-        if (ins2.error) return NextResponse.json({ ok: false, error: 'Eintrag konnte nicht gespeichert werden: ' + ins2.error.message }, { status: 500 })
+      // app_users-Eintrag anlegen. Fehlt eine optionale Profil-Spalte im Schema,
+      // wird sie automatisch weggelassen, damit das Einladen nicht scheitert.
+      // Sauber wird es mit dem beiliegenden SQL app-users-spalten.sql.
+      const fullRow: any = { id: userId, tenant_id: tid, email, access_level, status: 'active', full_name, language: 'de' }
+      if (department) fullRow.department = department
+      if (position) fullRow.position = position
+      const droppable = ['position', 'department', 'language', 'full_name']
+      let row: any = { ...fullRow }
+      let saved = false, lastErr = ''
+      for (let i = 0; i <= droppable.length; i++) {
+        const r = await admin.from('app_users').upsert(row, { onConflict: 'id' })
+        if (!r.error) { saved = true; break }
+        lastErr = r.error.message
+        const miss = (lastErr.match(/'([a-z_]+)' column/) || [])[1]
+        if (miss && miss in row && droppable.includes(miss)) { delete row[miss]; continue }
+        break
       }
+      if (!saved) return NextResponse.json({ ok: false, error: 'Eintrag konnte nicht gespeichert werden: ' + lastErr }, { status: 500 })
 
       return NextResponse.json({ ok: true, versendet, link })
     }
