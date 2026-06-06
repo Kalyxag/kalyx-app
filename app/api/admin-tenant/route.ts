@@ -5,7 +5,7 @@
 // POST /api/admin-tenant?token=GEHEIM            -> speichert Paket/Lizenzen/Add-ons/
 //        Status/Abrechnung/Notizen in tenant_billing
 //
-// Geschuetzt per Token (gleicher Code wie die Uebersicht).
+// Geschuetzt per Token (gleicher Code wie die Übersicht).
 
 import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
       .eq('tenant_id', tenantId).maybeSingle()
     if (!b.error) billing = b.data
   }
-  // Angefragte Add-ons separat und defensiv laden (Spalte feature_flags koennte fehlen)
+  // Angefragte Add-ons separat und defensiv laden (Spalte feature_flags könnte fehlen)
   let angefragt: string[] = []
   try {
     const ff = await admin.from('tenant_billing').select('feature_flags').eq('tenant_id', tenantId).maybeSingle()
