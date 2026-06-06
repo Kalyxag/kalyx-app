@@ -6,7 +6,7 @@
 // Sicherheit:
 // - Der Aufrufer weist sich mit seinem Supabase-Access-Token aus.
 // - Der Mandant wird serverseitig aus app_users ermittelt, nie vom Client.
-// - Gesendet wird nur, wenn fuer user + course ein gueltiger Nachweis existiert.
+// - Gesendet wird nur, wenn für user + course ein gueltiger Nachweis existiert.
 // - Die Webhook-Adresse kommt aus der Datenbank, nie aus dem Browser.
 // - Fehler beim Versand blockieren die lernende Person nie.
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'kein Mandant' }, { status: 403 })
     }
 
-    // 3) Echtes Ereignis pruefen: gueltiger Nachweis fuer user + course
+    // 3) Echtes Ereignis pruefen: gueltiger Nachweis für user + course
     const { data: cert } = await admin.from('certificates')
       .select('recipient_name,title,issued_at')
       .eq('user_id', user.id).eq('course_id', courseId).eq('status', 'gueltig')
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       try {
         const result = await sendWebhook((it as any).integration_key, (it as any).config.webhook_url, 'KALYX', text)
         if (result.ok) sent++
-        // letztes Ergebnis je Integration festhalten (fuer die Support-Anzeige)
+        // letztes Ergebnis je Integration festhalten (für die Support-Anzeige)
         await admin.from('tenant_integrations')
           .update({ last_result: result, updated_at: new Date().toISOString() })
           .eq('tenant_id', tenantId).eq('integration_key', (it as any).integration_key)
