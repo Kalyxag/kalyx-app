@@ -1,9 +1,9 @@
-// Ziel-Pfad im Repo: app/skills/page.tsx  (ERSETZT – Motivations-Hub, Stufe 1)
+// Ziel-Pfad im Repo: app/skills/page.tsx  (ERSETZT, Motivations-Hub plus Skills-Matrix)
 //
-// Lebendige Skills-Seite aus echten Daten: Level + Fortschrittsring und Abzeichen,
-// berechnet aus bestandenen Prüfungen (exam_attempts) und Zertifikaten (certificates).
-// Keine neuen Tabellen. Ehrlich: KALYX-interne Anerkennung, kein offizieller Abschluss.
-// Die Skills-Matrix (Soll vs. Ist) bleibt als Stufe 2 darunter angekündigt.
+// Persoenlicher Fortschritt (Level, Ring, Abzeichen) und die kurs-basierte
+// Skills-Matrix: Pflichtthemen als Soll, bestandene als Ist, der Rest als Luecke.
+// Fuer Leitungsrollen zusaetzlich die Abdeckung je Abteilung und Mandant
+// (serverseitig ueber /api/skill-graph). Keine neuen Tabellen.
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -26,11 +26,16 @@ export default function SkillsPage(){
   const [loading,setLoading]=useState(true)
   const [stats,setStats]=useState({passedCourses:0,certs:0,attempts:0,perfect:0,bestScore:0,xp:0})
   const [recent,setRecent]=useState<{title:string;score:number;date:string|null}[]>([])
+  const [matrix,setMatrix]=useState<{title:string;done:boolean}[]>([])
+  const [pflichtTotal,setPflichtTotal]=useState(0)
+  const [pflichtDone,setPflichtDone]=useState(0)
+  const [istLeitung,setIstLeitung]=useState(false)
+  const [team,setTeam]=useState<any>(null)
 
   useEffect(()=>{let on=true;(async()=>{
     const {data}=await supabase.auth.getSession();const session=data.session
     if(!session){router.replace('/anmelden');return}
-    const {data:au}=await supabase.from('app_users').select('tenant_id').eq('id',session.user.id).maybeSingle()
+    const {data:au}=await supabase.from('app_users').select('tenant_id,access_level,department').eq('id',session.user.id).maybeSingle()
     const tid=(au as any)?.tenant_id; if(!tid){router.replace('/anmelden');return}
     const uid=session.user.id
 
@@ -58,7 +63,28 @@ export default function SkillsPage(){
         .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5)
     }
 
+    // Skills-Matrix: Pflichtthemen (Soll) gegen bestandene (Ist)
+    const passedSet=new Set(passedCourseIds)
+    const {data:allCourses}=await supabase.from('courses').select('*').or('tenant_id.eq.'+tid+',tenant_id.is.null')
+    const pflichtCourses=((allCourses as any[])||[]).filter((c:any)=>c?.mandatory===true||c?.category==='Pflichtschulung')
+    const mtx=pflichtCourses.map((c:any)=>({title:c.title as string,done:passedSet.has(c.id)}))
+      .sort((a,b)=>Number(a.done)-Number(b.done))
+    const mtxDone=mtx.filter(m=>m.done).length
+
+    // Team-Sicht fuer Leitung (Abteilung + Mandant), serverseitig und nur fuer Admin/Manager
+    const lvl=(au as any)?.access_level
+    const leitung=lvl==='admin'||lvl==='manager'
+    let teamData:any=null
+    if(leitung){
+      try{
+        const r=await fetch('/api/skill-graph',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:session.access_token})})
+        const j=await r.json(); if(j?.ok) teamData=j
+      }catch{}
+    }
+
     if(!on)return
+    setMatrix(mtx); setPflichtTotal(mtx.length); setPflichtDone(mtxDone)
+    setIstLeitung(leitung); setTeam(teamData)
     setStats({passedCourses:passedCourseIds.length,certs:certList.length,attempts:attempts.length,perfect,bestScore,xp})
     setRecent(recentList)
     setLoading(false)
@@ -162,12 +188,73 @@ export default function SkillsPage(){
       </div>
     )}
 
-    {/* SKILLS-MATRIX (Stufe 2, angekündigt) */}
-    <div className="kx-card" style={{...card,background:'#FBFAF7'}}>
-      <h2 style={{fontFamily:FH,fontSize:22,fontWeight:600,color:NAVY,marginBottom:6}}>Skills-Matrix</h2>
-      <p style={{fontFamily:FB,fontSize:14.5,color:GRAY,lineHeight:1.6,marginBottom:6}}>Als nächster Schritt zeigt die Matrix pro Rolle, welche Kompetenzen verlangt sind (Soll) und welche durch Kurse und Prüfungen belegt sind (Ist), inklusive sichtbarer Lücken und einer Empfehlung für deinen nächsten Schritt.</p>
-      <p style={{fontFamily:FM,fontSize:11.5,color:GOLD}}>In Vorbereitung · baut auf genau diesen echten Daten auf</p>
+    {/* SKILLS-MATRIX: persoenlich, Soll gegen Ist */}
+    <div className="kx-card" style={{...card,marginBottom:16}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:10,flexWrap:'wrap',gap:8}}>
+        <h2 style={{fontFamily:FH,fontSize:22,fontWeight:600,color:NAVY}}>Deine Pflichtthemen</h2>
+        <span style={{fontFamily:FM,fontSize:12,color:GRAY}}>{pflichtDone} von {pflichtTotal} erfüllt</span>
+      </div>
+      {pflichtTotal===0 ? (
+        <p style={{fontFamily:FB,fontSize:14,color:GRAY,lineHeight:1.6}}>Für deinen Mandanten sind aktuell keine Pflichtthemen hinterlegt. Sobald Pflichtkurse vergeben sind, erscheinen sie hier mit Soll, Ist und Lücke.</p>
+      ) : (<>
+        <div style={{height:10,background:'#EDEAE2',borderRadius:6,overflow:'hidden',marginBottom:4}}>
+          <div style={{height:'100%',width:Math.round((pflichtDone/pflichtTotal)*100)+'%',background:GREEN,borderRadius:6}}/>
+        </div>
+        <div style={{fontFamily:FM,fontSize:12,color:GRAY,marginBottom:14}}>{Math.round((pflichtDone/pflichtTotal)*100)}% Abdeckung</div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {matrix.map((m,i)=>(
+            <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:10,border:`1px solid ${m.done?GREEN:LINE}`,background:m.done?GREEN_PALE:'#FBFAF7'}}>
+              <span style={{fontSize:14,color:NAVY}}>{m.title}</span>
+              <span style={{fontFamily:FM,fontSize:11.5,fontWeight:700,padding:'3px 10px',borderRadius:999,background:m.done?GREEN:GOLD_PALE,color:m.done?'#fff':GOLD,whiteSpace:'nowrap'}}>{m.done?'Erfüllt':'Offen'}</span>
+            </div>
+          ))}
+        </div>
+      </>)}
+      <p style={{fontSize:11.5,color:GRAY,marginTop:14,fontFamily:FM}}>Soll sind die Pflichtkurse, Ist die bestandenen. Die Lücke ist der Rest.</p>
     </div>
+
+    {/* LEITUNGSSICHT: Abdeckung je Abteilung und Mandant */}
+    {istLeitung && team && (
+      <div className="kx-card" style={{...card}}>
+        <div style={eyebrow}>Leitungssicht</div>
+        <h2 style={{fontFamily:FH,fontSize:22,fontWeight:600,color:NAVY,margin:'4px 0 12px'}}>Kompetenz-Abdeckung im Team</h2>
+        {team.pflicht_kurse===0 ? (
+          <p style={{fontFamily:FB,fontSize:14,color:GRAY}}>Noch keine Pflichtthemen hinterlegt. Sobald Pflichtkurse vergeben sind, erscheint hier die Abdeckung je Abteilung und für den Mandanten.</p>
+        ) : (<>
+          <div style={{display:'flex',gap:18,flexWrap:'wrap',marginBottom:16}}>
+            <Stat n={team.gesamt_abdeckung+'%'} l="Abdeckung Mandant"/>
+            <Stat n={team.personen} l="Personen"/>
+            <Stat n={team.pflicht_kurse} l="Pflichtthemen"/>
+          </div>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:NAVY,marginBottom:8}}>Nach Abteilung</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:team.luecken.length>0?18:0}}>
+            {team.abteilungen.map((d:any,i:number)=>(
+              <div key={i}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:NAVY,marginBottom:3,gap:8}}>
+                  <span>{d.name} <span style={{color:GRAY}}>· {d.personen} {d.personen===1?'Person':'Personen'}</span></span>
+                  <span style={{fontFamily:FM,color:d.abdeckung>=80?GREEN:d.abdeckung>=50?GOLD:'#9b2c2c'}}>{d.abdeckung}%</span>
+                </div>
+                <div style={{height:8,background:'#EDEAE2',borderRadius:5,overflow:'hidden'}}>
+                  <div style={{height:'100%',width:d.abdeckung+'%',background:d.abdeckung>=80?GREEN:d.abdeckung>=50?GOLD:'#c0533f',borderRadius:5}}/>
+                </div>
+              </div>
+            ))}
+          </div>
+          {team.luecken.length>0 && (<>
+            <div style={{fontFamily:FB,fontSize:13,fontWeight:700,color:NAVY,marginBottom:8}}>Grösste Lücken</div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {team.luecken.map((l:any,i:number)=>(
+                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,fontSize:13.5,padding:'8px 12px',background:'#FBFAF7',borderRadius:9,border:`1px solid ${LINE}`}}>
+                  <span style={{color:NAVY}}>{l.titel}</span>
+                  <span style={{fontFamily:FM,fontSize:12.5,color:GOLD,whiteSpace:'nowrap'}}>{l.offen} offen</span>
+                </div>
+              ))}
+            </div>
+          </>)}
+        </>)}
+        <p style={{fontSize:11.5,color:GRAY,marginTop:14,fontFamily:FM}}>Auswertung der Pflichtthemen über alle aktiven Personen des Mandanten.</p>
+      </div>
+    )}
   </AppShell>)
 }
 
