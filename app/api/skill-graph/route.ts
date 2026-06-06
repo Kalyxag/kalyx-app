@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const user = ures?.user
     if (uerr || !user) return NextResponse.json({ ok: false, error: 'nicht angemeldet' }, { status: 401 })
 
-    const { data: me } = await admin.from('app_users').select('tenant_id,access_level').eq('id', user.id).maybeSingle()
+    const { data: me } = await admin.from('app_users').select('*').eq('id', user.id).maybeSingle()
     const tid = (me as any)?.tenant_id
     const level = (me as any)?.access_level
     if (!tid) return NextResponse.json({ ok: false, error: 'kein Mandant' }, { status: 403 })
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const total = pflicht.length
 
     // Personen des Mandanten
-    const { data: users } = await admin.from('app_users').select('id,full_name,department,access_level,status').eq('tenant_id', tid)
+    const { data: users } = await admin.from('app_users').select('*').eq('tenant_id', tid)
     const personen = ((users as any[]) || []).filter(u => u.status !== 'inactive' && u.status !== 'gesperrt')
 
     // Bestandene Pflicht je Person
