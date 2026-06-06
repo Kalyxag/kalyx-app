@@ -18,6 +18,7 @@ export const PLAN_PREIS_PRO_PERSON: Record<string, number> = {
 // Add-ons: feste Monatspauschale je Mandant (CHF/Monat), unabhaengig von der
 // Personenzahl. Reihenfolge bestimmt die Anzeige.
 export const ADDON_PREIS: Record<string, number> = {
+  white_label: 200, // White-Label: eigenes Logo, Markenname und Akzentfarbe
   ki_budget: 120, // KI-Kursbudget: deckt die Token-Kosten der KI-Kurserstellung
   api: 80,        // API-Anbindung und Schnittstellen
   support: 150,   // Erweiterter Support mit schnelleren Reaktionszeiten
@@ -25,6 +26,18 @@ export const ADDON_PREIS: Record<string, number> = {
   sso: 60,        // SSO / SAML (zentrale Anmeldung)
   dedicated: 250, // Dedizierte CH-Infrastruktur
 }
+
+// Katalog fuer das Kundenbackend: Anzeigename und kurze Beschreibung je Add-on.
+export type AddonInfo = { key: string; label: string; beschreibung: string; preis: number }
+export const ADDON_KATALOG: AddonInfo[] = [
+  { key: 'white_label', label: 'White-Label', beschreibung: 'Eigenes Logo, eigener Markenname und eigene Akzentfarbe in der gesamten Plattform.', preis: ADDON_PREIS.white_label },
+  { key: 'ki_budget', label: 'KI-Kursbudget', beschreibung: 'Deckt die Kosten der KI-gestuetzten Kurserstellung.', preis: ADDON_PREIS.ki_budget },
+  { key: 'api', label: 'API-Anbindung', beschreibung: 'Programmierschnittstelle, um KALYX an eure Systeme anzubinden.', preis: ADDON_PREIS.api },
+  { key: 'support', label: 'Erweiterter Support', beschreibung: 'Schnellere Reaktionszeiten und fester Ansprechpartner.', preis: ADDON_PREIS.support },
+  { key: 'bi', label: 'BI-Anbindung', beschreibung: 'Datenexport an eure Reporting- und Business-Intelligence-Werkzeuge.', preis: ADDON_PREIS.bi },
+  { key: 'sso', label: 'SSO / SAML', beschreibung: 'Zentrale Anmeldung ueber euren Identitaetsanbieter.', preis: ADDON_PREIS.sso },
+  { key: 'dedicated', label: 'Dedizierte CH-Infra', beschreibung: 'Eigene, dedizierte Infrastruktur fuer hoechste Anforderungen.', preis: ADDON_PREIS.dedicated },
+]
 
 // Einmalige Einrichtungsgebuehr je Mandant. Pro Mandant bis 100% rabattierbar.
 export const SETUP_GEBUEHR = 900
