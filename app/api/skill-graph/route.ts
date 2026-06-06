@@ -1,7 +1,7 @@
 // Ziel-Pfad im Repo: app/api/skill-graph/route.ts  (NEU)
 //
-// Liefert die Kompetenz-Abdeckung ueber mehrere Personen: je Abteilung und fuer
-// den ganzen Mandanten, plus die groessten Luecken. Nur fuer Admins und Manager.
+// Liefert die Kompetenz-Abdeckung über mehrere Personen: je Abteilung und für
+// den ganzen Mandanten, plus die groessten Luecken. Nur für Admins und Manager.
 //
 // Modell (kurs-basiert): Pflichtkurse gelten als verlangte Kompetenzen (Soll).
 // Bestandene Pflichtkurse sind das Ist. Die Differenz ist die messbare Luecke.
