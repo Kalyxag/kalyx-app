@@ -1,7 +1,7 @@
 // Ziel-Pfad im Repo: lib/billing/preise.ts  (NEU)
 //
 // ZENTRALE PREISLISTE VON KALYX. Dies ist die einzige Stelle, an der die
-// Betraege gepflegt werden. Aendere hier, und das Umsatz-Dashboard rechnet
+// Betraege gepflegt werden. Ändere hier, und das Umsatz-Dashboard rechnet
 // automatisch neu. Alle Werte in Schweizer Franken (CHF).
 //
 // HINWEIS: Die folgenden Betraege sind durchdachte Vorschlagswerte. Bitte
@@ -27,16 +27,16 @@ export const ADDON_PREIS: Record<string, number> = {
   dedicated: 250, // Dedizierte CH-Infrastruktur
 }
 
-// Katalog fuer das Kundenbackend: Anzeigename und kurze Beschreibung je Add-on.
+// Katalog für das Kundenbackend: Anzeigename und kurze Beschreibung je Add-on.
 export type AddonInfo = { key: string; label: string; beschreibung: string; preis: number }
 export const ADDON_KATALOG: AddonInfo[] = [
   { key: 'white_label', label: 'White-Label', beschreibung: 'Eigenes Logo, eigener Markenname und eigene Akzentfarbe in der gesamten Plattform.', preis: ADDON_PREIS.white_label },
-  { key: 'ki_budget', label: 'KI-Kursbudget', beschreibung: 'Deckt die Kosten der KI-gestuetzten Kurserstellung.', preis: ADDON_PREIS.ki_budget },
+  { key: 'ki_budget', label: 'KI-Kursbudget', beschreibung: 'Deckt die Kosten der KI-gestützten Kurserstellung.', preis: ADDON_PREIS.ki_budget },
   { key: 'api', label: 'API-Anbindung', beschreibung: 'Programmierschnittstelle, um KALYX an eure Systeme anzubinden.', preis: ADDON_PREIS.api },
   { key: 'support', label: 'Erweiterter Support', beschreibung: 'Schnellere Reaktionszeiten und fester Ansprechpartner.', preis: ADDON_PREIS.support },
   { key: 'bi', label: 'BI-Anbindung', beschreibung: 'Datenexport an eure Reporting- und Business-Intelligence-Werkzeuge.', preis: ADDON_PREIS.bi },
-  { key: 'sso', label: 'SSO / SAML', beschreibung: 'Zentrale Anmeldung ueber euren Identitaetsanbieter.', preis: ADDON_PREIS.sso },
-  { key: 'dedicated', label: 'Dedizierte CH-Infra', beschreibung: 'Eigene, dedizierte Infrastruktur fuer hoechste Anforderungen.', preis: ADDON_PREIS.dedicated },
+  { key: 'sso', label: 'SSO / SAML', beschreibung: 'Zentrale Anmeldung über euren Identitätsanbieter.', preis: ADDON_PREIS.sso },
+  { key: 'dedicated', label: 'Dedizierte CH-Infra', beschreibung: 'Eigene, dedizierte Infrastruktur für höchste Anforderungen.', preis: ADDON_PREIS.dedicated },
 ]
 
 // Einmalige Einrichtungsgebuehr je Mandant. Pro Mandant bis 100% rabattierbar.
