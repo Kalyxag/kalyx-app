@@ -56,6 +56,7 @@ const I = {
   spark:'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18',
   plus:'M12 5v14M5 12h14',
   chart:'M3 3v18h18M8 17v-5M13 17V8M18 17v-8',
+  box:'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16zM3.27 7L12 12l8.73-5M12 22V12',
 }
 function Ico({d}:{d:string}){return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>}
 
@@ -70,6 +71,7 @@ const MAIN_NAV=[
 ]
 const ADMIN_NAV=[
   {key:'berichte',label:'Berichte',href:'/berichte',icon:I.chart},
+  {key:'erweiterungen',label:'Erweiterungen',href:'/erweiterungen',icon:I.box},
   {key:'ki',label:'KI-Kursersteller',href:'/kursersteller',icon:I.spark},
 ]
 
