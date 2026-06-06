@@ -161,8 +161,16 @@ export async function POST(req: Request) {
           userId = inv.data.user.id
           versendet = true
         } else {
-          // Mailversand nicht möglich. Der Aufrufer kann es per Link erneut versuchen.
-          return NextResponse.json({ ok: false, code: 'mail', error: 'Der Mailversand ist noch nicht eingerichtet. Du kannst stattdessen einen Einladungslink erzeugen und ihn selbst weitergeben.' }, { status: 200 })
+          // Mailversand nicht möglich. Den wahren Grund nennen, damit klar ist,
+          // ob es am Versand, am Limit oder an einem bestehenden Konto liegt.
+          const msg = (inv.error?.message || '').toLowerCase()
+          let hinweis = 'Der Mailversand ist noch nicht eingerichtet. Du kannst stattdessen einen Einladungslink erzeugen und ihn selbst weitergeben.'
+          if (msg.includes('already') || msg.includes('registered') || msg.includes('exists')) {
+            hinweis = 'Diese E-Mail hat bereits ein Konto. Entferne es zuerst aus dem Team oder nutze den Einladungslink.'
+          } else if (msg.includes('rate') || msg.includes('limit') || msg.includes('too many')) {
+            hinweis = 'Das Stundenlimit des Standard-Mailversands ist erreicht (er erlaubt nur wenige Mails pro Stunde). Nutze jetzt den Einladungslink, oder wir richten einen eigenen Mailversand ein.'
+          }
+          return NextResponse.json({ ok: false, code: 'mail', error: hinweis }, { status: 200 })
         }
       } else {
         // Weg 2: Konto anlegen und einen Einladungslink zum Weitergeben erzeugen.
