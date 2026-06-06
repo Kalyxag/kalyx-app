@@ -1,11 +1,11 @@
 // Ziel-Pfad im Repo: app/api/audit-report/route.ts  (NEU)
 //
-// Liefert die Datengrundlage fuer den Audit-Report und die Heatmap:
+// Liefert die Datengrundlage für den Audit-Report und die Heatmap:
 // je Abteilung mal Pflichtthema die Abdeckung, dazu eine Detailtabelle je Person
-// fuer den Export. Nur fuer Admins und Manager, nur fuer den eigenen Mandanten.
+// für den Export. Nur für Admins und Manager, nur für den eigenen Mandanten.
 //
 // Modell (kurs-basiert): Pflichtkurse sind die verlangten Kompetenzen (Soll),
-// bestandene Pruefungen das Ist.
+// bestandene Prüfungen das Ist.
 
 import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
