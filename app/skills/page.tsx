@@ -35,7 +35,7 @@ export default function SkillsPage(){
   useEffect(()=>{let on=true;(async()=>{
     const {data}=await supabase.auth.getSession();const session=data.session
     if(!session){router.replace('/anmelden');return}
-    const {data:au}=await supabase.from('app_users').select('tenant_id,access_level,department').eq('id',session.user.id).maybeSingle()
+    const {data:au}=await supabase.from('app_users').select('*').eq('id',session.user.id).maybeSingle()
     const tid=(au as any)?.tenant_id; if(!tid){router.replace('/anmelden');return}
     const uid=session.user.id
 
