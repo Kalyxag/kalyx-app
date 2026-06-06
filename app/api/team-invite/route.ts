@@ -82,6 +82,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, link: (link.data as any)?.properties?.action_link || null })
     }
 
+    if (action === 'aktualisieren') {
+      const user_id = String(body.user_id || '')
+      if (!user_id) return NextResponse.json({ ok: false, error: 'Person fehlt.' }, { status: 400 })
+      const { data: target } = await admin.from('app_users').select('id,tenant_id').eq('id', user_id).maybeSingle()
+      if (!target || (target as any).tenant_id !== tid) return NextResponse.json({ ok: false, error: 'Person nicht gefunden.' }, { status: 404 })
+
+      const upd: any = {}
+      // Rolle: nicht die eigene aendern (Schutz vor Selbst-Aussperrung).
+      if (body.access_level && LEVELS.includes(body.access_level) && user_id !== caller.id) upd.access_level = body.access_level
+      if (typeof body.full_name === 'string') upd.full_name = body.full_name.trim()
+      if (typeof body.department === 'string') upd.department = body.department.trim() || null
+      if (typeof body.position === 'string') upd.position = body.position.trim() || null
+      if (Object.keys(upd).length === 0) return NextResponse.json({ ok: true })
+
+      // Fehlt eine optionale Spalte im Schema, wird sie weggelassen.
+      const droppable = ['position', 'department', 'full_name']
+      let payload: any = { ...upd }
+      let saved = false, lastErr = ''
+      for (let i = 0; i <= droppable.length; i++) {
+        const r = await admin.from('app_users').update(payload).eq('id', user_id)
+        if (!r.error) { saved = true; break }
+        lastErr = r.error.message
+        const miss = (lastErr.match(/'([a-z_]+)' column/) || [])[1]
+        if (miss && miss in payload && droppable.includes(miss)) { delete payload[miss]; continue }
+        break
+      }
+      if (!saved) return NextResponse.json({ ok: false, error: 'Speichern fehlgeschlagen: ' + lastErr }, { status: 500 })
+      return NextResponse.json({ ok: true, selbst: user_id === caller.id })
+    }
+
+    if (action === 'entfernen') {
+      const user_id = String(body.user_id || '')
+      if (!user_id) return NextResponse.json({ ok: false, error: 'Person fehlt.' }, { status: 400 })
+      if (user_id === caller.id) return NextResponse.json({ ok: false, error: 'Du kannst dich nicht selbst entfernen.' }, { status: 400 })
+      const { data: target } = await admin.from('app_users').select('id,tenant_id').eq('id', user_id).maybeSingle()
+      if (!target || (target as any).tenant_id !== tid) return NextResponse.json({ ok: false, error: 'Person nicht gefunden.' }, { status: 404 })
+      const del = await admin.from('app_users').delete().eq('id', user_id)
+      if (del.error) return NextResponse.json({ ok: false, error: 'Entfernen fehlgeschlagen: ' + del.error.message }, { status: 500 })
+      // Auch das Anmeldekonto entfernen, damit nichts verwaist bleibt.
+      try { await admin.auth.admin.deleteUser(user_id) } catch {}
+      return NextResponse.json({ ok: true })
+    }
+
     if (action === 'einladen') {
       const email = String(body.email || '').trim().toLowerCase()
       const full_name = String(body.full_name || '').trim()
@@ -101,7 +144,7 @@ export async function POST(req: Request) {
       let versendet = false
 
       if (per === 'mail') {
-        // Kontext fuer die E-Mail: Firmenname und einladende Person.
+        // Kontext für die E-Mail: Firmenname und einladende Person.
         let firma = ''
         try {
           const cp = await admin.from('company_profiles').select('display_name').eq('tenant_id', tid).maybeSingle()
