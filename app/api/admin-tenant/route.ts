@@ -19,7 +19,7 @@ const FALLBACK_SECRET = 'aurora-seed-7Q2x-Kalyx-2026'
 const PLANS = ['klein', 'mittel', 'gross', 'konzern']
 const STATUSES = ['pilot', 'aktiv', 'gesperrt']
 const INTERVALS = ['monatlich', 'jaehrlich']
-const ADDONS = ['bi', 'sso', 'dedicated']   // zentrale Add-on-Liste, hier erweitern
+const ADDONS = ['white_label', 'ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // zentrale Add-on-Liste, hier erweitern
 
 function auth(req: Request): { ok: true; admin: SupabaseClient } | { ok: false; res: NextResponse } {
   const url = new URL(req.url)
@@ -58,6 +58,13 @@ export async function GET(req: Request) {
       .eq('tenant_id', tenantId).maybeSingle()
     if (!b.error) billing = b.data
   }
+  // Angefragte Add-ons separat und defensiv laden (Spalte feature_flags koennte fehlen)
+  let angefragt: string[] = []
+  try {
+    const ff = await admin.from('tenant_billing').select('feature_flags').eq('tenant_id', tenantId).maybeSingle()
+    const f = (ff.data as any)?.feature_flags
+    if (Array.isArray(f?.angefragt)) angefragt = f.angefragt
+  } catch {}
 
   return NextResponse.json({
     ok: true,
@@ -78,6 +85,7 @@ export async function GET(req: Request) {
       plan: billing.plan || 'klein',
       seats: typeof billing.seats === 'number' ? billing.seats : 1,
       addons: Array.isArray(billing.addons) ? billing.addons : [],
+      angefragt,
       status: billing.status || 'pilot',
       billing_interval: billing.billing_interval || 'monatlich',
       notes: billing.notes || '',
@@ -113,10 +121,24 @@ export async function POST(req: Request) {
   const notes = typeof body.notes === 'string' ? body.notes.slice(0, 4000) : ''
   const activated_at = status === 'aktiv' ? new Date().toISOString() : null
 
-  const row = {
+  // Freigegebene Add-ons aus der Anfrageliste entfernen. Nur wenn das Feld
+  // feature_flags existiert, damit ein fehlendes Feld das Speichern nicht bricht.
+  let feature_flags: any = undefined
+  try {
+    const cur = await admin.from('tenant_billing').select('feature_flags').eq('tenant_id', tenantId).maybeSingle()
+    if (!cur.error) {
+      const ff = (cur.data as any)?.feature_flags || {}
+      const angefragtAlt = Array.isArray(ff.angefragt) ? ff.angefragt : []
+      ff.angefragt = angefragtAlt.filter((k: string) => !addons.includes(k))
+      feature_flags = ff
+    }
+  } catch {}
+
+  const row: any = {
     tenant_id: tenantId, plan, seats, addons, status, billing_interval, notes,
     activated_at, updated_at: new Date().toISOString(),
   }
+  if (feature_flags !== undefined) row.feature_flags = feature_flags
 
   const up = await admin.from('tenant_billing').upsert(row, { onConflict: 'tenant_id' }).select().maybeSingle()
   if (up.error) {
