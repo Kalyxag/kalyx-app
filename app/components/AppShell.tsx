@@ -55,6 +55,7 @@ const I = {
   users:'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8',
   spark:'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18',
   plus:'M12 5v14M5 12h14',
+  chart:'M3 3v18h18M8 17v-5M13 17V8M18 17v-8',
 }
 function Ico({d}:{d:string}){return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>}
 
@@ -68,6 +69,7 @@ const MAIN_NAV=[
   {key:'team',label:'Team',href:'/team',icon:I.users},
 ]
 const ADMIN_NAV=[
+  {key:'berichte',label:'Berichte',href:'/berichte',icon:I.chart},
   {key:'ki',label:'KI-Kursersteller',href:'/kursersteller',icon:I.spark},
 ]
 
@@ -107,11 +109,11 @@ export default function AppShell({active,children}:{active:string;children:React
       {/* Mandant */}
       <div className="kx-only-wide">
         <div style={sideLabel}>Mandant</div>
-        <div style={{padding:'0 12px 8px',fontFamily:FB,fontSize:14.5,fontWeight:600,color:'rgba(255,255,255,.92)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{company||'—'}</div>
+        <div style={{padding:'0 12px 8px',fontFamily:FB,fontSize:14.5,fontWeight:600,color:'rgba(255,255,255,.92)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{company||'-'}</div>
       </div>
       {/* Hauptnavigation */}
       <nav className="kx-nav" style={{display:'flex',flexDirection:'column',gap:2,marginTop:6}}>
-        {MAIN_NAV.map(n=> n.soon
+        {MAIN_NAV.map((n:any)=> n.soon
           ? <div key={n.key} className="kx-soon" title="kommt bald"><Ico d={n.icon}/>{n.label}{soonTag}</div>
           : <a key={n.key} href={n.href} className={active===n.key?'kx-active':''}><Ico d={n.icon}/>{n.label}</a>
         )}
@@ -126,7 +128,7 @@ export default function AppShell({active,children}:{active:string;children:React
       <div className="kx-only-wide" style={{marginTop:'auto',display:'flex',alignItems:'center',gap:11,padding:'12px 8px 2px',borderTop:'1px solid rgba(255,255,255,.08)'}}>
         <div style={{width:34,height:34,borderRadius:'50%',background:'rgba(127,212,168,.18)',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:FM,fontSize:12,flexShrink:0}}>{initials}</div>
         <div style={{minWidth:0}}>
-          <div style={{fontFamily:FB,fontSize:13,fontWeight:600,color:'#fff',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{email||'—'}</div>
+          <div style={{fontFamily:FB,fontSize:13,fontWeight:600,color:'#fff',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{email||'-'}</div>
           <div style={{fontFamily:FM,fontSize:10.5,color:'rgba(255,255,255,.45)'}}>{ROLE[role]||'Nutzer'}</div>
         </div>
       </div>
