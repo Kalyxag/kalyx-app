@@ -1,7 +1,7 @@
 // Ziel-Pfad im Repo: app/erweiterungen/page.tsx  (NEU)
 //
 // Kundenbackend "Erweiterungen": zeigt alle Add-ons mit Status (aktiv,
-// angefragt, anfragbar), Admins koennen anfragen. Die Freigabe macht der
+// angefragt, anfragbar), Admins können anfragen. Die Freigabe macht der
 // KALYX-Support. Ist White-Label freigegeben, erscheint hier die Branding-
 // Maske (Logo, Markenname, Akzentfarbe). Ist es nicht aktiv, ist die Maske
 // gesperrt und verweist auf die Anfrage. Keine neuen Tabellen.
@@ -53,7 +53,7 @@ export default function ErweiterungenPage(){
     setLoading(false)
   })();return()=>{on=false}},[router])
 
-  async function aktion(key:string,action:'anfragen'|'zuruecknehmen'){
+  async function aktion(key:string,action:'anfragen'|'zurücknehmen'){
     setBusy(key)
     try{
       const {data}=await supabase.auth.getSession()
@@ -67,8 +67,8 @@ export default function ErweiterungenPage(){
     setSavingBrand(true); setBrandMsg('')
     try{
       const {error}=await supabase.from('branding').upsert({tenant_id:tid,brand_name:brandName.trim()||null,logo_url:logoUrl.trim()||null,primary_color:accent||null},{onConflict:'tenant_id'})
-      setBrandMsg(error?('Speichern nicht moeglich. Sind die Branding-Felder in der Datenbank angelegt? '+error.message):'Gespeichert. Beim naechsten Laden erscheint dein Branding in der Seitenleiste.')
-    }catch(e:any){ setBrandMsg('Speichern nicht moeglich: '+(e?.message||'Fehler')) }
+      setBrandMsg(error?('Speichern nicht möglich. Sind die Branding-Felder in der Datenbank angelegt? '+error.message):'Gespeichert. Beim nächsten Laden erscheint dein Branding in der Seitenleiste.')
+    }catch(e:any){ setBrandMsg('Speichern nicht möglich: '+(e?.message||'Fehler')) }
     setSavingBrand(false)
   }
 
@@ -81,14 +81,14 @@ export default function ErweiterungenPage(){
   return(<AppShell active="erweiterungen">
     <div style={eyebrow}>Erweiterungen</div>
     <h1 style={{fontFamily:FH,fontSize:32,fontWeight:600,color:NAVY,margin:'4px 0 6px'}}>Erweiterungen und Add-ons</h1>
-    <p style={{fontFamily:FB,fontSize:14.5,color:GRAY,lineHeight:1.6,marginBottom:22,maxWidth:680}}>Buche zusaetzliche Funktionen dazu. Du fragst eine Erweiterung an, KALYX gibt sie frei, danach ist sie sofort nutzbar. {isAdmin?'':'Anfragen koennen nur Administratoren stellen.'}</p>
+    <p style={{fontFamily:FB,fontSize:14.5,color:GRAY,lineHeight:1.6,marginBottom:22,maxWidth:680}}>Buche zusätzliche Funktionen dazu. Du fragst eine Erweiterung an, KALYX gibt sie frei, danach ist sie sofort nutzbar. {isAdmin?'':'Anfragen können nur Administratoren stellen.'}</p>
 
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))',gap:14,marginBottom:26}}>
       {ADDON_KATALOG.map(a=>{
         const aktiv=addons.includes(a.key)
         const offen=!aktiv&&angefragt.includes(a.key)
         const farbe=aktiv?GREEN:offen?GOLD:GRAY
-        const badge=aktiv?'Aktiv':offen?'Angefragt':'Verfuegbar'
+        const badge=aktiv?'Aktiv':offen?'Angefragt':'Verfügbar'
         const bg=aktiv?GREEN_PALE:offen?GOLD_PALE:'#FBFAF7'
         return(
           <div key={a.key} style={{...card,padding:18,display:'flex',flexDirection:'column',gap:8}}>
@@ -102,12 +102,12 @@ export default function ErweiterungenPage(){
               <div style={{fontFamily:FB,fontSize:12.5,color:GREEN,fontWeight:600}}>Freigeschaltet</div>
             ) : offen ? (
               isAdmin
-                ? <button disabled={busy===a.key} onClick={()=>aktion(a.key,'zuruecknehmen')} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GRAY,background:'#fff',border:`1px solid ${LINE}`,borderRadius:9,padding:'8px 12px',cursor:'pointer'}}>{busy===a.key?'…':'Anfrage zuruecknehmen'}</button>
-                : <div style={{fontFamily:FB,fontSize:12.5,color:GOLD}}>Anfrage laeuft</div>
+                ? <button disabled={busy===a.key} onClick={()=>aktion(a.key,'zurücknehmen')} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GRAY,background:'#fff',border:`1px solid ${LINE}`,borderRadius:9,padding:'8px 12px',cursor:'pointer'}}>{busy===a.key?'…':'Anfrage zurücknehmen'}</button>
+                : <div style={{fontFamily:FB,fontSize:12.5,color:GOLD}}>Anfrage läuft</div>
             ) : (
               isAdmin
                 ? <button disabled={busy===a.key} onClick={()=>aktion(a.key,'anfragen')} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:'#fff',background:GREEN,border:'none',borderRadius:9,padding:'9px 12px',cursor:'pointer'}}>{busy===a.key?'…':'Anfragen'}</button>
-                : <div style={{fontFamily:FB,fontSize:12.5,color:GRAY}}>Nur Admins koennen anfragen</div>
+                : <div style={{fontFamily:FB,fontSize:12.5,color:GRAY}}>Nur Admins können anfragen</div>
             )}
           </div>
         )
@@ -119,7 +119,7 @@ export default function ErweiterungenPage(){
     <h2 style={{fontFamily:FH,fontSize:24,fontWeight:600,color:NAVY,margin:'4px 0 14px'}}>Euer Branding</h2>
     {!wlAktiv ? (
       <div style={{...card,background:'#FBFAF7'}}>
-        <p style={{fontFamily:FB,fontSize:14,color:GRAY,lineHeight:1.6,margin:0}}>Diese Funktion gehoert zur Erweiterung White-Label und ist noch nicht freigeschaltet. {isAdmin?'Frage White-Label oben an, dann gibt KALYX sie frei und ihr koennt hier Logo, Markenname und Farbe setzen.':'Sobald ein Administrator White-Label anfragt und KALYX es freigibt, koennt ihr hier euer Branding setzen.'}</p>
+        <p style={{fontFamily:FB,fontSize:14,color:GRAY,lineHeight:1.6,margin:0}}>Diese Funktion gehört zur Erweiterung White-Label und ist noch nicht freigeschaltet. {isAdmin?'Frage White-Label oben an, dann gibt KALYX sie frei und ihr könnt hier Logo, Markenname und Farbe setzen.':'Sobald ein Administrator White-Label anfragt und KALYX es freigibt, könnt ihr hier euer Branding setzen.'}</p>
       </div>
     ) : (
       <div style={{...card}}>
