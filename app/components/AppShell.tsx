@@ -2,7 +2,7 @@
 //
 // Echte App-Shell: navy Seitenleiste (wie das Demo) + heller Hauptbereich.
 // Verlinkt die ECHTEN Seiten und zeigt echte Mandanten-/Nutzerdaten.
-// Verwendung in einer Seite:  <AppShell active="uebersicht"> ...Inhalt... </AppShell>
+// Verwendung in einer Seite:  <AppShell active="übersicht"> ...Inhalt... </AppShell>
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
@@ -63,7 +63,7 @@ function Ico({d}:{d:string}){return <svg width="18" height="18" viewBox="0 0 24 
 const ROLE:Record<string,string>={admin:'Administrator',manager:'Manager',learner:'Lernende/r'}
 
 const MAIN_NAV=[
-  {key:'uebersicht',label:'Übersicht',href:'/arbeitsbereich',icon:I.home},
+  {key:'übersicht',label:'Übersicht',href:'/arbeitsbereich',icon:I.home},
   {key:'lernen',label:'Lernen',href:'/bibliothek',icon:I.book},
   {key:'skills',label:'Skills',href:'/skills',icon:I.grid},
   {key:'nachweise',label:'Nachweise',href:'/nachweise',icon:I.badge},
