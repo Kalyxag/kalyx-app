@@ -1,6 +1,6 @@
 // Ziel-Pfad im Repo: app/support/page.tsx  (NEU)
 //
-// Geschuetzte Support-Uebersicht fuer den Plattformbetreiber. Zeigt nach Eingabe
+// Geschuetzte Support-Übersicht für den Plattformbetreiber. Zeigt nach Eingabe
 // des Zugangscodes alle Mandanten, getrennt nach Kunde und Demo, mit Kennzahlen
 // je Firma und global. Holt die Daten von /api/admin-overview. Reine Anzeige.
 
@@ -34,8 +34,8 @@ const ISTATUS_FG: Record<string, string> = { aktiv: '#14613e', vorbereitung: '#8
 const lblStyle: CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, color: INK, marginTop: 12, marginBottom: 4 }
 const inStyle: CSSProperties = { width: '100%', padding: '11px 13px', borderRadius: 10, border: '1px solid ' + LINE, background: CARD, fontSize: 14, fontFamily: FB }
 
-type Block = { mandanten: number; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
-type Mandant = { slug: string; name: string; sector: string | null; is_demo: boolean; status: string | null; paket: string | null; lizenzen: number | null; addons: string[]; abrechnung: string | null; konto_status: string | null; mitglieder: number; kurse_eigen: number; pruefungen_bestanden: number; nachweise: number; bestnote: number }
+type Block = { mandanten: number; mitglieder: number; kurse_eigen: number; prüfungen_bestanden: number; nachweise: number; bestnote: number }
+type Mandant = { slug: string; name: string; sector: string | null; is_demo: boolean; status: string | null; paket: string | null; lizenzen: number | null; addons: string[]; abrechnung: string | null; konto_status: string | null; mitglieder: number; kurse_eigen: number; prüfungen_bestanden: number; nachweise: number; bestnote: number }
 type Data = { ok: boolean; demo_quelle: string; billing_vorhanden?: boolean; global: Block & { kunden: number; demo: number }; nur_kunden: Block; nur_demo: Block; mandanten: Mandant[] }
 
 function injectCI() {
@@ -139,7 +139,7 @@ function UmsatzPanel({ mandanten, setupRabatt, setSetupRabatt }: { mandanten: Ma
 
       <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, padding: '18px 20px', marginBottom: 22 }}>
         <div style={{ fontFamily: FH, fontSize: 18, fontWeight: 700, color: INK, marginBottom: 4 }}>Einmalige Einrichtung</div>
-        <div style={{ fontSize: 13, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Einmalig {fmtCHF(SETUP_GEBUEHR)} je neuem Kunden. Im Pilot ueblicherweise voll rabattiert. Verschiebe den Regler, um den Effekt zu sehen.</div>
+        <div style={{ fontSize: 13, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Einmalig {fmtCHF(SETUP_GEBUEHR)} je neuem Kunden. Im Pilot üblicherweise voll rabattiert. Verschiebe den Regler, um den Effekt zu sehen.</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <input type="range" min={0} max={100} value={rabattProzent} onChange={e => setSetupRabatt(Number(e.target.value) / 100)} style={{ flex: '1 1 220px', accentColor: GREEN }} />
           <div style={{ fontFamily: FM, fontSize: 13, color: INK, minWidth: 92 }}>Rabatt {rabattProzent}%</div>
@@ -343,7 +343,7 @@ export default function SupportPage() {
     try {
       const res = await fetch('/api/admin-overview?token=' + encodeURIComponent(code), { cache: 'no-store' })
       const j = await res.json()
-      if (!res.ok || !j.ok) { setError(j.error || 'Zugriff nicht moeglich. Code pruefen.'); setData(null) }
+      if (!res.ok || !j.ok) { setError(j.error || 'Zugriff nicht möglich. Code pruefen.'); setData(null) }
       else setData(j as Data)
     } catch {
       setError('Verbindung fehlgeschlagen. Bitte erneut versuchen.')
@@ -360,7 +360,7 @@ export default function SupportPage() {
         <div style={{ width: '100%', maxWidth: 420, background: CARD, borderRadius: 18, padding: 36, boxShadow: '0 24px 60px rgba(0,0,0,0.28)' }}>
           <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 3, color: GOLD, textTransform: 'uppercase', textAlign: 'center' }}>Support</div>
           <div style={{ fontFamily: FH, fontSize: 38, fontWeight: 700, color: NAVY, textAlign: 'center', marginTop: 4 }}>KALYX</div>
-          <p style={{ color: MUTE, textAlign: 'center', marginTop: 8, marginBottom: 24, fontSize: 14 }}>Interne Mandantenuebersicht. Bitte Zugangscode eingeben.</p>
+          <p style={{ color: MUTE, textAlign: 'center', marginTop: 8, marginBottom: 24, fontSize: 14 }}>Interne Mandantenübersicht. Bitte Zugangscode eingeben.</p>
           <label style={{ fontSize: 13, fontWeight: 600, color: INK }}>Zugangscode</label>
           <input
             className="kx-in" type="password" value={token}
@@ -379,7 +379,7 @@ export default function SupportPage() {
     )
   }
 
-  // ---- Uebersicht ----
+  // ---- Übersicht ----
   const Kachel = ({ label, value, sub }: { label: string; value: string | number; sub?: string }) => (
     <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 14, padding: '18px 20px', flex: '1 1 160px', minWidth: 150 }}>
       <div style={{ fontFamily: FH, fontSize: 40, fontWeight: 700, color: NAVY, lineHeight: 1 }}>{value}</div>
@@ -408,7 +408,7 @@ export default function SupportPage() {
         <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 3, color: GOLD, textTransform: 'uppercase' }}>Support</div>
-            <div style={{ fontFamily: FH, fontSize: 30, fontWeight: 700, lineHeight: 1.1 }}>Mandantenuebersicht</div>
+            <div style={{ fontFamily: FH, fontSize: 30, fontWeight: 700, lineHeight: 1.1 }}>Mandantenübersicht</div>
           </div>
           <button onClick={() => { setData(null); setToken('') }}
             style={{ padding: '9px 16px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.3)', background: 'transparent', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -437,7 +437,7 @@ export default function SupportPage() {
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
             <Kachel label="Mandanten" value={shown.mandanten} sub={filter === 'alle' ? (data.global.kunden + ' Kunden, ' + data.global.demo + ' Demo') : undefined} />
             <Kachel label="Mitglieder" value={shown.mitglieder} />
-            <Kachel label="Bestandene Pruefungen" value={shown.pruefungen_bestanden} />
+            <Kachel label="Bestandene Prüfungen" value={shown.prüfungen_bestanden} />
             <Kachel label="Ausgestellte Nachweise" value={shown.nachweise} />
             <Kachel label="Bestnote" value={shown.bestnote ? shown.bestnote + '%' : '-'} />
           </div>
@@ -445,7 +445,7 @@ export default function SupportPage() {
 
         {filter !== 'kunden' && (
           <p style={{ fontSize: 12.5, color: MUTE, margin: '4px 2px 18px', lineHeight: 1.5 }}>
-            Hinweis: Demo-Konten sind Testdaten. Fuer oeffentliches Marketing bitte nur die Ansicht Kunden verwenden.
+            Hinweis: Demo-Konten sind Testdaten. Für oeffentliches Marketing bitte nur die Ansicht Kunden verwenden.
           </p>
         )}
 
@@ -488,7 +488,7 @@ export default function SupportPage() {
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.mitglieder}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.kurse_eigen}</td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.pruefungen_bestanden}</td>
+                    <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.prüfungen_bestanden}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13 }}>{m.nachweise}</td>
                     <td style={{ padding: '12px 14px', textAlign: 'right', fontFamily: FM, fontSize: 13, color: m.bestnote >= 90 ? GREEN : INK }}>{m.bestnote ? m.bestnote + '%' : '-'}</td>
                   </tr>
@@ -524,7 +524,7 @@ export default function SupportPage() {
 
             <div style={{ padding: 24 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
-                {([['Mitglieder', sel.mitglieder], ['Eigene Kurse', sel.kurse_eigen], ['Bestanden', sel.pruefungen_bestanden], ['Nachweise', sel.nachweise]] as [string, number][]).map(([l, v], i) => (
+                {([['Mitglieder', sel.mitglieder], ['Eigene Kurse', sel.kurse_eigen], ['Bestanden', sel.prüfungen_bestanden], ['Nachweise', sel.nachweise]] as [string, number][]).map(([l, v], i) => (
                   <div key={i} style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 12, padding: '14px 16px' }}>
                     <div style={{ fontFamily: FH, fontSize: 28, fontWeight: 700, color: NAVY, lineHeight: 1 }}>{v}</div>
                     <div style={{ fontSize: 12, color: MUTE, marginTop: 4 }}>{l}</div>
@@ -590,9 +590,9 @@ export default function SupportPage() {
                 })}
               </div>
 
-              <label style={{ ...lblStyle, marginTop: 16 }}>Interne Notiz (nur fuer das Team)</label>
+              <label style={{ ...lblStyle, marginTop: 16 }}>Interne Notiz (nur für das Team)</label>
               <textarea className="kx-in" value={eNotes} onChange={e => setENotes(e.target.value)} rows={4}
-                placeholder="Gespraechsnotizen, naechste Schritte, Vereinbarungen ..."
+                placeholder="Gespraechsnotizen, nächste Schritte, Vereinbarungen ..."
                 style={{ ...inStyle, resize: 'vertical', minHeight: 92, lineHeight: 1.5 }} />
               {detail && detail.billing && detail.billing.updated_at && (
                 <div style={{ fontSize: 11.5, color: MUTE, marginTop: 6, fontFamily: FM }}>Zuletzt bearbeitet: {new Date(detail.billing.updated_at).toLocaleString('de-CH')}</div>
@@ -600,14 +600,14 @@ export default function SupportPage() {
 
               <button onClick={() => void saveDetail()} disabled={saving}
                 style={{ width: '100%', marginTop: 22, padding: '13px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
-                {saving ? 'Speichert ...' : 'Aenderungen speichern'}
+                {saving ? 'Speichert ...' : 'Änderungen speichern'}
               </button>
               {saveMsg && <div style={{ marginTop: 10, fontSize: 13, color: saveMsg === 'Gespeichert.' ? GREEN : '#b3261e', textAlign: 'center' }}>{saveMsg}</div>}
 
               {/* ---- Integrationen ---- */}
               <div style={{ borderTop: '1px solid ' + LINE, marginTop: 28, paddingTop: 22 }}>
                 <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Integrationen</div>
-                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Pro Kunde freischalten. "Aktiv" ist nur moeglich, wo die Anbindung schon gebaut ist. Alles andere laeuft in der App als "in Vorbereitung".</div>
+                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Pro Kunde freischalten. "Aktiv" ist nur möglich, wo die Anbindung schon gebaut ist. Alles andere läuft in der App als "in Vorbereitung".</div>
 
                 {integLoading && <div style={{ fontSize: 13, color: MUTE }}>Laedt Integrationen ...</div>}
                 {integError && <div style={{ fontSize: 13, color: '#b3261e' }}>{integError}</div>}
@@ -626,7 +626,7 @@ export default function SupportPage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                               <div style={{ minWidth: 0 }}>
                                 <div style={{ fontSize: 14, fontWeight: 600, color: INK }}>{def.name}</div>
-                                <div style={{ fontSize: 11, color: MUTE, fontFamily: FM, marginTop: 2 }}>{def.protokoll}{def.implementiert ? '' : ' · noch nicht verfuegbar'}</div>
+                                <div style={{ fontSize: 11, color: MUTE, fontFamily: FM, marginTop: 2 }}>{def.protokoll}{def.implementiert ? '' : ' · noch nicht verfügbar'}</div>
                               </div>
                               <select value={st} onChange={e => setIStatus(s => ({ ...s, [def.key]: e.target.value }))}
                                 style={{ ...inStyle, width: 'auto', padding: '7px 9px', fontSize: 13, color: ISTATUS_FG[st], fontWeight: 600 }}>
@@ -646,7 +646,7 @@ export default function SupportPage() {
                                   <input type="checkbox" checked={!!iShowNames[def.key]} onChange={e => setIShowNames(s => ({ ...s, [def.key]: e.target.checked }))} />
                                   <span>Klarnamen in Benachrichtigungen anzeigen</span>
                                 </label>
-                                <div style={{ fontSize: 11.5, color: MUTE, marginTop: 4, lineHeight: 1.5 }}>{iShowNames[def.key] ? 'Meldungen enthalten den Namen, z.B. "Max Muster hat eine Pruefung bestanden."' : 'Datensparsam (empfohlen): ohne Namen, z.B. "Eine lernende Person hat eine Pruefung bestanden."'}</div>
+                                <div style={{ fontSize: 11.5, color: MUTE, marginTop: 4, lineHeight: 1.5 }}>{iShowNames[def.key] ? 'Meldungen enthalten den Namen, z.B. "Max Muster hat eine Prüfung bestanden."' : 'Datensparsam (empfohlen): ohne Namen, z.B. "Eine lernende Person hat eine Prüfung bestanden."'}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
                                   <button onClick={() => void testWebhook(def.key)} disabled={!!testing[def.key]}
                                     style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid ' + GREEN, background: '#fff', color: GREEN, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
