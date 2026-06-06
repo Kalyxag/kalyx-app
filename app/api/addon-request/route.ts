@@ -1,9 +1,9 @@
 // Ziel-Pfad im Repo: app/api/addon-request/route.ts  (NEU)
 //
-// Kundenbackend-Schnittstelle fuer Erweiterungen (Add-ons):
+// Kundenbackend-Schnittstelle für Erweiterungen (Add-ons):
 //   action 'status'        -> liefert { addons, angefragt } des eigenen Mandanten
 //   action 'anfragen'      -> setzt ein Add-on auf "angefragt" (nur Admin)
-//   action 'zuruecknehmen' -> nimmt eine Anfrage zurueck (nur Admin)
+//   action 'zurücknehmen' -> nimmt eine Anfrage zurück (nur Admin)
 //
 // Die Freigabe selbst macht ausschliesslich der KALYX-Support. Hier wird nur
 // angefragt. Mandant und Berechtigung werden serverseitig geprueft.
@@ -43,8 +43,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, addons, angefragt })
     }
 
-    // Aendernde Aktionen nur fuer Admins
-    if (level !== 'admin') return NextResponse.json({ ok: false, error: 'nur Admins koennen Erweiterungen anfragen' }, { status: 403 })
+    // Ändernde Aktionen nur für Admins
+    if (level !== 'admin') return NextResponse.json({ ok: false, error: 'nur Admins können Erweiterungen anfragen' }, { status: 403 })
 
     const key = String(body.addon_key || '')
     if (!GUELTIGE_KEYS.includes(key)) return NextResponse.json({ ok: false, error: 'unbekannte Erweiterung' }, { status: 400 })
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     if (action === 'anfragen') {
       if (addons.includes(key)) return NextResponse.json({ ok: true, addons, angefragt }) // schon aktiv
       if (!angefragt.includes(key)) angefragt = [...angefragt, key]
-    } else if (action === 'zuruecknehmen') {
+    } else if (action === 'zurücknehmen') {
       angefragt = angefragt.filter(k => k !== key)
     } else {
       return NextResponse.json({ ok: false, error: 'unbekannte Aktion' }, { status: 400 })
