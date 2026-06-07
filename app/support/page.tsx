@@ -8,7 +8,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react'
 import { INTEGRATIONS, INTEGRATION_KATEGORIEN, INTEGRATION_MAP } from '@/lib/integrations/catalog'
-import { PLAN_PREIS_PRO_PERSON, ADDON_PREIS, SETUP_GEBUEHR, SETUP_RABATT_STANDARD, JAHRESRABATT, mrrMandant, arrMandant, lizenzMrr } from '@/lib/billing/preise'
+import { PLAN_PREIS_PRO_PERSON, ADDON_PREIS, SETUP_GEBUEHR, SETUP_RABATT_STANDARD, JAHRESRABATT, mrrMandant, arrMandant, lizenzMrr, rechnePaket } from '@/lib/billing/preise'
 
 const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = '#14613E', GOLD = '#B8904A'
 const INK = '#1d2733', MUTE = '#5b6b7a', LINE = '#e4e1d8', CARD = '#ffffff'
@@ -22,7 +22,7 @@ const SECTOR_LABEL: Record<string, string> = {
 }
 const PLAN_LABEL: Record<string, string> = { klein: 'KLEIN', mittel: 'MITTEL', gross: 'GROSS', konzern: 'KONZERN' }
 const ADDON_LABEL: Record<string, string> = { white_label: 'White-Label', ki_budget: 'KI-Kursbudget', api: 'API-Anbindung', support: 'Erweiterter Support', bi: 'BI-Anbindung', sso: 'SSO / SAML', dedicated: 'Dedizierte CH-Infra' }
-const ADDON_ORDER = ['white_label', 'ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergaenzen
+const ADDON_ORDER = ['white_label', 'ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // neue Add-ons hier und in ADDON_LABEL ergänzen
 const STATUS_LABEL: Record<string, string> = { pilot: 'Pilot', aktiv: 'Aktiv', gesperrt: 'Gesperrt' }
 const STATUS_BG: Record<string, string> = { pilot: '#f3eccf', aktiv: '#dcefe4', gesperrt: '#f6dcdc' }
 const STATUS_FG: Record<string, string> = { pilot: '#8a6d1f', aktiv: '#14613e', gesperrt: '#9b2c2c' }
@@ -100,7 +100,7 @@ function UmsatzPanel({ mandanten, setupRabatt, setSetupRabatt }: { mandanten: Ma
 
       <div style={{ background: '#f8f1e4', border: '1px solid ' + GOLD, borderRadius: 12, padding: '14px 18px', marginBottom: 22 }}>
         <div style={{ fontSize: 13.5, color: '#6f5a24', lineHeight: 1.5 }}>
-          <strong style={{ fontWeight: 700 }}>Demo-Potenzial:</strong> Die {demo.length} Demo-Konten wuerden nach diesem Modell rechnerisch {fmtCHF(mrrD)} pro Monat ergeben. Diese Zahl dient nur der Orientierung und zaehlt bewusst nicht zum Umsatz.
+          <strong style={{ fontWeight: 700 }}>Demo-Potenzial:</strong> Die {demo.length} Demo-Konten würden nach diesem Modell rechnerisch {fmtCHF(mrrD)} pro Monat ergeben. Diese Zahl dient nur der Orientierung und zählt bewusst nicht zum Umsatz.
         </div>
       </div>
 
@@ -198,6 +198,9 @@ export default function SupportPage() {
   const [detailError, setDetailError] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
+  const [zUrl, setZUrl] = useState('')
+  const [zBusy, setZBusy] = useState(false)
+  const [zMsg, setZMsg] = useState('')
 
   // Integrationen
   const [integItems, setIntegItems] = useState<Record<string, any>>({})
@@ -210,6 +213,22 @@ export default function SupportPage() {
   const [integMsg, setIntegMsg] = useState('')
   const [testing, setTesting] = useState<Record<string, boolean>>({})
   const [testMsg, setTestMsg] = useState<Record<string, string>>({})
+
+  // Neuer Kunde anlegen
+  const [neuOffen, setNeuOffen] = useState(false)
+  const [nFirma, setNFirma] = useState('')
+  const [nKontakt, setNKontakt] = useState('')
+  const [nPlan, setNPlan] = useState('klein')
+  const [nSeats, setNSeats] = useState('1')
+  const [nInterval, setNInterval] = useState('monatlich')
+  const [nAddons, setNAddons] = useState<string[]>([])
+  const [nStatus, setNStatus] = useState('pilot')
+  const [nAdminName, setNAdminName] = useState('')
+  const [nAdminEmail, setNAdminEmail] = useState('')
+  const [nEinladen, setNEinladen] = useState<'mail' | 'link' | 'kein'>('mail')
+  const [nBusy, setNBusy] = useState(false)
+  const [nMsg, setNMsg] = useState('')
+  const [nLink, setNLink] = useState('')
 
   async function loadInteg(slug: string) {
     setIntegItems({}); setIStatus({}); setIUrl({}); setIShowNames({}); setIntegError(''); setIntegMsg(''); setTestMsg({})
@@ -275,7 +294,7 @@ export default function SupportPage() {
     setEAngefragt([])
     setEStatus(m.konto_status || 'pilot')
     setEInterval(m.abrechnung || 'monatlich')
-    setENotes(''); setSaveMsg('')
+    setENotes(''); setSaveMsg(''); setZUrl(''); setZMsg('')
     setDetail(null); setDetailError(''); setDetailLoading(true)
     try {
       const res = await fetch('/api/admin-tenant?token=' + encodeURIComponent(token) + '&slug=' + encodeURIComponent(m.slug), { cache: 'no-store' })
@@ -326,6 +345,63 @@ export default function SupportPage() {
     } finally { setSaving(false) }
   }
 
+  async function zahlungslinkErstellen() {
+    if (!sel) return
+    setZBusy(true); setZMsg(''); setZUrl('')
+    try {
+      const res = await fetch('/api/stripe-checkout?token=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: sel.slug }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (j?.ok && j.url) setZUrl(j.url)
+      else setZMsg(j?.error || 'Zahlungslink konnte nicht erstellt werden.')
+    } catch { setZMsg('Verbindung fehlgeschlagen.') }
+    finally { setZBusy(false) }
+  }
+
+  function neuZuruecksetzen() {
+    setNFirma(''); setNKontakt(''); setNPlan('klein'); setNSeats('1'); setNInterval('monatlich')
+    setNAddons([]); setNStatus('pilot'); setNAdminName(''); setNAdminEmail(''); setNEinladen('mail')
+    setNBusy(false); setNMsg(''); setNLink('')
+  }
+
+  function nToggleAddon(a: string) {
+    setNAddons(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])
+  }
+
+  async function neukundeAnlegen() {
+    if (!nFirma.trim()) { setNMsg('Bitte einen Firmennamen angeben.'); return }
+    if (nEinladen !== 'kein' && !nAdminEmail.trim()) { setNMsg('Für eine Einladung wird die E-Mail des Administrators benötigt.'); return }
+    const seatsNum = parseInt(nSeats, 10)
+    if (!Number.isFinite(seatsNum) || seatsNum < 0) { setNMsg('Bitte eine gültige Lizenzzahl eingeben (0 oder mehr).'); return }
+    setNBusy(true); setNMsg(''); setNLink('')
+    try {
+      const res = await fetch('/api/admin-create-tenant?token=' + encodeURIComponent(token), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firma: nFirma.trim(), kontakt_email: nKontakt.trim(), plan: nPlan, seats: seatsNum,
+          billing_interval: nInterval, addons: nAddons, status: nStatus,
+          admin_name: nAdminName.trim(), admin_email: nAdminEmail.trim(), einladen: nEinladen,
+        }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || !j.ok) { setNMsg(j?.error || ('Anlegen fehlgeschlagen (Status ' + res.status + ').')); return }
+      await load(token)
+      if (j.link) {
+        setNLink(j.link)
+        setNMsg('Kunde angelegt. Einladungslink unten zum Weitergeben.')
+      } else if (j.hinweis) {
+        setNMsg(j.hinweis)
+      } else if (j.mail_versendet) {
+        setNMsg('Kunde angelegt und Einladung an den Administrator versendet.')
+      } else {
+        setNMsg('Kunde angelegt.')
+      }
+    } catch { setNMsg('Verbindung fehlgeschlagen. Bitte erneut versuchen.') }
+    finally { setNBusy(false) }
+  }
+
   useEffect(() => {
     injectCI()
     try {
@@ -373,7 +449,7 @@ export default function SupportPage() {
           <button
             onClick={() => void load(token)} disabled={loading}
             style={{ width: '100%', padding: '13px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: loading ? 0.7 : 1 }}
-          >{loading ? 'Laedt ...' : 'Anzeigen'}</button>
+          >{loading ? 'Lädt ...' : 'Anzeigen'}</button>
         </div>
       </div>
     )
@@ -418,9 +494,14 @@ export default function SupportPage() {
       </div>
 
       <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px' }}>
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           <Ansicht id="mandanten" text="Mandanten" />
           <Ansicht id="umsatz" text="Umsatz" />
+          <button onClick={() => { neuZuruecksetzen(); setNeuOffen(true) }}
+            style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            Neuer Kunde
+          </button>
         </div>
 
         {ansicht === 'umsatz' ? (
@@ -445,7 +526,7 @@ export default function SupportPage() {
 
         {filter !== 'kunden' && (
           <p style={{ fontSize: 12.5, color: MUTE, margin: '4px 2px 18px', lineHeight: 1.5 }}>
-            Hinweis: Demo-Konten sind Testdaten. Für oeffentliches Marketing bitte nur die Ansicht Kunden verwenden.
+            Hinweis: Demo-Konten sind Testdaten. Für öffentliches Marketing bitte nur die Ansicht Kunden verwenden.
           </p>
         )}
 
@@ -533,11 +614,11 @@ export default function SupportPage() {
               </div>
 
               <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 6 }}>Profil und Kontakt</div>
-              {detailLoading && <div style={{ fontSize: 13, color: MUTE, marginBottom: 18 }}>Laedt Details ...</div>}
+              {detailLoading && <div style={{ fontSize: 13, color: MUTE, marginBottom: 18 }}>Lädt Details ...</div>}
               {detailError && <div style={{ fontSize: 13, color: '#b3261e', marginBottom: 18 }}>{detailError}</div>}
               {detail && detail.profil && (
                 <div style={{ background: CARD, border: '1px solid ' + LINE, borderRadius: 12, padding: '14px 16px', marginBottom: 22, fontSize: 13.5, lineHeight: 1.8 }}>
-                  {(([['Ansprechpartner', detail.profil.contact_name], ['E-Mail', detail.profil.contact_email], ['Telefon', detail.profil.contact_phone], ['Website', detail.profil.website], ['Rechtsname', detail.profil.legal_name], ['UID / HR', detail.profil.uid], ['Land', detail.profil.country], ['Groesse', detail.profil.company_size]]) as [string, string | null][])
+                  {(([['Ansprechpartner', detail.profil.contact_name], ['E-Mail', detail.profil.contact_email], ['Telefon', detail.profil.contact_phone], ['Website', detail.profil.website], ['Rechtsname', detail.profil.legal_name], ['UID / HR', detail.profil.uid], ['Land', detail.profil.country], ['Grösse', detail.profil.company_size]]) as [string, string | null][])
                     .filter(([, v]) => v).map(([l, v], i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                         <span style={{ color: MUTE }}>{l}</span>
@@ -604,12 +685,40 @@ export default function SupportPage() {
               </button>
               {saveMsg && <div style={{ marginTop: 10, fontSize: 13, color: saveMsg === 'Gespeichert.' ? GREEN : '#b3261e', textAlign: 'center' }}>{saveMsg}</div>}
 
+              {/* ---- Zahlung ---- */}
+              <div style={{ borderTop: '1px solid ' + LINE, marginTop: 28, paddingTop: 22 }}>
+                <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Zahlung</div>
+                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Erzeugt einen sicheren Zahlungslink über Stripe für das gespeicherte Paket. Bitte zuerst speichern. Nach der Zahlung wird der Mandant automatisch auf aktiv gesetzt und die Rechnung an den Kunden gesendet.</div>
+                {(() => {
+                  const zr = rechnePaket({ paket: ePlan, lizenzen: parseInt(eSeats, 10) || 0, addons: eAddons, abrechnung: eInterval })
+                  return (
+                    <div style={{ border: '1px solid ' + LINE, borderRadius: 10, padding: '12px 14px', background: CARD, marginBottom: 12 }}>
+                      <div style={{ fontSize: 13, color: INK }}>Rechnungsbetrag: <span style={{ fontWeight: 700, fontFamily: FM }}>CHF {zr.total.toLocaleString('de-CH')}</span> <span style={{ color: MUTE }}>pro {zr.interval === 'jaehrlich' ? 'Jahr' : 'Monat'}</span></div>
+                      {zr.total <= 0 && <div style={{ fontSize: 12, color: '#b3261e', marginTop: 4 }}>Betrag ist 0. Bitte Paket, Lizenzen oder Add-ons einstellen.</div>}
+                    </div>
+                  )
+                })()}
+                <button onClick={() => void zahlungslinkErstellen()} disabled={zBusy}
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid ' + GREEN, background: '#fff', color: GREEN, fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: zBusy ? 0.7 : 1 }}>
+                  {zBusy ? 'Erstellt ...' : 'Zahlungslink erstellen'}
+                </button>
+                {zMsg && <div style={{ marginTop: 10, fontSize: 13, color: '#b3261e', lineHeight: 1.5 }}>{zMsg}</div>}
+                {zUrl && (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 6 }}>Diesen Link dem Kunden senden:</div>
+                    <div style={{ padding: '10px 12px', background: '#f6f3ec', border: '1px solid ' + GOLD, borderRadius: 9, fontFamily: FM, fontSize: 11.5, color: INK, wordBreak: 'break-all', lineHeight: 1.5 }}>{zUrl}</div>
+                    <button onClick={() => { try { navigator.clipboard.writeText(zUrl) } catch {} }}
+                      style={{ marginTop: 8, padding: '8px 14px', borderRadius: 8, border: '1px solid ' + LINE, background: '#fff', color: INK, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Link kopieren</button>
+                  </div>
+                )}
+              </div>
+
               {/* ---- Integrationen ---- */}
               <div style={{ borderTop: '1px solid ' + LINE, marginTop: 28, paddingTop: 22 }}>
                 <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Integrationen</div>
                 <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Pro Kunde freischalten. "Aktiv" ist nur möglich, wo die Anbindung schon gebaut ist. Alles andere läuft in der App als "in Vorbereitung".</div>
 
-                {integLoading && <div style={{ fontSize: 13, color: MUTE }}>Laedt Integrationen ...</div>}
+                {integLoading && <div style={{ fontSize: 13, color: MUTE }}>Lädt Integrationen ...</div>}
                 {integError && <div style={{ fontSize: 13, color: '#b3261e' }}>{integError}</div>}
 
                 {!integLoading && !integError && INTEGRATION_KATEGORIEN.map(kat => {
@@ -680,8 +789,106 @@ export default function SupportPage() {
               </div>
 
               <div style={{ fontSize: 11, color: MUTE, marginTop: 16, fontFamily: FM, lineHeight: 1.5 }}>
-                {'Mandant: ' + sel.slug + (sel.is_demo ? ' · Demo-Konto (zaehlt nicht als Umsatz)' : '')}
+                {'Mandant: ' + sel.slug + (sel.is_demo ? ' · Demo-Konto (zählt nicht als Umsatz)' : '')}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {neuOffen && (
+        <div onClick={() => { if (!nBusy) setNeuOffen(false) }} style={{ position: 'fixed', inset: 0, background: 'rgba(11,25,41,0.45)', zIndex: 1000, display: 'flex', justifyContent: 'flex-end' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, height: '100%', background: CREAM, boxShadow: '-20px 0 50px rgba(0,0,0,0.25)', overflowY: 'auto' }}>
+            <div style={{ background: NAVY, color: '#fff', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: GREEN, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: FH, fontSize: 24, fontWeight: 700, lineHeight: 1.1 }}>Neuer Kunde</div>
+                <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.7)', marginTop: 2 }}>Firma, Paket und ersten Administrator anlegen</div>
+              </div>
+              <button onClick={() => { if (!nBusy) setNeuOffen(false) }} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: 8, padding: '6px 10px', cursor: 'pointer', fontSize: 13 }}>Schliessen</button>
+            </div>
+
+            <div style={{ padding: 24 }}>
+              <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 6 }}>Firma</div>
+              <label style={lblStyle}>Firmenname</label>
+              <input value={nFirma} onChange={e => setNFirma(e.target.value)} placeholder="z. B. Muster Treuhand AG" style={inStyle} />
+              <label style={{ ...lblStyle, marginTop: 14 }}>Kontakt-E-Mail (optional)</label>
+              <input value={nKontakt} onChange={e => setNKontakt(e.target.value)} placeholder="kontakt@firma.ch" style={inStyle} />
+
+              <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', margin: '24px 0 6px' }}>Paket und Lizenzen</div>
+              <label style={lblStyle}>Paket</label>
+              <select value={nPlan} onChange={e => setNPlan(e.target.value)} style={inStyle}>
+                <option value="klein">Klein</option>
+                <option value="mittel">Mittel</option>
+                <option value="gross">Gross</option>
+                <option value="konzern">Konzern</option>
+              </select>
+              <label style={{ ...lblStyle, marginTop: 14 }}>Lizenzen (Personen)</label>
+              <input type="number" min={0} value={nSeats} onChange={e => setNSeats(e.target.value)} style={inStyle} />
+              <label style={{ ...lblStyle, marginTop: 14 }}>Abrechnung</label>
+              <select value={nInterval} onChange={e => setNInterval(e.target.value)} style={inStyle}>
+                <option value="monatlich">Monatlich</option>
+                <option value="jaehrlich">Jährlich (10% Rabatt)</option>
+              </select>
+              <label style={{ ...lblStyle, marginTop: 14 }}>Status</label>
+              <select value={nStatus} onChange={e => setNStatus(e.target.value)} style={inStyle}>
+                <option value="pilot">Pilot</option>
+                <option value="aktiv">Aktiv</option>
+                <option value="gesperrt">Gesperrt</option>
+              </select>
+
+              <label style={{ ...lblStyle, marginTop: 16 }}>Add-ons</label>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {ADDON_ORDER.map(a => {
+                  const on = nAddons.includes(a)
+                  return (
+                    <button key={a} onClick={() => nToggleAddon(a)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderRadius: 10, border: '1px solid ' + (on ? GREEN : LINE), background: on ? '#eef5f0' : CARD, color: INK, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+                      <span>{ADDON_LABEL[a] || a}</span>
+                      <span style={{ color: MUTE, fontSize: 12.5, fontFamily: FM }}>{(ADDON_PREIS[a] || 0)} CHF/Mt.</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {(() => {
+                const zr = rechnePaket({ paket: nPlan, lizenzen: parseInt(nSeats, 10) || 0, addons: nAddons, abrechnung: nInterval })
+                return (
+                  <div style={{ border: '1px solid ' + LINE, borderRadius: 10, padding: '12px 14px', background: CARD, margin: '16px 0 0' }}>
+                    <div style={{ fontSize: 13, color: INK }}>Rechnungsbetrag: <span style={{ fontWeight: 700, fontFamily: FM }}>CHF {zr.total.toLocaleString('de-CH')}</span> <span style={{ color: MUTE }}>pro {zr.interval === 'jaehrlich' ? 'Jahr' : 'Monat'}</span></div>
+                  </div>
+                )
+              })()}
+
+              <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', margin: '24px 0 6px' }}>Erster Administrator</div>
+              <label style={lblStyle}>Name</label>
+              <input value={nAdminName} onChange={e => setNAdminName(e.target.value)} placeholder="Vor- und Nachname" style={inStyle} />
+              <label style={{ ...lblStyle, marginTop: 14 }}>E-Mail</label>
+              <input value={nAdminEmail} onChange={e => setNAdminEmail(e.target.value)} placeholder="admin@firma.ch" style={inStyle} />
+              <label style={{ ...lblStyle, marginTop: 14 }}>Einladung</label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {([['mail', 'Per E-Mail'], ['link', 'Als Link'], ['kein', 'Ohne (später)']] as [typeof nEinladen, string][]).map(([val, label]) => (
+                  <button key={val} onClick={() => setNEinladen(val)} style={{ flex: 1, minWidth: 110, padding: '10px 12px', borderRadius: 10, border: '1px solid ' + (nEinladen === val ? GREEN : LINE), background: nEinladen === val ? '#eef5f0' : CARD, color: INK, cursor: 'pointer', fontSize: 13.5, fontWeight: 600 }}>{label}</button>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, color: MUTE, marginTop: 8, lineHeight: 1.5 }}>
+                Per E-Mail sendet KALYX die gebrandete Einladung direkt. Als Link erzeugt einen Einladungslink zum selber Weitergeben. Ohne legt nur den Kunden an; den Administrator lädst du später über das Team ein.
+              </div>
+
+              <button onClick={() => void neukundeAnlegen()} disabled={nBusy}
+                style={{ width: '100%', marginTop: 22, padding: '13px 16px', borderRadius: 10, border: 'none', background: GREEN, color: '#fff', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: nBusy ? 0.7 : 1 }}>
+                {nBusy ? 'Legt an ...' : 'Kunden anlegen'}
+              </button>
+              {nMsg && <div style={{ marginTop: 12, fontSize: 13, color: nLink || nMsg.startsWith('Kunde angelegt') ? GREEN : '#b3261e', textAlign: 'center', lineHeight: 1.5 }}>{nMsg}</div>}
+              {nLink && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 6 }}>Einladungslink für den Administrator:</div>
+                  <div style={{ padding: '10px 12px', background: '#f6f3ec', border: '1px solid ' + GOLD, borderRadius: 9, fontFamily: FM, fontSize: 11.5, color: INK, wordBreak: 'break-all', lineHeight: 1.5 }}>{nLink}</div>
+                  <button onClick={() => { try { navigator.clipboard.writeText(nLink) } catch {} }}
+                    style={{ marginTop: 8, padding: '8px 14px', borderRadius: 8, border: '1px solid ' + LINE, background: '#fff', color: INK, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Link kopieren</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
