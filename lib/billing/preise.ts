@@ -46,7 +46,7 @@ export const SETUP_GEBUEHR = 900
 // Im Pilot sinnvoll auf 1 (also 100% Rabatt, Setup faktisch kostenlos).
 export const SETUP_RABATT_STANDARD = 1
 
-// Rabatt bei jaehrlicher Vorauszahlung auf den Jahreswert: 0 = keiner, 0.1 = 10%.
+// Rabatt bei jährlicher Vorauszahlung auf den Jahreswert: 0 = keiner, 0.1 = 10%.
 export const JAHRESRABATT = 0.1
 
 export type BillingMandant = {
@@ -77,10 +77,46 @@ export function addonMrr(m: BillingMandant): number {
   return (m.addons || []).reduce((s, a) => s + (ADDON_PREIS[a] || 0), 0)
 }
 
-// Jahreswert eines Mandanten in CHF. Wird jaehrlich abgerechnet, greift der
-// Jahresrabatt, sonst schlicht der Monatswert mal zwoelf.
+// Jahreswert eines Mandanten in CHF. Wird jährlich abgerechnet, greift der
+// Jahresrabatt, sonst schlicht der Monatswert mal zwölf.
 export function arrMandant(m: BillingMandant): number {
   const jahr = mrrMandant(m) * 12
   const jaehrlich = (m.abrechnung || 'monatlich') === 'jaehrlich'
   return jaehrlich ? Math.round(jahr * (1 - JAHRESRABATT)) : jahr
+}
+
+// ---- Rechnung für eine konkrete Zahlung -------------------------------------
+// Berechnet den zu zahlenden Betrag für das eingestellte Paket und die
+// Einzelposten. Monatlich deckt einen Monat ab, jaehrlich zwölf Monate mit
+// Jahresrabatt. Diese Funktion ist die Grundlage des Zahlungslinks.
+export type RechnungPosten = { label: string; betrag: number }
+export type Rechnung = { total: number; monate: number; interval: string; posten: RechnungPosten[] }
+
+function addonLabel(key: string): string {
+  return ADDON_KATALOG.find(a => a.key === key)?.label || key
+}
+
+export function rechnePaket(m: BillingMandant): Rechnung {
+  const jaehrlich = (m.abrechnung || 'monatlich') === 'jaehrlich'
+  const monate = jaehrlich ? 12 : 1
+  const seats = typeof m.lizenzen === 'number' && m.lizenzen > 0 ? m.lizenzen : 0
+  const planPreis = m.paket ? PLAN_PREIS_PRO_PERSON[m.paket] || 0 : 0
+  const posten: RechnungPosten[] = []
+
+  const lizenzMonat = seats * planPreis
+  if (lizenzMonat > 0) {
+    posten.push({ label: seats + ' Lizenzen x ' + planPreis + ' CHF/Monat' + (jaehrlich ? ' x 12' : ''), betrag: lizenzMonat * monate })
+  }
+  for (const a of (m.addons || [])) {
+    const p = ADDON_PREIS[a] || 0
+    if (p > 0) posten.push({ label: 'Add-on ' + addonLabel(a) + ' (' + p + ' CHF/Monat' + (jaehrlich ? ' x 12' : '') + ')', betrag: p * monate })
+  }
+
+  let total = posten.reduce((s, x) => s + x.betrag, 0)
+  if (jaehrlich && total > 0) {
+    const rabatt = Math.round(total * JAHRESRABATT)
+    posten.push({ label: 'Jahresrabatt ' + Math.round(JAHRESRABATT * 100) + '%', betrag: -rabatt })
+    total -= rabatt
+  }
+  return { total, monate, interval: jaehrlich ? 'jaehrlich' : 'monatlich', posten }
 }
