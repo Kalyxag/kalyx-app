@@ -1,0 +1,212 @@
+/* ============================================================
+   KALYX — Global Styles
+   ============================================================
+   Ersetzt die heutige 4-Zeilen globals.css.
+   Enthält:
+   1) Tailwind-Direktiven
+   2) CSS-Variablen (Light + vorbereiteter Dark Mode)
+   3) Basis-Reset + Body-Defaults
+   4) Die Utility-Klassen, die heute zur Laufzeit per injectCI()
+      in jeder AppShell-Mount injiziert werden — gehören in CSS,
+      nicht in JS.
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- CSS-Variablen (Light Mode default) ---------- */
+:root {
+  /* Marke */
+  --kx-navy: #0B1929;
+  --kx-green: #14613E;
+  --kx-gold: #B8904A;
+  --kx-cream: #F5F4EF;
+
+  /* Tinten */
+  --kx-green-pale: #E6F0EB;
+  --kx-green-light: #7FD4A8;
+  --kx-gold-pale: #F8F1E4;
+  --kx-navy-elev: #162338;
+
+  /* Status */
+  --kx-success: #28C840;
+  --kx-warning: #E5A33A;
+  --kx-danger: #E5484D;
+
+  /* Neutrale */
+  --kx-line: #E4E0D8;
+  --kx-line-light: #EDEAE2;
+  --kx-gray: #6B7280;
+  --kx-gray-dark: #3D3D3A;
+  --kx-gray-light: #9CA3AF;
+
+  /* Theme-abstrakte Variablen (wechseln in Dark Mode) */
+  --kx-bg: var(--kx-cream);
+  --kx-bg-elev: #FFFFFF;
+  --kx-fg: var(--kx-navy);
+  --kx-fg-muted: var(--kx-gray);
+  --kx-fg-subtle: var(--kx-gray-light);
+  --kx-border: var(--kx-line);
+  --kx-border-strong: #D1D5DB;
+}
+
+/* ---------- Dark Mode (Vorbereitung, wird in Welle 2 ausgenutzt) ---------- */
+[data-theme="dark"] {
+  --kx-bg: var(--kx-navy);
+  --kx-bg-elev: var(--kx-navy-elev);
+  --kx-fg: rgba(255, 255, 255, 0.85);
+  --kx-fg-muted: rgba(255, 255, 255, 0.55);
+  --kx-fg-subtle: rgba(255, 255, 255, 0.40);
+  --kx-border: rgba(255, 255, 255, 0.07);
+  --kx-border-strong: rgba(255, 255, 255, 0.14);
+}
+
+/* ---------- Basis-Reset (ergänzt Tailwind preflight) ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--kx-bg);
+  color: var(--kx-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ---------- Form Element Focus (war bisher in injectCI) ---------- */
+.kx-input {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.kx-input:focus {
+  border-color: var(--kx-green);
+  box-shadow: 0 0 0 3px rgba(20, 97, 62, 0.12);
+  outline: none;
+}
+
+/* ---------- Buttons (war bisher in injectCI) ---------- */
+.kx-btn {
+  transition: transform 120ms ease, box-shadow 150ms ease, opacity 120ms ease;
+}
+.kx-btn:hover {
+  transform: translateY(-1px);
+}
+.kx-btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(20, 97, 62, 0.28);
+}
+
+/* ---------- Links (war bisher in injectCI) ---------- */
+.kx-link {
+  transition: opacity 120ms ease;
+}
+.kx-link:hover {
+  opacity: 0.7;
+}
+
+/* ---------- Card-Animation (war bisher in injectCI) ---------- */
+.kx-card {
+  animation: kxFadeIn 400ms ease both;
+}
+.kx-tile {
+  transition: transform 120ms ease, box-shadow 150ms ease;
+}
+.kx-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.10);
+}
+
+@keyframes kxFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Progress-Bar-Fill (war bisher in injectCI) ---------- */
+.kx-bar-fill {
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------- Nav-Items (war bisher in injectCI) ---------- */
+.kx-nav a,
+.kx-nav div.kx-soon {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.62);
+  transition: background 120ms ease, color 120ms ease;
+}
+.kx-nav a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.kx-nav a.kx-active {
+  background: rgba(127, 212, 168, 0.14);
+  color: #fff;
+}
+
+/* ---------- App-Shell Layout (war bisher in injectCI) ---------- */
+.kx-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--kx-cream);
+}
+.kx-aside {
+  width: 248px;
+  flex-shrink: 0;
+  background: var(--kx-navy);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 22px 16px;
+}
+.kx-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Mobile App-Shell ---------- */
+@media (max-width: 860px) {
+  .kx-shell {
+    flex-direction: column;
+  }
+  .kx-aside {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 14px 14px;
+  }
+  .kx-nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+  }
+  .kx-nav a,
+  .kx-nav div.kx-soon {
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+  .kx-aside .kx-only-wide {
+    display: none;
+  }
+}
+
+/* ---------- Reduce Motion respektieren ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
