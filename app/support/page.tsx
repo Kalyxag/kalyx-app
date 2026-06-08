@@ -688,7 +688,8 @@ export default function SupportPage() {
               {/* ---- Zahlung ---- */}
               <div style={{ borderTop: '1px solid ' + LINE, marginTop: 28, paddingTop: 22 }}>
                 <div style={{ fontFamily: FM, fontSize: 11, letterSpacing: 1.5, color: GOLD, textTransform: 'uppercase', marginBottom: 4 }}>Zahlung</div>
-                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Erzeugt einen sicheren Zahlungslink über Stripe für das gespeicherte Paket. Bitte zuerst speichern. Nach der Zahlung wird der Mandant automatisch auf aktiv gesetzt und die Rechnung an den Kunden gesendet.</div>
+                <div style={{ fontSize: 12.5, color: MUTE, marginBottom: 10, lineHeight: 1.5 }}>Erzeugt einen sicheren Zahlungslink über Stripe für das gespeicherte Paket. Bitte zuerst speichern. Nach der Zahlung wird der Mandant automatisch auf aktiv gesetzt. Eine Rechnung wird derzeit noch nicht erstellt, das folgt mit der Firmenanmeldung.</div>
+                <div style={{ fontSize: 12, color: MUTE, marginBottom: 14, lineHeight: 1.5 }}>Fragen zur Rechnung oder Abrechnung? <a href="mailto:fabian.kreher@kalyx.ag" style={{ color: GREEN, textDecoration: 'none', fontWeight: 600 }}>fabian.kreher@kalyx.ag</a></div>
                 {(() => {
                   const zr = rechnePaket({ paket: ePlan, lizenzen: parseInt(eSeats, 10) || 0, addons: eAddons, abrechnung: eInterval })
                   return (
