@@ -1,0 +1,110 @@
+{
+  "appShell": {
+    "tenant": "Mandant",
+    "admin": "ADMIN",
+    "logout": "Abmelden",
+    "loading": "KALYX wird geladen…"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "learner": "Lernende/r",
+    "tenant_admin": "Mandanten-Admin",
+    "hr_manager": "HR-Manager",
+    "compliance_officer": "Compliance-Officer",
+    "super_admin": "Super-Admin"
+  },
+  "nav": {
+    "uebersicht": "Übersicht",
+    "lernen": "Lernen",
+    "skills": "Skills",
+    "nachweise": "Nachweise",
+    "team": "Team",
+    "berichte": "Berichte",
+    "rechnungen": "Rechnungen",
+    "erweiterungen": "Erweiterungen",
+    "kiKursersteller": "KI-Kursersteller",
+    "audit": "Audit-Trail",
+    "neuerKunde": "Neuer Kunde"
+  },
+  "workspace": {
+    "eyebrow": "Arbeitsbereich",
+    "welcome": "Willkommen zurück",
+    "welcomeWithName": "Willkommen zurück, {name}.",
+    "subtitle": "Das ist eure Kommandozentrale. Von hier richtet ihr alles ein und behaltet den Überblick.",
+    "loading": "Lade deinen Arbeitsbereich …",
+    "footer": "Pilotbetrieb · Daten in der EU gespeichert · Schweizer-souveränes Hosting ist das Ziel"
+  },
+  "setup": {
+    "title": "Grundeinrichtung",
+    "continueButton": "Einrichtung fortsetzen",
+    "completed": "Grundeinrichtung abgeschlossen",
+    "progress": "{percent}% · {done}/{total}",
+    "checklist": {
+      "firmenprofil": "Firmenprofil",
+      "abteilungen": "Abteilungen & Rollen",
+      "complianceRahmen": "Compliance-Rahmen",
+      "kurseZuweisen": "Kurse zuweisen",
+      "branding": "Branding",
+      "mitarbeitendeEinladen": "Mitarbeitende einladen"
+    },
+    "comingSoon": "bald"
+  },
+  "tiles": {
+    "edit": "bearbeiten",
+    "company": "Firma",
+    "organization": "Organisation",
+    "compliance": "Compliance",
+    "team": "Team",
+    "courses": "Kurse",
+    "branding": "Branding",
+    "openTeam": "Team öffnen →",
+    "openLibrary": "Bibliothek öffnen →",
+    "departments": "Abteilungen",
+    "roles": "Rollen",
+    "members": "Mitglied(er)",
+    "coursesAvailable": "Kurse verfügbar",
+    "inPreparation": "In Vorbereitung",
+    "noFrameworks": "Noch keine Regelwerke gewählt.",
+    "noInvites": "Mitarbeitende einladen folgt als nächster Baustein.",
+    "browseLibrary": "Globalen Katalog durchsuchen oder eigene Kurse anlegen.",
+    "brandingDescription": "Logo und Farben für eure White-Label-Plattform, kommt in einer späteren Runde."
+  },
+  "compliance": {
+    "recertification": "Rezertifizierung",
+    "esignActive": "E-Signatur aktiv",
+    "intervals": {
+      "jaehrlich": "Jährlich",
+      "halbjaehrlich": "Halbjährlich",
+      "alleZweiJahre": "Alle 2 Jahre",
+      "keine": "Keine feste Vorgabe"
+    }
+  },
+  "sectors": {
+    "finance": "Finanzdienstleistung",
+    "pharma": "Pharma / Life Sciences",
+    "bildung": "Bildung / Verband",
+    "retail": "Handel / Retail",
+    "industrie": "Industrie / Produktion",
+    "sonstige": "Sonstige"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "search": "Suchen",
+    "loading": "Lade…",
+    "error": "Fehler",
+    "retry": "Erneut versuchen",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "language": {
+    "switcher": "Sprache",
+    "de": "Deutsch",
+    "en": "English"
+  }
+}

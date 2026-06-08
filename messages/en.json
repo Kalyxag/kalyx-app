@@ -1,0 +1,110 @@
+{
+  "appShell": {
+    "tenant": "Tenant",
+    "admin": "ADMIN",
+    "logout": "Sign out",
+    "loading": "Loading KALYX…"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "learner": "Learner",
+    "tenant_admin": "Tenant admin",
+    "hr_manager": "HR manager",
+    "compliance_officer": "Compliance officer",
+    "super_admin": "Super admin"
+  },
+  "nav": {
+    "uebersicht": "Overview",
+    "lernen": "Learn",
+    "skills": "Skills",
+    "nachweise": "Certificates",
+    "team": "Team",
+    "berichte": "Reports",
+    "rechnungen": "Invoices",
+    "erweiterungen": "Add-ons",
+    "kiKursersteller": "AI course builder",
+    "audit": "Audit trail",
+    "neuerKunde": "New customer"
+  },
+  "workspace": {
+    "eyebrow": "Workspace",
+    "welcome": "Welcome back",
+    "welcomeWithName": "Welcome back, {name}.",
+    "subtitle": "This is your command center. Set everything up here and keep the overview.",
+    "loading": "Loading your workspace …",
+    "footer": "Pilot operation · Data stored in the EU · Swiss-sovereign hosting is the goal"
+  },
+  "setup": {
+    "title": "Initial setup",
+    "continueButton": "Continue setup",
+    "completed": "Initial setup complete",
+    "progress": "{percent}% · {done}/{total}",
+    "checklist": {
+      "firmenprofil": "Company profile",
+      "abteilungen": "Departments & roles",
+      "complianceRahmen": "Compliance framework",
+      "kurseZuweisen": "Assign courses",
+      "branding": "Branding",
+      "mitarbeitendeEinladen": "Invite team members"
+    },
+    "comingSoon": "soon"
+  },
+  "tiles": {
+    "edit": "edit",
+    "company": "Company",
+    "organization": "Organization",
+    "compliance": "Compliance",
+    "team": "Team",
+    "courses": "Courses",
+    "branding": "Branding",
+    "openTeam": "Open team →",
+    "openLibrary": "Open library →",
+    "departments": "Departments",
+    "roles": "Roles",
+    "members": "Member(s)",
+    "coursesAvailable": "Courses available",
+    "inPreparation": "In preparation",
+    "noFrameworks": "No frameworks selected yet.",
+    "noInvites": "Inviting team members coming next.",
+    "browseLibrary": "Browse the global catalog or create your own courses.",
+    "brandingDescription": "Logo and colors for your white-label platform, coming in a later round."
+  },
+  "compliance": {
+    "recertification": "Recertification",
+    "esignActive": "E-signature active",
+    "intervals": {
+      "jaehrlich": "Annually",
+      "halbjaehrlich": "Semi-annually",
+      "alleZweiJahre": "Every 2 years",
+      "keine": "No fixed schedule"
+    }
+  },
+  "sectors": {
+    "finance": "Financial services",
+    "pharma": "Pharma / Life sciences",
+    "bildung": "Education / Association",
+    "retail": "Retail",
+    "industrie": "Industry / Manufacturing",
+    "sonstige": "Other"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "loading": "Loading…",
+    "error": "Error",
+    "retry": "Try again",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "language": {
+    "switcher": "Language",
+    "de": "Deutsch",
+    "en": "English"
+  }
+}
