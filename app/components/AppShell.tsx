@@ -48,6 +48,7 @@ function injectCI(){
 }
 
 const I = {
+  receipt:'M5 3h14v18l-3-2-2 2-2-2-2 2-3-2zM8 8h8M8 12h8M8 16h5',
   home:'M3 11l9-8 9 8M5 9.5V20h5v-6h4v6h5V9.5',
   book:'M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM19 3v16',
   grid:'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
@@ -71,6 +72,7 @@ const MAIN_NAV=[
 ]
 const ADMIN_NAV=[
   {key:'berichte',label:'Berichte',href:'/berichte',icon:I.chart},
+  {key:'rechnungen',label:'Rechnungen',href:'/rechnungen',icon:I.receipt},
   {key:'erweiterungen',label:'Erweiterungen',href:'/erweiterungen',icon:I.box},
   {key:'ki',label:'KI-Kursersteller',href:'/kursersteller',icon:I.spark},
 ]
