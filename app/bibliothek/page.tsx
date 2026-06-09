@@ -216,12 +216,6 @@ export default function BibliothekPage(){
                   <div><div style={{fontSize:14.5,fontWeight:600,color:NAVY}}>{m.title}</div>{m.content && <div style={{fontSize:13,color:GRAY,marginTop:2}}>{m.content.length>160?m.content.slice(0,160)+'…':m.content}</div>}</div>
                 </div>
               ))}
-         </div>
-              ))}
-
-          {/* KALYX Inhalts-Disclaimer */}
-          <CourseDisclaimer course={detail} />
-
           <div style={{marginTop:20,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}><a href={`/pruefung?kurs=${detail.id}`} className="kx-btn" style={{...btn,textDecoration:'none',display:'inline-block'}}>Lernen &amp; Prüfung →</a><button className="kx-btn" style={btnGhost} onClick={()=>setDetail(null)}>Schließen</button></div>
         </div>
       </div>
