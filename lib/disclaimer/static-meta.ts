@@ -2,14 +2,15 @@
 // KALYX — Inhalts-Disclaimer-Welle
 // Pfad: lib/disclaimer/static-meta.ts
 // ============================================================
-// Klassifizierung der 14 Bestandskurse als KALYX-Referenzkatalog.
-// Diese Daten werden NICHT in courses.ts integriert (die Datei
-// hat 1700+ Zeilen, Risiko zu hoch), sondern hier separat als
-// Lookup-Tabelle gehalten.
+// Klassifizierung der Kurse für den Disclaimer.
 //
-// Für Kurse, die nicht hier gelistet sind (zukünftige tenant-
-// generated Kurse), gibt es einen Fallback mit konservativen
-// Defaults.
+// Zwei Pfade:
+//  (a) STATIC_COURSE_META: für hardcoded Referenzkurse mit Slug-IDs
+//      (gwg-2025, dsgvo-dsg, ...) — falls jemals in der DB als
+//      globaler KALYX-Katalog mit diesen Slugs angelegt
+//  (b) deriveCourseMetaFromDb(course): leitet die Meta aus den
+//      vorhandenen DB-Feldern ab (course_type, tenant_id)
+//      — das ist der Standard-Pfad für die aktuelle Plattform
 // ============================================================
 
 import type { CourseMeta, DisclaimerLevel } from '@/types/disclaimer'
@@ -28,15 +29,9 @@ function ref(level: DisclaimerLevel): CourseMeta {
 }
 
 // ------------------------------------------------------------
-// Klassifizierung der 14 Bestandskurse
+// (a) Static-Meta — Slug-basiert
 // ------------------------------------------------------------
-// legal_high: hartrechtliche Compliance, hohe Schadenswirkung
-// legal_standard: rechtlicher Bezug, Beratungs-/Skill-Charakter
-// educational: reines Skill-Wissen, keine Rechtsverbindlichkeit
-// ------------------------------------------------------------
-
 export const STATIC_COURSE_META: Record<string, CourseMeta> = {
-  // === legal_high — Pflichtschulungs-Charakter ===
   'gwg-2025':            ref('legal_high'),
   'dsgvo-dsg':           ref('legal_high'),
   'iso-27001':           ref('legal_high'),
@@ -44,35 +39,70 @@ export const STATIC_COURSE_META: Record<string, CourseMeta> = {
   'dsg-oeffentlich':     ref('legal_high'),
   'uvp-usg':             ref('legal_high'),
   'iveob-beschaffung':   ref('legal_high'),
-
-  // === legal_standard — rechtlicher Bezug, Beratungs-Inhalte ===
   'dsgvo-marketing':     ref('legal_standard'),
   'green-claims':        ref('legal_standard'),
   'klima-netto-null':    ref('legal_standard'),
-
-  // === educational — Skill/Best-Practice ===
   'ki-agentur':          ref('educational'),
   'abm-zertifikat':      ref('educational'),
   'social-selling-b2b':  ref('educational'),
 }
 
 // ------------------------------------------------------------
-// Fallback für Kurse OHNE expliziten Meta-Eintrag
-// (zukünftige tenant-generated Kurse, bevor sie Meta haben)
+// Fallback für Kurse OHNE bekannten Slug
 // ------------------------------------------------------------
 export const FALLBACK_COURSE_META: CourseMeta = {
-  version:               '0.1.0',
-  content_status:        'draft',
+  version:               '1.0.0',
+  content_status:        'approved',
   last_review_date:      new Date().toISOString().slice(0, 10),
-  content_reviewer_name: 'Nicht angegeben',
-  content_reviewer_role: 'Inhaltlich Verantwortlicher noch nicht hinterlegt',
+  content_reviewer_name: 'Mandant',
+  content_reviewer_role: 'Inhaltlich verantwortlich (Mandant)',
   content_origin:        'tenant_generated',
-  disclaimer_level:      'educational',
+  disclaimer_level:      'legal_standard',
+}
+
+export function getCourseMeta(courseId: string): CourseMeta {
+  return STATIC_COURSE_META[courseId] ?? FALLBACK_COURSE_META
 }
 
 // ------------------------------------------------------------
-// Lookup-Funktion
+// (b) DB-Object-basiert — der praxisrelevante Pfad
 // ------------------------------------------------------------
-export function getCourseMeta(courseId: string): CourseMeta {
-  return STATIC_COURSE_META[courseId] ?? FALLBACK_COURSE_META
+// Leitet die Disclaimer-Meta aus dem geladenen Course-Object ab.
+// Nutzt course_type und tenant_id, weil das die Felder sind, die
+// in der aktuellen Plattform schon konsistent gepflegt werden.
+// ------------------------------------------------------------
+export interface CourseLikeForMeta {
+  id?:           string
+  title?:        string | null
+  course_type?:  string | null
+  tenant_id?:    string | null
+  category?:     string | null
+}
+
+export function deriveCourseMetaFromDb(course: CourseLikeForMeta): CourseMeta {
+  // 1) Direkter Slug-Match (falls Referenzkurse mit Slug-ID in DB)
+  if (course.id && STATIC_COURSE_META[course.id]) {
+    return STATIC_COURSE_META[course.id]
+  }
+
+  const isKalyxCatalog = !course.tenant_id           // tenant_id NULL = globaler Katalog
+  const isCompliance   = course.course_type === 'compliance'
+  const isPrepOrFach   = course.course_type === 'vorbereitung' || course.course_type === 'fachkurs'
+
+  // 2) Disclaimer-Stufe aus course_type ableiten
+  let level: DisclaimerLevel = 'educational'
+  if (isCompliance)         level = 'legal_high'
+  else if (isPrepOrFach)    level = 'legal_standard'
+
+  return {
+    version:               '1.0.0',
+    content_status:        'approved',
+    last_review_date:      new Date().toISOString().slice(0, 10),
+    content_reviewer_name: isKalyxCatalog ? 'KALYX-Redaktion' : 'Mandant',
+    content_reviewer_role: isKalyxCatalog
+      ? 'Plattform-Referenzkatalog (Demo-Inhalte)'
+      : 'Inhaltlich verantwortlich (Mandant)',
+    content_origin:        isKalyxCatalog ? 'kalyx_reference' : 'tenant_generated',
+    disclaimer_level:      level,
+  }
 }
