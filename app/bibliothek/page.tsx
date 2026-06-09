@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
-
+import CourseDisclaimer from '../components/CourseDisclaimer'
 const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A'
 const GREEN_PALE='#E6F0EB', GOLD_PALE='#F8F1E4', BLUE='#3A6DB5', BLUE_PALE='#EAF0FA', LINE='#E4E0D8', GRAY='#6B7280'
 const FH="'Cormorant', Georgia, serif"
