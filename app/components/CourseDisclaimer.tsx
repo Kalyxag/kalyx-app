@@ -2,19 +2,20 @@
 // KALYX — Inhalts-Disclaimer-Welle
 // Pfad: app/components/CourseDisclaimer.tsx
 // ============================================================
-// Dezenter Footer-Disclaimer, der unter den Kursinhalten
-// permanent angezeigt wird.
+// Dezenter Footer-Disclaimer für die Kurs-Anzeige.
 //
-// Verwendung:
+// Zwei Verwendungs-Modi:
 //   <CourseDisclaimer courseId="gwg-2025" />
-//
-// Die Komponente lädt die Meta-Daten automatisch aus
-// lib/disclaimer/static-meta.ts.
+//   <CourseDisclaimer course={courseObjectFromDb} />
 // ============================================================
 'use client'
 
 import { DISCLAIMER_COPY, formatStandAm } from '@/lib/disclaimer/levels'
-import { getCourseMeta } from '@/lib/disclaimer/static-meta'
+import {
+  getCourseMeta,
+  deriveCourseMetaFromDb,
+  type CourseLikeForMeta,
+} from '@/lib/disclaimer/static-meta'
 
 const NAVY  = '#0B1929'
 const GREEN = '#14613E'
@@ -36,9 +37,17 @@ const LEVEL_LABEL = {
   educational:     'Hinweis zur Aktualität',
 } as const
 
-export default function CourseDisclaimer({ courseId }: { courseId: string }) {
-  const meta = getCourseMeta(courseId)
-  const copy = DISCLAIMER_COPY[meta.disclaimer_level]
+interface Props {
+  courseId?:  string
+  course?:    CourseLikeForMeta
+}
+
+export default function CourseDisclaimer({ courseId, course }: Props) {
+  const meta = course
+    ? deriveCourseMetaFromDb(course)
+    : getCourseMeta(courseId || '')
+
+  const copy   = DISCLAIMER_COPY[meta.disclaimer_level]
   const accent = LEVEL_COLOR[meta.disclaimer_level]
   const label  = LEVEL_LABEL[meta.disclaimer_level]
 
@@ -47,8 +56,8 @@ export default function CourseDisclaimer({ courseId }: { courseId: string }) {
       role="note"
       aria-label={copy.title}
       style={{
-        marginTop: 40,
-        padding: '20px 22px',
+        marginTop: 20,
+        padding: '16px 18px',
         background: '#FAF9F5',
         border: `1px solid ${LINE}`,
         borderLeft: `3px solid ${accent}`,
@@ -56,13 +65,12 @@ export default function CourseDisclaimer({ courseId }: { courseId: string }) {
         fontFamily: FB,
       }}
     >
-      {/* Header-Zeile: Level + Stand */}
       <div style={{
         display: 'flex',
         alignItems: 'baseline',
         justifyContent: 'space-between',
-        gap: 16,
-        marginBottom: 10,
+        gap: 12,
+        marginBottom: 8,
         flexWrap: 'wrap',
       }}>
         <span style={{
@@ -84,22 +92,20 @@ export default function CourseDisclaimer({ courseId }: { courseId: string }) {
         </span>
       </div>
 
-      {/* Disclaimer-Text */}
       <p style={{
-        fontSize: 13.5,
+        fontSize: 13,
         lineHeight: 1.55,
         color: NAVY,
-        margin: '0 0 12px 0',
+        margin: '0 0 10px 0',
       }}>
         {copy.short}
       </p>
 
-      {/* Verantwortlich */}
       <div style={{
         fontFamily: FM,
         fontSize: 11,
         color: GRAY,
-        paddingTop: 10,
+        paddingTop: 8,
         borderTop: `1px dashed ${LINE}`,
       }}>
         Inhaltlich verantwortlich: <span style={{ color: NAVY }}>{meta.content_reviewer_name}</span>
