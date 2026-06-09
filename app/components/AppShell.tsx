@@ -1,51 +1,20 @@
-// Ziel-Pfad im Repo: components/AppShell.tsx  (NEU)
+// Ziel-Pfad im Repo: app/components/AppShell.tsx
 //
-// Echte App-Shell: navy Seitenleiste (wie das Demo) + heller Hauptbereich.
+// Echte App-Shell: navy Seitenleiste + heller Hauptbereich.
 // Verlinkt die ECHTEN Seiten und zeigt echte Mandanten-/Nutzerdaten.
 // Verwendung in einer Seite:  <AppShell active="übersicht"> ...Inhalt... </AppShell>
+//
+// Stand Code-Hygiene-Welle:
+//  - Farbkonstanten kommen aus lib/design/tokens.ts (eine Wahrheit)
+//  - injectCI() entfernt — Stile sind in globals.css, Schriften in app/layout.tsx
+//  - LanguageSwitcher in der Topbar
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-
-const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A'
-const GREEN_PALE='#E6F0EB', LINE='#E4E0D8', GRAY='#6B7280'
-const FH="'Cormorant', Georgia, serif"
-const FB="'Albert Sans', system-ui, -apple-system, sans-serif"
-const FM="'IBM Plex Mono', ui-monospace, monospace"
-
-function injectCI(){
-  if(typeof document==='undefined')return
-  if(!document.getElementById('kalyx-fonts')){const l=document.createElement('link');l.id='kalyx-fonts';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600;700&family=Albert+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap';document.head.appendChild(l)}
-  if(!document.getElementById('kalyx-shell')){const s=document.createElement('style');s.id='kalyx-shell';s.textContent=`
-    *{box-sizing:border-box}
-    .kx-input{transition:border-color .15s ease,box-shadow .15s ease}
-    .kx-input:focus{border-color:${GREEN};box-shadow:0 0 0 3px rgba(20,97,62,.12);outline:none}
-    .kx-btn{transition:transform .12s ease,box-shadow .15s ease,opacity .12s ease}
-    .kx-btn:hover{transform:translateY(-1px)}
-    .kx-btn-primary:hover{box-shadow:0 10px 24px rgba(20,97,62,.28)}
-    .kx-link{transition:opacity .12s ease}.kx-link:hover{opacity:.7}
-    .kx-bar-fill{transition:width .6s cubic-bezier(.4,0,.2,1)}
-    .kx-card{animation:kxfade .4s ease both}
-    .kx-tile{transition:transform .12s ease,box-shadow .15s ease}
-    .kx-tile:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(0,0,0,.10)}
-    @keyframes kxfade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-    .kx-nav a,.kx-nav div.kx-soon{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;font-size:14.5px;text-decoration:none;color:rgba(255,255,255,.62);transition:background .12s ease,color .12s ease}
-    .kx-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
-    .kx-nav a.kx-active{background:rgba(127,212,168,.14);color:#fff}
-    .kx-shell{display:flex;min-height:100vh;background:${CREAM}}
-    .kx-aside{width:248px;flex-shrink:0;background:${NAVY};display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:22px 16px}
-    .kx-main{flex:1;min-width:0;display:flex;flex-direction:column}
-    @media (max-width:860px){
-      .kx-shell{flex-direction:column}
-      .kx-aside{width:100%;height:auto;position:relative;padding:14px 14px}
-      .kx-nav{display:flex;gap:6px;overflow-x:auto}
-      .kx-nav a,.kx-nav div.kx-soon{white-space:nowrap;padding:8px 12px}
-      .kx-aside .kx-only-wide{display:none}
-    }
-  `;document.head.appendChild(s)}
-}
+import LanguageSwitcher from './LanguageSwitcher'
+import { NAVY, GREEN, GOLD, CREAM, LINE, GRAY, FH, FB, FM } from '@/lib/design/tokens'
 
 const I = {
   receipt:'M5 3h14v18l-3-2-2 2-2-2-2 2-3-2zM8 8h8M8 12h8M8 16h5',
@@ -87,19 +56,25 @@ export default function AppShell({active,children}:{active:string;children:React
   const [logoUrl,setLogoUrl]=useState('')
   const [accent,setAccent]=useState('')
 
-  useEffect(()=>{injectCI();setToday(new Date().toLocaleDateString('de-CH',{day:'numeric',month:'long',year:'numeric'}));let on=true;(async()=>{
-    const {data}=await supabase.auth.getSession();const session=data.session
-    if(!session){router.replace('/anmelden');return}
-    const {data:au}=await supabase.from('app_users').select('tenant_id,access_level').eq('id',session.user.id).maybeSingle()
-    const tid=(au as any)?.tenant_id; if(!tid){router.replace('/anmelden');return}
-    const {data:cp}=await supabase.from('company_profiles').select('display_name').eq('tenant_id',tid).maybeSingle()
-    const {data:br}=await supabase.from('branding').select('*').eq('tenant_id',tid).maybeSingle()
-    if(!on)return
-    setEmail(session.user.email||''); setRole((au as any)?.access_level||'')
-    setCompany((cp as any)?.display_name||'')
-    const b:any=br||{}
-    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||b.color||'')
-  })();return()=>{on=false}},[router])
+  useEffect(()=>{
+    setToday(new Date().toLocaleDateString('de-CH',{day:'numeric',month:'long',year:'numeric'}))
+    let on=true
+    ;(async()=>{
+      const {data}=await supabase.auth.getSession()
+      const session=data.session
+      if(!session){router.replace('/anmelden');return}
+      const {data:au}=await supabase.from('app_users').select('tenant_id,access_level').eq('id',session.user.id).maybeSingle()
+      const tid=(au as any)?.tenant_id; if(!tid){router.replace('/anmelden');return}
+      const {data:cp}=await supabase.from('company_profiles').select('display_name').eq('tenant_id',tid).maybeSingle()
+      const {data:br}=await supabase.from('branding').select('*').eq('tenant_id',tid).maybeSingle()
+      if(!on)return
+      setEmail(session.user.email||''); setRole((au as any)?.access_level||'')
+      setCompany((cp as any)?.display_name||'')
+      const b:any=br||{}
+      setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||b.color||'')
+    })()
+    return()=>{on=false}
+  },[router])
 
   async function logout(){await supabase.auth.signOut();router.replace('/anmelden')}
   const initials=(company||email||'K').trim().slice(0,2).toUpperCase()
@@ -152,7 +127,10 @@ export default function AppShell({active,children}:{active:string;children:React
       {/* Topbar */}
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 28px',borderBottom:`1px solid ${LINE}`,background:CREAM}}>
         <div style={{fontFamily:FM,fontSize:13,color:GRAY,letterSpacing:'.02em'}}>{company||'KALYX'}{today?`  ·  ${today}`:''}</div>
-        <button className="kx-link" onClick={logout} style={{fontFamily:FB,fontSize:13.5,color:NAVY,background:'transparent',border:`1px solid ${LINE}`,borderRadius:9,padding:'7px 14px',cursor:'pointer'}}>Abmelden</button>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <LanguageSwitcher />
+          <button className="kx-link" onClick={logout} style={{fontFamily:FB,fontSize:13.5,color:NAVY,background:'transparent',border:`1px solid ${LINE}`,borderRadius:9,padding:'7px 14px',cursor:'pointer'}}>Abmelden</button>
+        </div>
       </div>
       {/* Inhalt */}
       <main style={{flex:1,padding:'30px 28px 56px'}}>
