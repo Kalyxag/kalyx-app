@@ -1,8 +1,13 @@
-// Ziel-Pfad im Repo: app/pruefung/page.tsx  (ERSETZT – mit Lernschleife)
+// Ziel-Pfad im Repo: app/pruefung/page.tsx  (ERSETZT – mit Lernschleife + Inhalts-Disclaimer-Modal)
 //
 // Prüfung ablegen UND Fragen verwalten. Lernschleife: falsche Fragen werden während
 // des Durchgangs zufällig wieder eingestreut und nach der Auswertung in einer Extra-
 // Runde wiederholt, bis sie sitzen. Gewertet wird nur der erste Versuch je Frage.
+//
+// Inhalts-Disclaimer-Welle: Vor dem ersten Start der Prüfung muss der Nutzer den
+// Inhalts-Disclaimer aktiv bestätigen (pro Kurs-Version, persistent in Supabase).
+// Bei bereits bestätigtem Disclaimer wird das Modal übersprungen.
+//
 // Aufruf: /pruefung?kurs=<courseId>
 'use client'
 
@@ -10,6 +15,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
+import CourseDisclaimerModal from '../components/CourseDisclaimerModal'
 
 const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', GREEN_PALE='#E6F0EB', GOLD_PALE='#F8F1E4', BLUE_PALE='#EAF0FA', BLUE='#3A6DB5', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
 const FH="'Cormorant', Georgia, serif"
@@ -30,6 +36,9 @@ export default function PruefungPage(){
   const [canEdit,setCanEdit]=useState(false)
   const [loading,setLoading]=useState(true)
   const [tab,setTab]=useState<'exam'|'manage'>('exam')
+
+  // Inhalts-Disclaimer: pendingStart triggert das Modal; sobald ack'd, läuft doStartExam()
+  const [pendingStart,setPendingStart]=useState(false)
 
   useEffect(()=>{let on=true;(async()=>{
     const cid=new URLSearchParams(window.location.search).get('kurs')||''
@@ -82,7 +91,14 @@ export default function PruefungPage(){
     return ()=>clearTimeout(t)
   },[phase,timed,timeLeft])
 
+  // Vom Button gerufen: triggert das Disclaimer-Modal (das selbst entscheidet, ob es sich zeigt)
   function startExam(){
+    setPendingStart(true)
+  }
+
+  // Wird vom Modal aufgerufen (entweder nach Bestätigung oder direkt, falls bereits ack'd)
+  function doStartExam(){
+    setPendingStart(false)
     let qs=shuffle(questions)
     let useTimed=false
     if(mode==='benutzerdefiniert'){qs=qs.slice(0,Math.min(customCount,qs.length));useTimed=customTimed}
@@ -240,7 +256,20 @@ export default function PruefungPage(){
   const scored=Object.keys(firstResults.current).length
   const isRepeat=phase==='running'&&queue[0]&&firstResults.current[queue[0].id]!==undefined
 
-  return(<AppShell active="lernen">
+  return(<>
+    {/* Inhalts-Disclaimer-Modal: wird nur gemountet, wenn der User die Prüfung starten will.
+        Das Modal entscheidet selbst, ob es sich zeigt (nur beim ersten Mal pro Kurs-Version)
+        oder direkt doStartExam() aufruft. */}
+    {pendingStart && course && uid && tenantId && (
+      <CourseDisclaimerModal
+        courseId={course.id}
+        userId={uid}
+        tenantId={tenantId}
+        onAcknowledged={doStartExam}
+      />
+    )}
+
+    <AppShell active="lernen">
     <a href="/bibliothek" className="kx-link" style={{fontFamily:FB,fontSize:13.5,color:GREEN,textDecoration:'none'}}>← Bibliothek</a>
     <div style={{...eyebrow,marginTop:8}}>Prüfung &amp; Übung</div>
     <h1 style={{fontFamily:FH,fontSize:30,fontWeight:600,color:NAVY,margin:'4px 0 4px'}}>{course.title}</h1>
@@ -404,5 +433,8 @@ export default function PruefungPage(){
         ))}
       </div>
     </>)}
-  </AppShell>)
+    </AppShell>
+  </>)
 }
+
+      
