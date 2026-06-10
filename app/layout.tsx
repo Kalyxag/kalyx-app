@@ -1,13 +1,15 @@
 // ============================================================
 // KALYX — Root Layout
 // ============================================================
-// Ersetzt das heutige app/layout.tsx (4 Zeilen).
 // Lädt die drei Marken-Schriften über next/font (FOUT-frei,
 // gehostet auf Vercel-Edge), bindet next-intl an,
 // setzt die Sprache aus dem Cookie / Browser.
+//
+// Mobile-Welle: viewport-Export hinzugefügt für korrekte
+// Skalierung auf Smartphones (verhindert iOS-Auto-Zoom).
 // ============================================================
 
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Cormorant, Albert_Sans, IBM_Plex_Mono } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
@@ -43,8 +45,18 @@ export const metadata: Metadata = {
     default: 'KALYX',
     template: '%s · KALYX',
   },
-  description: 'KI-native Lern- & Qualifizierungsinfrastruktur für regulierte Branchen.',
+  description: 'KI-native Lern- und Qualifizierungsinfrastruktur für regulierte Branchen.',
   metadataBase: new URL('https://kalyx.academy'),
+}
+
+// ---------- Viewport (Mobile-Welle) ----------
+// width=device-width und initial-scale=1 sind Pflicht für korrekte
+// Mobile-Darstellung. themeColor passt die Browser-UI-Farbe auf iOS / Android an.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#0B1929',
 }
 
 // ---------- Layout ----------
