@@ -202,10 +202,10 @@ export default function CompliancePage(){
   const sectionHeader: React.CSSProperties = { fontFamily:FM, fontSize:11, letterSpacing:'.14em', textTransform:'uppercase', color:GRAY, padding:'14px 22px', borderBottom:`1px solid ${CREAM}` }
 
   if(loading){
-    return <AppShell active="übersicht"><div style={{color:GRAY,fontFamily:FB,padding:'8px 0'}}>Lade Compliance-Daten …</div></AppShell>
+    return <AppShell active="compliance"><div style={{color:GRAY,fontFamily:FB,padding:'8px 0'}}>Lade Compliance-Daten …</div></AppShell>
   }
   if(!me){
-    return <AppShell active="übersicht"><div style={{color:GRAY,fontFamily:FB}}>Kein Profil gefunden.</div></AppShell>
+    return <AppShell active="compliance"><div style={{color:GRAY,fontFamily:FB}}>Kein Profil gefunden.</div></AppShell>
   }
 
   const showAdminLayout = isAdmin || isManager
@@ -224,7 +224,7 @@ export default function CompliancePage(){
   ]
 
   return (
-    <AppShell active="übersicht">
+    <AppShell active="compliance">
       <a href="/arbeitsbereich" style={{fontFamily:FB,fontSize:13.5,color:GREEN,textDecoration:'none'}}>← Arbeitsbereich</a>
       <div style={{...eyebrow, marginTop:8}}>Compliance</div>
       <h1 style={{fontFamily:FH, fontSize:30, fontWeight:600, color:NAVY, margin:'4px 0 4px'}}>
