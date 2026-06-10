@@ -12,6 +12,7 @@ function getTenantSlug(email: string): string {
     'brandwerk-zuerich.ch':    'brandwerk-zuerich',
     'ksz.ch':                  'kantonsspital-zuerich',
     'zurich-insurance.ch':     'zurich-insurance',
+    'aare-vital.ch':           'aare-vital',
   }
   return map[domain] || 'helvetia-finanz'
 }

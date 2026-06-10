@@ -33,6 +33,60 @@ export function getCoursesForDepartment(
 export const DEPT_COURSE_CONFIG: Record<string, TenantDeptConfig> = {
 
   // ─────────────────────────────────────────────────────────────────
+  // AARE VITAL AG — Wellness / Nahrungsergänzungsmittel (D2C)
+  // Logik: HACCP/Lebensmittelsicherheit nur für Produktion, Supply
+  // Chain, Sourcing und Produkt. Health-Claims/Werberecht für
+  // Marketing & Produkt (Kernrisiko bei NEM-Werbung). Alle: DSGVO/DSG
+  // und ISO 27001. Arbeitssicherheit nur für Lager/Operations.
+  // ─────────────────────────────────────────────────────────────────
+  'aare-vital': {
+    departments: [
+      'Geschäftsführung',
+      'Marketing',
+      'Vertrieb',
+      'Betrieb / Operations',
+      'Geschäftsentwicklung',
+      'Kunst & Design',
+      'Medien & Kommunikation',
+      'Support',
+      'Personalwesen (HR)',
+      'Produktmanagement',
+      'Informationstechnologie',
+      'Finance',
+    ],
+    courses: [
+      { id: 'dsgvo-dsg', mandatory: true, pct: 70, departments: 'all' },
+      { id: 'iso-27001', mandatory: true, pct: 58, departments: 'all' },
+      {
+        id: 'lmg-haccp',
+        mandatory: true,
+        pct: 78,
+        // Produkt-/Lebensmittelkontakt (Produktion, Supply Chain, Sourcing, Produkt)
+        departments: ['Betrieb / Operations', 'Produktmanagement'],
+      },
+      {
+        id: 'dsgvo-marketing',
+        mandatory: true,
+        pct: 60,
+        departments: ['Marketing', 'Medien & Kommunikation', 'Kunst & Design'],
+      },
+      {
+        id: 'green-claims',
+        mandatory: true,
+        pct: 52,
+        // Health-Claims / Werbeaussagen
+        departments: ['Marketing', 'Produktmanagement', 'Medien & Kommunikation'],
+      },
+      {
+        id: 'arbeitssicherheit-suva',
+        mandatory: true,
+        pct: 49,
+        departments: ['Betrieb / Operations'],
+      },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────
   // HELVETIA FINANZ AG — Finance / Banking
   // Logik: GwG ist Pflicht für alle Front-Office und Compliance.
   // IT/Ops braucht GwG nicht in voller Tiefe. FIDLEG nur für
