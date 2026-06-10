@@ -216,7 +216,13 @@ export default function BibliothekPage(){
                   <div><div style={{fontSize:14.5,fontWeight:600,color:NAVY}}>{m.title}</div>{m.content && <div style={{fontSize:13,color:GRAY,marginTop:2}}>{m.content.length>160?m.content.slice(0,160)+'…':m.content}</div>}</div>
                 </div>
               ))}
-          <div style={{marginTop:20,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}><a href={`/pruefung?kurs=${detail.id}`} className="kx-btn" style={{...btn,textDecoration:'none',display:'inline-block'}}>Lernen &amp; Prüfung →</a><button className="kx-btn" style={btnGhost} onClick={()=>setDetail(null)}>Schließen</button></div>
+          <div style={{marginTop:20,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+              <a href={`/lernen?kurs=${detail.id}`} className="kx-btn" style={{...btn,textDecoration:'none',display:'inline-block'}}>Kurs lernen →</a>
+              <a href={`/pruefung?kurs=${detail.id}`} className="kx-btn" style={{...btnGhost,textDecoration:'none',display:'inline-block'}}>Direkt zur Prüfung</a>
+            </div>
+            <button className="kx-btn" style={btnGhost} onClick={()=>setDetail(null)}>Schließen</button>
+          </div>
         </div>
       </div>
     )}
