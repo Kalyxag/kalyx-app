@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
+import CourseDisclaimerModal from '../components/CourseDisclaimerModal'
 
 const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', GREEN_PALE='#E6F0EB', GOLD_PALE='#F8F1E4', BLUE_PALE='#EAF0FA', BLUE='#3A6DB5', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
 const FH="'Cormorant', Georgia, serif"
@@ -30,6 +31,7 @@ export default function PruefungPage(){
   const [canEdit,setCanEdit]=useState(false)
   const [loading,setLoading]=useState(true)
   const [tab,setTab]=useState<'exam'|'manage'>('exam')
+  const [pendingStart,setPendingStart]=useState(false)
 
   useEffect(()=>{let on=true;(async()=>{
     const cid=new URLSearchParams(window.location.search).get('kurs')||''
@@ -83,6 +85,10 @@ export default function PruefungPage(){
   },[phase,timed,timeLeft])
 
   function startExam(){
+    setPendingStart(true)
+  }
+  function doStartExam(){
+    setPendingStart(false)
     let qs=shuffle(questions)
     let useTimed=false
     if(mode==='benutzerdefiniert'){qs=qs.slice(0,Math.min(customCount,qs.length));useTimed=customTimed}
@@ -240,7 +246,16 @@ export default function PruefungPage(){
   const scored=Object.keys(firstResults.current).length
   const isRepeat=phase==='running'&&queue[0]&&firstResults.current[queue[0].id]!==undefined
 
-  return(<AppShell active="lernen">
+  return(<>
+    {pendingStart && course && uid && tenantId && (
+      <CourseDisclaimerModal
+        courseId={course.id}
+        userId={uid}
+        tenantId={tenantId}
+        onAcknowledged={doStartExam}
+      />
+    )}
+    <AppShell active="lernen">
     <a href="/bibliothek" className="kx-link" style={{fontFamily:FB,fontSize:13.5,color:GREEN,textDecoration:'none'}}>← Bibliothek</a>
     <div style={{...eyebrow,marginTop:8}}>Prüfung &amp; Übung</div>
     <h1 style={{fontFamily:FH,fontSize:30,fontWeight:600,color:NAVY,margin:'4px 0 4px'}}>{course.title}</h1>
@@ -404,5 +419,6 @@ export default function PruefungPage(){
         ))}
       </div>
     </>)}
-  </AppShell>)
+  </AppShell>
+  </>)
 }
