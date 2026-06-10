@@ -1,14 +1,11 @@
 /* ============================================================
    KALYX — Global Styles
    ============================================================
-   Ersetzt die heutige 4-Zeilen globals.css.
-   Enthält:
    1) Tailwind-Direktiven
    2) CSS-Variablen (Light + vorbereiteter Dark Mode)
    3) Basis-Reset + Body-Defaults
-   4) Die Utility-Klassen, die heute zur Laufzeit per injectCI()
-      in jeder AppShell-Mount injiziert werden — gehören in CSS,
-      nicht in JS.
+   4) Utility-Klassen für AppShell, Buttons, Inputs etc.
+   5) Mobile-Welle: Burger-Header + Slide-In-Drawer
    ============================================================ */
 
 @tailwind base;
@@ -73,6 +70,8 @@ html, body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Verhindert iOS-Text-Zoom beim Drehen */
+  -webkit-text-size-adjust: 100%;
 }
 
 a {
@@ -80,7 +79,7 @@ a {
   color: inherit;
 }
 
-/* ---------- Form Element Focus (war bisher in injectCI) ---------- */
+/* ---------- Form Element Focus ---------- */
 .kx-input {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -90,7 +89,7 @@ a {
   outline: none;
 }
 
-/* ---------- Buttons (war bisher in injectCI) ---------- */
+/* ---------- Buttons ---------- */
 .kx-btn {
   transition: transform 120ms ease, box-shadow 150ms ease, opacity 120ms ease;
 }
@@ -101,7 +100,7 @@ a {
   box-shadow: 0 10px 24px rgba(20, 97, 62, 0.28);
 }
 
-/* ---------- Links (war bisher in injectCI) ---------- */
+/* ---------- Links ---------- */
 .kx-link {
   transition: opacity 120ms ease;
 }
@@ -109,7 +108,7 @@ a {
   opacity: 0.7;
 }
 
-/* ---------- Card-Animation (war bisher in injectCI) ---------- */
+/* ---------- Card-Animation ---------- */
 .kx-card {
   animation: kxFadeIn 400ms ease both;
 }
@@ -126,12 +125,12 @@ a {
   to { opacity: 1; transform: none; }
 }
 
-/* ---------- Progress-Bar-Fill (war bisher in injectCI) ---------- */
+/* ---------- Progress-Bar-Fill ---------- */
 .kx-bar-fill {
   transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ---------- Nav-Items (war bisher in injectCI) ---------- */
+/* ---------- Nav-Items ---------- */
 .kx-nav a,
 .kx-nav div.kx-soon {
   display: flex;
@@ -153,7 +152,7 @@ a {
   color: #fff;
 }
 
-/* ---------- App-Shell Layout (war bisher in injectCI) ---------- */
+/* ---------- App-Shell Layout (Desktop default) ---------- */
 .kx-shell {
   display: flex;
   min-height: 100vh;
@@ -176,30 +175,159 @@ a {
   display: flex;
   flex-direction: column;
 }
+.kx-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--kx-line);
+  background: var(--kx-cream);
+}
+.kx-content {
+  flex: 1;
+  padding: 30px 28px 56px;
+}
 
-/* ---------- Mobile App-Shell ---------- */
+/* Mobile-Header und Drawer sind auf Desktop versteckt */
+.kx-mobile-header,
+.kx-aside-drawer,
+.kx-backdrop {
+  display: none;
+}
+
+/* ---------- Icon-Button (Burger / Close / Logout-Icon) ---------- */
+.kx-iconbtn,
+.kx-burger {
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  border-radius: 9px;
+  cursor: pointer;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.kx-iconbtn:hover,
+.kx-burger:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.kx-iconbtn:focus-visible,
+.kx-burger:focus-visible {
+  outline: 2px solid var(--kx-green-light);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   MOBILE: < 860px
+   ============================================================
+   - Desktop-Sidebar wird ausgeblendet
+   - Stattdessen kompakter navy Header oben mit Burger + Logo + Logout-Icon
+   - Klick auf Burger öffnet ein Slide-In-Drawer von links (mit Backdrop)
+   - Topbar-Abmelden-Button im Hauptbereich wird ausgeblendet (ist im Header)
+   ============================================================ */
+
 @media (max-width: 860px) {
   .kx-shell {
     flex-direction: column;
   }
-  .kx-aside {
-    width: 100%;
-    height: auto;
-    position: relative;
-    padding: 14px 14px;
-  }
-  .kx-nav {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-  }
-  .kx-nav a,
-  .kx-nav div.kx-soon {
-    white-space: nowrap;
-    padding: 8px 12px;
-  }
-  .kx-aside .kx-only-wide {
+
+  /* Desktop-Sidebar verschwindet */
+  .kx-aside-desktop {
     display: none;
+  }
+
+  /* Mobile-Header wird sichtbar */
+  .kx-mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    background: var(--kx-navy);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Backdrop hinter dem Drawer */
+  .kx-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 25, 41, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 40;
+    animation: kxBackdropIn 160ms ease both;
+  }
+
+  /* Drawer-Variante der Sidebar */
+  .kx-aside-drawer {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 84%;
+    max-width: 320px;
+    padding: 18px 14px;
+    z-index: 50;
+    overflow-y: auto;
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.32);
+    animation: kxDrawerIn 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  /* Im Drawer dürfen .kx-only-wide-Elemente sichtbar werden */
+  .kx-aside-drawer .kx-only-wide {
+    display: block;
+  }
+
+  /* Topbar im Hauptbereich kompakter, Abmelden-Button raus (steckt im Header) */
+  .kx-topbar {
+    padding: 12px 16px;
+  }
+  .kx-logout-desktop {
+    display: none;
+  }
+
+  /* Hauptcontent: kleineres Padding */
+  .kx-content {
+    padding: 20px 16px 48px;
+  }
+
+  /* Default: kx-only-wide ist auf Mobile versteckt (nur Drawer zeigt sie) */
+  .kx-aside-desktop .kx-only-wide,
+  .kx-shell > .kx-only-wide {
+    display: none;
+  }
+}
+
+@keyframes kxDrawerIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes kxBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================================
+   ULTRA-MOBILE: < 480px
+   ============================================================
+   Kleinere Paddings, kleinere Schrift in Topbar
+   ============================================================ */
+@media (max-width: 480px) {
+  .kx-topbar {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .kx-content {
+    padding: 16px 14px 40px;
   }
 }
 
