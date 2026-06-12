@@ -9,6 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
+import crypto from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -82,16 +83,48 @@ export async function POST(req: Request) {
     const doneGesamt = personen.reduce((s, p) => s + p.done, 0)
     const gesamtAbdeckung = total > 0 && gesamtPersonen > 0 ? Math.round((doneGesamt / (gesamtPersonen * total)) * 100) : 100
 
+    const stichdatum = new Date().toISOString().slice(0, 10)
+
+    // Prüfsumme über die Datengrundlage des Berichts (feste Feldreihenfolge,
+    // serverseitig berechnet). Wer den Export später prüft, kann denselben
+    // Hash aus den Daten nachrechnen bzw. ihn gegen den Audit-Log-Eintrag halten.
+    const reportHash = crypto.createHash('sha256').update(JSON.stringify({
+      mandant, stichdatum, pflicht, personen, gesamt_abdeckung: gesamtAbdeckung,
+    }), 'utf8').digest('hex')
+
+    // Bei zweck='export' wird der Export selbst revisionssicher verankert:
+    // ein Eintrag in der Hash-Kette des Mandanten (audit_log, DB-Trigger
+    // verkettet und schützt ihn). Reines Ansehen der Seite wird nicht geloggt.
+    let kette: { seq: number; entry_hash: string } | null = null
+    if (String(body.zweck || '') === 'export') {
+      const { data: logRow } = await admin.from('audit_log').insert({
+        tenant_id: tid,
+        actor_id: user.id,
+        action: 'audit_report_export',
+        entity: 'audit_report',
+        payload: {
+          report_hash: reportHash,
+          stichdatum,
+          personen_anzahl: gesamtPersonen,
+          pflicht_anzahl: total,
+          gesamt_abdeckung: gesamtAbdeckung,
+        },
+      }).select('seq,entry_hash').maybeSingle()
+      if (logRow) kette = { seq: (logRow as any).seq, entry_hash: (logRow as any).entry_hash }
+    }
+
     return NextResponse.json({
       ok: true,
       mandant,
-      stichdatum: new Date().toISOString().slice(0, 10),
+      stichdatum,
       pflicht,
       personen,
       heatmap,
       gesamt_abdeckung: gesamtAbdeckung,
       personen_anzahl: gesamtPersonen,
       pflicht_anzahl: total,
+      report_hash: reportHash,
+      kette,
     })
   } catch {
     return NextResponse.json({ ok: false, error: 'Fehler bei der Auswertung' }, { status: 500 })
