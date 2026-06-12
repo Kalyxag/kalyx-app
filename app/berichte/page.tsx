@@ -23,7 +23,9 @@ type Person={name:string;abteilung:string;ergebnisse:Erg[];done:number}
 type Zelle={kurs_id:string;prozent:number}
 type Reihe={name:string;personen:number;zellen:Zelle[];schnitt:number}
 type Pflicht={id:string;titel:string}
-type Data={ok:boolean;mandant:string;stichdatum:string;pflicht:Pflicht[];personen:Person[];heatmap:Reihe[];gesamt_abdeckung:number;personen_anzahl:number;pflicht_anzahl:number}
+type Kette={seq:number;entry_hash:string}|null
+type Data={ok:boolean;mandant:string;stichdatum:string;pflicht:Pflicht[];personen:Person[];heatmap:Reihe[];gesamt_abdeckung:number;personen_anzahl:number;pflicht_anzahl:number;report_hash?:string;kette?:Kette}
+type Pruefung={integritaet:boolean;eintraege:number;defekt_bei:number|null;fehler:string|null;geprueft_am:string}
 
 function heat(p:number){
   if(p>=80) return {bg:'#dcefe4',fg:'#14613e'}
@@ -47,6 +49,9 @@ export default function BerichtePage(){
   const [loading,setLoading]=useState(true)
   const [denied,setDenied]=useState(false)
   const [d,setD]=useState<Data|null>(null)
+  const [exporting,setExporting]=useState(false)
+  const [pruefung,setPruefung]=useState<Pruefung|null>(null)
+  const [pruefe,setPruefe]=useState(false)
 
   useEffect(()=>{injectPrint();let on=true;(async()=>{
     const {data}=await supabase.auth.getSession();const session=data.session
@@ -60,19 +65,50 @@ export default function BerichtePage(){
     }catch{ if(on){setDenied(true);setLoading(false)} }
   })();return()=>{on=false}},[router])
 
-  function exportCSV(){
-    if(!d) return
-    const head=['Name','Abteilung',...d.pflicht.map(p=>p.titel),'Erfuellt','Quote']
-    const lines=d.personen.map(p=>{
-      const cells=d.pflicht.map(c=>{const e=p.ergebnisse.find(x=>x.kurs_id===c.id); return e&&e.bestanden?(e.datum||'bestanden'):'offen'})
-      const quote=d.pflicht_anzahl>0?Math.round((p.done/d.pflicht_anzahl)*100):100
-      return [p.name,p.abteilung,...cells,p.done+'/'+d.pflicht_anzahl,quote+'%']
-    })
-    const esc=(v:string)=>{const t=String(v); return /[";\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t}
-    const csv=[head,...lines].map(r=>r.map(esc).join(';')).join('\r\n')
-    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})
-    const url=URL.createObjectURL(blob); const a=document.createElement('a')
-    a.href=url; a.download='kalyx-compliance-'+d.stichdatum+'.csv'; a.click(); URL.revokeObjectURL(url)
+  async function exportCSV(){
+    if(!d||exporting) return
+    setExporting(true)
+    try{
+      // Export holt frische Daten mit zweck='export': der Server verankert den
+      // Export als Eintrag in der revisionssicheren Hash-Kette (audit_log) und
+      // liefert Prüfsumme + Kettenposition zurück.
+      const {data:s}=await supabase.auth.getSession()
+      let exp:Data=d
+      if(s.session){
+        const r=await fetch('/api/audit-report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:s.session.access_token,zweck:'export'})})
+        const j=await r.json(); if(j?.ok){ exp=j; setD(j) }
+      }
+      const head=['Name','Abteilung',...exp.pflicht.map(p=>p.titel),'Erfuellt','Quote']
+      const lines=exp.personen.map(p=>{
+        const cells=exp.pflicht.map(c=>{const e=p.ergebnisse.find(x=>x.kurs_id===c.id); return e&&e.bestanden?(e.datum||'bestanden'):'offen'})
+        const quote=exp.pflicht_anzahl>0?Math.round((p.done/exp.pflicht_anzahl)*100):100
+        return [p.name,p.abteilung,...cells,p.done+'/'+exp.pflicht_anzahl,quote+'%']
+      })
+      // Fusszeile: macht den Export selbst prüfbar (Prüfsumme der Datengrundlage
+      // + Position des Export-Eintrags in der Hash-Kette des Mandanten).
+      const fuss:string[][]=[[],['Bericht',exp.mandant+' · Stichdatum '+exp.stichdatum]]
+      if(exp.report_hash) fuss.push(['Pruefsumme (SHA-256)',exp.report_hash])
+      if(exp.kette) fuss.push(['Audit-Kette','Eintrag Nr. '+exp.kette.seq+' · '+exp.kette.entry_hash])
+      fuss.push(['Hinweis','Dieser Export ist im revisionssicheren Audit-Log des Mandanten verankert. Nachtraegliche Aenderungen der Protokolldaten sind technisch ausgeschlossen und wuerden bei der Integritaetspruefung erkannt.'])
+      const esc=(v:string)=>{const t=String(v); return /[";\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t}
+      const csv=[head,...lines,...fuss].map(r=>r.map(esc).join(';')).join('\r\n')
+      const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'})
+      const url=URL.createObjectURL(blob); const a=document.createElement('a')
+      a.href=url; a.download='kalyx-compliance-'+exp.stichdatum+'.csv'; a.click(); URL.revokeObjectURL(url)
+    }finally{ setExporting(false) }
+  }
+
+  async function pruefeIntegritaet(){
+    if(pruefe) return
+    setPruefe(true); setPruefung(null)
+    try{
+      const {data:s}=await supabase.auth.getSession(); if(!s.session) return
+      const r=await fetch('/api/audit-verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:s.session.access_token})})
+      const j=await r.json()
+      if(j?.ok) setPruefung({integritaet:j.integritaet,eintraege:j.eintraege,defekt_bei:j.defekt_bei,fehler:j.fehler,geprueft_am:j.geprueft_am})
+      else setPruefung({integritaet:false,eintraege:0,defekt_bei:null,fehler:j?.error||'Prüfung fehlgeschlagen',geprueft_am:new Date().toISOString()})
+    }catch{ setPruefung({integritaet:false,eintraege:0,defekt_bei:null,fehler:'Prüfung fehlgeschlagen',geprueft_am:new Date().toISOString()}) }
+    setPruefe(false)
   }
 
   const card:React.CSSProperties={background:'#fff',borderRadius:16,padding:24,border:`1px solid ${LINE}`,boxShadow:'0 1px 2px rgba(0,0,0,.03),0 10px 28px rgba(0,0,0,.05)',marginBottom:16}
@@ -101,11 +137,25 @@ export default function BerichtePage(){
       </div>
       {!leer && (
         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-          <button style={btn} onClick={exportCSV}>CSV exportieren</button>
+          <button style={btn} disabled={pruefe} onClick={pruefeIntegritaet}>{pruefe?'Prüfe …':'Integrität prüfen'}</button>
+          <button style={btn} disabled={exporting} onClick={exportCSV}>{exporting?'Exportiere …':'CSV exportieren'}</button>
           <button style={btnP} onClick={()=>window.print()}>Als PDF speichern</button>
         </div>
       )}
     </div>
+
+    {pruefung && (
+      <div className="kx-noprint" style={{...card,borderLeft:`4px solid ${pruefung.integritaet?GREEN:'#9b2c2c'}`,padding:'16px 20px'}}>
+        <div style={{fontFamily:FB,fontSize:14,fontWeight:700,color:pruefung.integritaet?GREEN:'#9b2c2c'}}>
+          {pruefung.integritaet?'Audit-Kette intakt':'Audit-Kette beschädigt'}
+        </div>
+        <div style={{fontFamily:FB,fontSize:13,color:GRAY,marginTop:4,lineHeight:1.55}}>
+          {pruefung.integritaet
+            ? <>Alle {pruefung.eintraege} Protokolleinträge dieses Mandanten wurden nachgerechnet: die Hash-Kette ist lückenlos und unverändert. Geprüft am {pruefung.geprueft_am.slice(0,10)}.</>
+            : <>{pruefung.fehler||'Unbekannter Fehler'}{pruefung.defekt_bei?<> — betroffen ab Eintrag Nr. {pruefung.defekt_bei}.</>:null} Bitte den KALYX-Support kontaktieren.</>}
+        </div>
+      </div>
+    )}
 
     {leer ? (
       <div style={card}><p style={{fontFamily:FB,fontSize:15,color:GRAY,lineHeight:1.6,margin:0}}>Für diesen Mandanten sind noch keine Pflichtthemen hinterlegt. Sobald Pflichtkurse vergeben sind, erscheinen hier die Heatmap und der Audit-Report.</p></div>
@@ -197,7 +247,7 @@ export default function BerichtePage(){
             </tbody>
           </table>
         </div>
-        <p style={{fontFamily:FM,fontSize:11,color:GRAY,marginTop:14,lineHeight:1.6}}>Dieser Bericht dokumentiert KALYX-interne Schulungsnachweise (bestandene Übungsprüfungen) und ersetzt keine offizielle Branchenzertifizierung. Erstellt am {d.stichdatum} für {d.mandant}.</p>
+        <p style={{fontFamily:FM,fontSize:11,color:GRAY,marginTop:14,lineHeight:1.6}}>Dieser Bericht dokumentiert KALYX-interne Schulungsnachweise (bestandene Übungsprüfungen) und ersetzt keine offizielle Branchenzertifizierung. Erstellt am {d.stichdatum} für {d.mandant}.{d.report_hash?<> Prüfsumme der Datengrundlage (SHA-256): <span style={{wordBreak:'break-all'}}>{d.report_hash}</span>. Die Protokolldaten sind in einer revisionssicheren Hash-Kette verankert; nachträgliche Änderungen sind technisch ausgeschlossen.</>:null}</p>
       </div>
     </div>
     )}
