@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth'
 
 type Step = 'intro' | 'module' | 'quiz' | 'result' | 'thanks'
 
-const GREEN = '#14613E'
+const GREEN = 'var(--kx-brand,#14613E)'
 const NAVY = '#0B1929'
 const GOLD = '#B8904A'
 const GRAY = '#6B7280'

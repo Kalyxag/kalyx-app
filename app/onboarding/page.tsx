@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 // ---- KALYX Design-Tokens (aus der Marketing-CI) ----
-const CREAM = '#F5F4EF', NAVY = '#0B1929', GREEN = '#14613E', GOLD = '#B8904A'
-const GREEN_PALE = '#E6F0EB', LINE = '#E4E0D8', GRAY = '#6B7280'
+const CREAM = '#F5F4EF', NAVY = '#0B1929', GREEN = 'var(--kx-brand,#14613E)', GOLD = '#B8904A'
+const GREEN_PALE = 'var(--kx-brand-pale,#E6F0EB)', LINE = '#E4E0D8', GRAY = '#6B7280'
 const FH = "'Cormorant', Georgia, serif"
 const FB = "'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM = "'IBM Plex Mono', ui-monospace, monospace"

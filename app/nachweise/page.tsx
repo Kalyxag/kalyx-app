@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
 
-const NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', GREEN_PALE='#E6F0EB', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
+const NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', GREEN_PALE='var(--kx-brand-pale,#E6F0EB)', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
 const FH="'Cormorant', Georgia, serif"; const FB="'Albert Sans', system-ui, sans-serif"; const FM="'IBM Plex Mono', ui-monospace, monospace"
 
 type Cert={id:string;cert_number:string;title:string;recipient_name:string|null;score:number|null;status:string;issued_at:string}

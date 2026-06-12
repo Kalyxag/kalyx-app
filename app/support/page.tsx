@@ -10,7 +10,7 @@ import { useEffect, useState, type CSSProperties } from 'react'
 import { INTEGRATIONS, INTEGRATION_KATEGORIEN, INTEGRATION_MAP } from '@/lib/integrations/catalog'
 import { PLAN_PREIS_PRO_PERSON, ADDON_PREIS, SETUP_GEBUEHR, SETUP_RABATT_STANDARD, JAHRESRABATT, mrrMandant, arrMandant, lizenzMrr, rechnePaket } from '@/lib/billing/preise'
 
-const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = '#14613E', GOLD = '#B8904A'
+const NAVY = '#0B1929', CREAM = '#F5F4EF', GREEN = 'var(--kx-brand,#14613E)', GOLD = '#B8904A'
 const INK = '#1d2733', MUTE = '#5b6b7a', LINE = '#e4e1d8', CARD = '#ffffff'
 const FH = "'Cormorant', Georgia, serif"
 const FB = "'Albert Sans', system-ui, sans-serif"

@@ -35,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   )
 
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const initials = (session.user?.full_name || '').split(' ').map((n: string) => n[0]).join('').slice(0, 2)
   const isAdmin = ADMIN_ROLES.includes(session.user?.role)
 
@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '20px 16px 18px', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
           <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="6" fill="#14613E"/>
+            <rect width="32" height="32" rx="6" fill="var(--kx-brand,#14613E)"/>
             <path d="M8 24L16 8L24 24" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M11 19h10" stroke="white" strokeWidth="1.4" strokeLinecap="round" opacity=".6"/>
           </svg>

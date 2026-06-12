@@ -38,7 +38,7 @@ export default function NachweisePage() {
   if (!session) return null
 
   const slug = session.tenantSlug || 'helvetia-finanz'
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const completions = MOCK_COMPLETIONS[slug] || getFallback(slug)
   const filtered = filter
     ? completions.filter(c => c.user.toLowerCase().includes(filter.toLowerCase()) || c.course.toLowerCase().includes(filter.toLowerCase()))
@@ -107,7 +107,7 @@ export default function NachweisePage() {
                 ))}
               </div>
             </div>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: c.score >= 90 ? '#14613E' : c.score >= 75 ? '#B8904A' : '#DC2626' }}>{c.score}%</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: c.score >= 90 ? 'var(--kx-brand,#14613E)' : c.score >= 75 ? '#B8904A' : '#DC2626' }}>{c.score}%</div>
             <div style={{ fontSize: 11, color: '#6B7280' }}>{new Date(c.valid).toLocaleDateString('de-CH')}</div>
             <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#9CA3AF' }}>{c.cert}</div>
           </div>

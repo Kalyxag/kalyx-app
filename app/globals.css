@@ -26,6 +26,21 @@
   --kx-gold-pale: #F8F1E4;
   --kx-navy-elev: #162338;
 
+  /* ---------- Marke / White-Label ----------
+     Eine Wahrheit für die Akzentfarbe. Default = KALYX-Grün.
+     applyBrandTheme() (lib/design/brand.ts) überschreibt diese
+     Variablen pro Mandant zur Laufzeit auf <html>. Alles, was
+     var(--kx-brand…) oder die getheemten Konstanten nutzt, folgt. */
+  --kx-brand: var(--kx-green);
+  --kx-brand-strong: #0E4A2F;
+  --kx-brand-pale: var(--kx-green-pale);
+  --kx-brand-light: var(--kx-green-light);
+  --kx-brand-contrast: #FFFFFF;
+  --kx-brand-glow: rgba(20, 97, 62, 0.28);
+  --kx-brand-focus: rgba(20, 97, 62, 0.12);
+  --kx-brand-active-bg: rgba(127, 212, 168, 0.14);
+  --kx-brand-rgb: 20 97 62;
+
   /* Status */
   --kx-success: #28C840;
   --kx-warning: #E5A33A;
@@ -84,8 +99,8 @@ a {
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 .kx-input:focus {
-  border-color: var(--kx-green);
-  box-shadow: 0 0 0 3px rgba(20, 97, 62, 0.12);
+  border-color: var(--kx-brand);
+  box-shadow: 0 0 0 3px var(--kx-brand-focus);
   outline: none;
 }
 
@@ -96,8 +111,12 @@ a {
 .kx-btn:hover {
   transform: translateY(-1px);
 }
+.kx-btn-primary {
+  background: var(--kx-brand);
+  color: var(--kx-brand-contrast);
+}
 .kx-btn-primary:hover {
-  box-shadow: 0 10px 24px rgba(20, 97, 62, 0.28);
+  box-shadow: 0 10px 24px var(--kx-brand-glow);
 }
 
 /* ---------- Links ---------- */
@@ -148,7 +167,7 @@ a {
   color: #fff;
 }
 .kx-nav a.kx-active {
-  background: rgba(127, 212, 168, 0.14);
+  background: var(--kx-brand-active-bg);
   color: #fff;
 }
 
@@ -217,7 +236,7 @@ a {
 }
 .kx-iconbtn:focus-visible,
 .kx-burger:focus-visible {
-  outline: 2px solid var(--kx-green-light);
+  outline: 2px solid var(--kx-brand-light);
   outline-offset: 2px;
 }
 

@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
 import CourseDisclaimerModal from '../components/CourseDisclaimerModal'
 
-const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', GREEN_PALE='#E6F0EB', GOLD_PALE='#F8F1E4', BLUE_PALE='#EAF0FA', BLUE='#3A6DB5', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
+const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', GREEN_PALE='var(--kx-brand-pale,#E6F0EB)', GOLD_PALE='#F8F1E4', BLUE_PALE='#EAF0FA', BLUE='#3A6DB5', LINE='#E4E0D8', GRAY='#6B7280', RED='#C0392B'
 const FH="'Cormorant', Georgia, serif"
 const FB="'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM="'IBM Plex Mono', ui-monospace, monospace"

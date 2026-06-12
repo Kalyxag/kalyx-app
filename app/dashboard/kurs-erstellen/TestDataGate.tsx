@@ -6,7 +6,7 @@
 // Eltern-Komponente blendet sie ein und gibt onConfirm / onClose.
 // ============================================================
 
-const GREEN = '#14613E'
+const GREEN = 'var(--kx-brand,#14613E)'
 const TEXT = '#111820'
 const GRAY = '#6B7280'
 

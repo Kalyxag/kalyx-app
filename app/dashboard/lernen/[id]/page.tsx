@@ -16,7 +16,7 @@ const NAVY = '#0B1929'
 const GRAY = '#6B7280'
 const GOLD = '#B8904A'
 const LIGHT = '#F5F4EF'
-const GREEN_OK = '#14613E'
+const GREEN_OK = 'var(--kx-brand,#14613E)'
 const RED_NO = '#B42318'
 
 type View = 'intro' | 'module' | 'question' | 'moduledone' | 'result'
@@ -124,7 +124,7 @@ export default function CoursePage() {
 
   const c = course
   const color = c.color || GREEN_OK
-  const bg = c.bg || '#E6F0EB'
+  const bg = c.bg || 'var(--kx-brand-pale,#E6F0EB)'
   const modules = c.modules || []
   const quiz = c.quiz || []
   const passingScore = c.passing_score || 75
