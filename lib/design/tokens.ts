@@ -186,10 +186,12 @@ export type Tokens = typeof tokens
 // Damit alter Code, der bisher NAVY/GREEN/GOLD/CREAM lokal definiert hat,
 // mit minimaler Änderung migriert werden kann.
 export const NAVY = tokens.color.navy
-export const GREEN = tokens.color.green
+// GREEN/GREEN_PALE laufen über die White-Label-Variable (Default = CI-Grün).
+// So folgt jeder Import automatisch der Mandanten-Akzentfarbe.
+export const GREEN = `var(--kx-brand, ${tokens.color.green})`
 export const GOLD = tokens.color.gold
 export const CREAM = tokens.color.cream
-export const GREEN_PALE = tokens.color.greenPale
+export const GREEN_PALE = `var(--kx-brand-pale, ${tokens.color.greenPale})`
 export const LINE = tokens.color.line
 export const GRAY = tokens.color.gray
 export const FH = tokens.font.serif
