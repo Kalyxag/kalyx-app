@@ -31,9 +31,37 @@ export default function ErweiterungenPage(){
   // Branding-Maske
   const [brandName,setBrandName]=useState('')
   const [logoUrl,setLogoUrl]=useState('')
-  const [accent,setAccent]=useState('var(--kx-brand,#14613E)')
+  const [accent,setAccent]=useState('#14613E')
   const [brandMsg,setBrandMsg]=useState('')
   const [savingBrand,setSavingBrand]=useState(false)
+  // KALYX REST-API: Schlüssel-Verwaltung
+  type ApiKey={id:string;name:string;prefix:string;last4:string;created_at:string;last_used_at:string|null;revoked_at:string|null}
+  const [keys,setKeys]=useState<ApiKey[]>([])
+  const [keyName,setKeyName]=useState('')
+  const [keyBusy,setKeyBusy]=useState('')
+  const [keyMsg,setKeyMsg]=useState('')
+  const [neuerKey,setNeuerKey]=useState<{name:string;key:string}|null>(null)
+
+  async function apiKeys(action:string, extra:any={}){
+    const {data:s}=await supabase.auth.getSession(); if(!s.session) return null
+    const r=await fetch('/api/api-keys',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:s.session.access_token,action,...extra})})
+    return r.json()
+  }
+  async function ladeKeys(){ const j=await apiKeys('liste'); if(j?.ok) setKeys(j.schluessel||[]) }
+  async function erstelleKey(){
+    if(!keyName.trim()){ setKeyMsg('Bitte zuerst einen Namen angeben.'); return }
+    setKeyBusy('erstellen'); setKeyMsg(''); setNeuerKey(null)
+    const j=await apiKeys('erstellen',{name:keyName.trim()})
+    if(j?.ok){ setNeuerKey({name:j.name,key:j.key}); setKeyName(''); await ladeKeys() } else setKeyMsg(j?.error||'Anlegen nicht möglich.')
+    setKeyBusy('')
+  }
+  async function widerrufeKey(id:string){
+    if(!confirm('Diesen Schlüssel widerrufen? Anbindungen, die ihn nutzen, verlieren sofort den Zugriff.')) return
+    setKeyBusy(id); setKeyMsg('')
+    const j=await apiKeys('widerrufen',{key_id:id})
+    if(!j?.ok) setKeyMsg(j?.error||'Widerruf nicht möglich.')
+    await ladeKeys(); setKeyBusy('')
+  }
 
   useEffect(()=>{let on=true;(async()=>{
     const {data}=await supabase.auth.getSession();const session=data.session
@@ -50,7 +78,8 @@ export default function ErweiterungenPage(){
     setTid(t); setIsAdmin((au as any)?.access_level==='admin')
     setAddons(ad); setAngefragt(an)
     const b:any=br||{}
-    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||'var(--kx-brand,#14613E)')
+    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||'#14613E')
+    if((au as any)?.access_level==='admin') ladeKeys()
     setLoading(false)
   })();return()=>{on=false}},[router])
 
@@ -183,5 +212,59 @@ export default function ErweiterungenPage(){
         </div>
       </div>
     )}
+
+    {/* ---------- KALYX REST-API: Schlüssel-Verwaltung (nur Admins) ---------- */}
+    <div style={{...card,marginTop:26}}>
+      <div style={eyebrow}>KALYX REST-API</div>
+      <h2 style={{fontFamily:FH,fontSize:24,fontWeight:600,color:NAVY,margin:'4px 0 6px'}}>API-Schlüssel</h2>
+      <p style={{fontFamily:FB,fontSize:13.5,color:GRAY,lineHeight:1.6,maxWidth:680,marginBottom:14}}>
+        Mit einem API-Schlüssel könnt ihr eure Schulungsdaten (Nachweise, Abschlüsse, Abdeckung) lesend in eigene
+        Systeme wie Power BI oder euer HR-Tool ziehen. Der Schlüssel wird genau einmal angezeigt und sieht
+        ausschliesslich Daten eures Unternehmens. Erstellung und Widerruf werden revisionssicher protokolliert.
+      </p>
+      {!isAdmin ? (
+        <p style={{fontFamily:FB,fontSize:13.5,color:GRAY,margin:0}}>API-Schlüssel können nur Administratoren verwalten.</p>
+      ) : (
+        <>
+          {neuerKey && (
+            <div style={{background:'var(--kx-brand-pale,#E6F0EB)',border:`1px solid ${GREEN}`,borderRadius:10,padding:'14px 16px',marginBottom:14}}>
+              <div style={{fontFamily:FB,fontSize:13.5,fontWeight:700,color:GREEN}}>Schlüssel «{neuerKey.name}» erstellt — jetzt kopieren!</div>
+              <div style={{fontFamily:FM,fontSize:13,color:NAVY,margin:'8px 0',wordBreak:'break-all',userSelect:'all'}}>{neuerKey.key}</div>
+              <div style={{fontFamily:FB,fontSize:12,color:GRAY}}>Aus Sicherheitsgründen wird er nie wieder angezeigt; gespeichert ist nur seine Prüfsumme. Verwendung: <span style={{fontFamily:FM}}>Authorization: Bearer …</span></div>
+            </div>
+          )}
+          <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',marginBottom:14}}>
+            <input className="kx-input" value={keyName} onChange={e=>setKeyName(e.target.value)} placeholder="Name, z. B. Power BI" style={{fontFamily:FB,fontSize:13.5,border:`1px solid ${LINE}`,borderRadius:9,padding:'9px 12px',minWidth:220}}/>
+            <button disabled={keyBusy!==''} onClick={erstelleKey} style={{fontFamily:FB,fontSize:13.5,fontWeight:600,border:'none',background:GREEN,color:'#fff',borderRadius:9,padding:'10px 16px',cursor:'pointer'}}>{keyBusy==='erstellen'?'Erstelle …':'Schlüssel erstellen'}</button>
+            {keyMsg && <span style={{fontFamily:FB,fontSize:12.5,color:GRAY}}>{keyMsg}</span>}
+          </div>
+          {keys.length>0 && (
+            <div style={{overflowX:'auto'}}>
+              <table style={{borderCollapse:'collapse',width:'100%',minWidth:520}}>
+                <thead><tr>
+                  {['Name','Schlüssel','Erstellt','Zuletzt benutzt','Status',''].map((h,i)=>(
+                    <th key={i} style={{textAlign:i>=4?'right':'left',padding:'8px 10px',fontFamily:FM,fontSize:10.5,letterSpacing:.4,textTransform:'uppercase',color:GRAY,borderBottom:`1px solid ${LINE}`}}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {keys.map(k=>(
+                    <tr key={k.id}>
+                      <td style={{padding:'9px 10px',fontSize:13,color:NAVY,fontWeight:600,borderBottom:`1px solid #F5F4EF`}}>{k.name}</td>
+                      <td style={{padding:'9px 10px',fontFamily:FM,fontSize:12,color:GRAY,borderBottom:`1px solid #F5F4EF`}}>{k.prefix}…{k.last4}</td>
+                      <td style={{padding:'9px 10px',fontSize:12.5,color:GRAY,borderBottom:`1px solid #F5F4EF`,whiteSpace:'nowrap'}}>{(k.created_at||'').slice(0,10)}</td>
+                      <td style={{padding:'9px 10px',fontSize:12.5,color:GRAY,borderBottom:`1px solid #F5F4EF`,whiteSpace:'nowrap'}}>{k.last_used_at?(k.last_used_at||'').slice(0,10):'—'}</td>
+                      <td style={{padding:'9px 10px',textAlign:'right',fontFamily:FM,fontSize:11.5,fontWeight:700,color:k.revoked_at?'#9b2c2c':GREEN,borderBottom:`1px solid #F5F4EF`}}>{k.revoked_at?'widerrufen':'aktiv'}</td>
+                      <td style={{padding:'9px 10px',textAlign:'right',borderBottom:`1px solid #F5F4EF`}}>
+                        {!k.revoked_at && <button disabled={keyBusy!==''} onClick={()=>widerrufeKey(k.id)} style={{fontFamily:FB,fontSize:12.5,fontWeight:600,border:`1px solid #9b2c2c`,background:'#fff',color:'#9b2c2c',borderRadius:8,padding:'6px 11px',cursor:'pointer'}}>{keyBusy===k.id?'…':'Widerrufen'}</button>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   </AppShell>)
 }
