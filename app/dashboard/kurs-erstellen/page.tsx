@@ -88,7 +88,7 @@ export default function KursErstellenPage() {
   if (!session) return null
 
   const slug = session.tenantSlug || 'helvetia-finanz'
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const deptConfig = DEPT_COURSE_CONFIG[slug]
   const allDepts = deptConfig?.departments || []
   const isAdmin = ['tenant_admin', 'hr_manager', 'compliance_officer'].includes(session.user?.role)
@@ -372,7 +372,7 @@ export default function KursErstellenPage() {
           <div style={{ fontSize: 13, fontWeight: 600, color: '#111820', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{file?.name}</div>
           <div style={{ fontSize: 11, color: '#9CA3AF' }}>{fileText.length.toLocaleString('de-CH')} Zeichen extrahiert · {(file?.size || 0) > 1024*1024 ? ((file?.size||0)/1024/1024).toFixed(1) + ' MB' : ((file?.size||0)/1024).toFixed(0) + ' KB'}</div>
         </div>
-        <div style={{ fontFamily: 'monospace', fontSize: 9, background: '#F0FDF4', color: '#14613E', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>BEREIT</div>
+        <div style={{ fontFamily: 'monospace', fontSize: 9, background: '#F0FDF4', color: 'var(--kx-brand,#14613E)', borderRadius: 20, padding: '3px 10px', fontWeight: 600 }}>BEREIT</div>
       </div>
 
       {/* Live-Warnung bei zu großem Dokument */}
@@ -513,7 +513,7 @@ export default function KursErstellenPage() {
           const active = i === genStep
           return (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 0', opacity: done || active ? 1 : 0.35 }}>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: done ? '#14613E' : active ? primary : '#F3F4F6' }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: done ? 'var(--kx-brand,#14613E)' : active ? primary : '#F3F4F6' }}>
                 {done ? (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                 ) : active ? (
@@ -522,7 +522,7 @@ export default function KursErstellenPage() {
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#D1D5DB' }} />
                 )}
               </div>
-              <span style={{ fontSize: 13, color: active ? '#111820' : done ? '#14613E' : '#9CA3AF', fontWeight: active ? 600 : 400 }}>
+              <span style={{ fontSize: 13, color: active ? '#111820' : done ? 'var(--kx-brand,#14613E)' : '#9CA3AF', fontWeight: active ? 600 : 400 }}>
                 {s.label}
               </span>
             </div>
@@ -541,7 +541,7 @@ export default function KursErstellenPage() {
       <div>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <div style={{ fontFamily: 'monospace', fontSize: 9, color: '#14613E', letterSpacing: '.08em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontFamily: 'monospace', fontSize: 9, color: 'var(--kx-brand,#14613E)', letterSpacing: '.08em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: 20, padding: '2px 10px', fontWeight: 600 }}>✓ KURS GENERIERT</span>
               <span style={{ color: '#9CA3AF' }}>aus {course.source_document}</span>
             </div>
@@ -653,11 +653,11 @@ export default function KursErstellenPage() {
                         padding: '8px 12px', borderRadius: 6, marginBottom: 6, fontSize: 12,
                         background: oi === q.correct ? '#F0FDF4' : '#F9FAFB',
                         border: `1px solid ${oi === q.correct ? '#86EFAC' : '#F3F4F6'}`,
-                        color: oi === q.correct ? '#14613E' : '#374151',
+                        color: oi === q.correct ? 'var(--kx-brand,#14613E)' : '#374151',
                         fontWeight: oi === q.correct ? 600 : 400,
                         display: 'flex', alignItems: 'center', gap: 8,
                       }}>
-                        {oi === q.correct && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#14613E" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                        {oi === q.correct && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--kx-brand,#14613E)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
                         {opt}
                       </div>
                     ))}

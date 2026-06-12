@@ -13,8 +13,8 @@ export default function CompliancePage() {
       <p style={{fontSize:14,color:'#6B7280',marginBottom:28}}>FINMA-konformes Audit-Trail · unveränderlich · append-only</p>
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
         {[
-          {v:`${stats.compliance_rate}%`,l:'Compliance-Rate',c:stats.compliance_rate>=90?'#14613E':stats.compliance_rate>=70?'#B8904A':'#DC2626'},
-          {v:stats.total_completions,l:'Abgeschlossen',c:'#14613E'},
+          {v:`${stats.compliance_rate}%`,l:'Compliance-Rate',c:stats.compliance_rate>=90?'var(--kx-brand,#14613E)':stats.compliance_rate>=70?'#B8904A':'#DC2626'},
+          {v:stats.total_completions,l:'Abgeschlossen',c:'var(--kx-brand,#14613E)'},
           {v:stats.overdue_count,l:'Überfällig',c:'#DC2626'},
         ].map(k=>(
           <div key={k.l} style={{background:'#fff',border:'1px solid #E5E7EB',borderRadius:12,padding:'20px 22px'}}>
@@ -28,7 +28,7 @@ export default function CompliancePage() {
         {users.map((u:any)=>(
           <div key={u.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',borderBottom:'1px solid #F9FAFB'}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:34,height:34,borderRadius:'50%',background:'#E6F0EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#14613E'}}>
+              <div style={{width:34,height:34,borderRadius:'50%',background:'var(--kx-brand-pale,#E6F0EB)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--kx-brand,#14613E)'}}>
                 {u.full_name.split(' ').map((n:string)=>n[0]).join('')}
               </div>
               <div>
@@ -36,7 +36,7 @@ export default function CompliancePage() {
                 <div style={{fontSize:11,color:'#9CA3AF'}}>{u.department}</div>
               </div>
             </div>
-            <span style={{fontFamily:'monospace',fontSize:10,background:'#E6F0EB',color:'#14613E',borderRadius:20,padding:'3px 10px'}}>{u.role}</span>
+            <span style={{fontFamily:'monospace',fontSize:10,background:'var(--kx-brand-pale,#E6F0EB)',color:'var(--kx-brand,#14613E)',borderRadius:20,padding:'3px 10px'}}>{u.role}</span>
           </div>
         ))}
       </div>

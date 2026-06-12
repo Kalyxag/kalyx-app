@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
-const NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', CREAM='#F5F4EF', LINE='#E4E0D8', GRAY='#6B7280'
+const NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', CREAM='#F5F4EF', LINE='#E4E0D8', GRAY='#6B7280'
 const FH="'Cormorant', Georgia, serif"; const FB="'Albert Sans', system-ui, sans-serif"; const FM="'IBM Plex Mono', ui-monospace, monospace"
 
 type Cert={cert_number:string;title:string;recipient_name:string|null;score:number|null;status:string;issued_at:string}

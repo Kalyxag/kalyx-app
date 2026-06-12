@@ -37,7 +37,7 @@ export default function LernenPage() {
   if (!session) return null
 
   const slug = session.tenantSlug || 'helvetia-finanz'
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const config = DEPT_COURSE_CONFIG[slug]
   const departments = config?.departments || []
   const userRole = session.user?.role
@@ -69,7 +69,7 @@ export default function LernenPage() {
 
         <div style={{ background: c.bg, padding: '20px 20px 16px', position: 'relative' as const }}>
           {completed && (
-            <div style={{ position: 'absolute' as const, top: 12, right: 12, background: '#14613E', color: '#fff', fontFamily: 'monospace', fontSize: 8, letterSpacing: '.06em', borderRadius: 20, padding: '3px 8px', fontWeight: 600 }}>ABGESCHLOSSEN</div>
+            <div style={{ position: 'absolute' as const, top: 12, right: 12, background: 'var(--kx-brand,#14613E)', color: '#fff', fontFamily: 'monospace', fontSize: 8, letterSpacing: '.06em', borderRadius: 20, padding: '3px 8px', fontWeight: 600 }}>ABGESCHLOSSEN</div>
           )}
           {inProgress && !completed && (
             <div style={{ position: 'absolute' as const, top: 12, right: 12, background: '#B8904A', color: '#fff', fontFamily: 'monospace', fontSize: 8, letterSpacing: '.06em', borderRadius: 20, padding: '3px 8px', fontWeight: 600 }}>IN BEARBEITUNG</div>
@@ -90,7 +90,7 @@ export default function LernenPage() {
             <span style={{ ...mono }}>{c.passing_score}% bestehen</span>
           </div>
           <div style={{ height: 4, background: '#F3F4F6', borderRadius: 2, marginBottom: 4 }}>
-            <div style={{ width: `${rule.pct}%`, height: '100%', background: completed ? '#14613E' : c.color, borderRadius: 2 }} />
+            <div style={{ width: `${rule.pct}%`, height: '100%', background: completed ? 'var(--kx-brand,#14613E)' : c.color, borderRadius: 2 }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontFamily: 'monospace', fontSize: 9, color: '#9CA3AF' }}>Team-Fortschritt</span>

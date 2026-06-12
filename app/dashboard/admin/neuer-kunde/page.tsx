@@ -39,11 +39,11 @@ const BRANCHEN = [
 const PLAN_INFO = {
   starter: { label: 'Starter', price: 'CHF 49/Mo', desc: 'Bis 25 Mitarbeitende · 5 Kurse', color: '#374151' },
   professional: { label: 'Professional', price: 'CHF 149/Mo', desc: 'Bis 200 Mitarbeitende · Unbegrenzte Kurse', color: '#3A6DB5' },
-  enterprise: { label: 'Enterprise', price: 'CHF 299/Mo', desc: 'Unbegrenzt · SSO · API · White-Label', color: '#14613E' },
+  enterprise: { label: 'Enterprise', price: 'CHF 299/Mo', desc: 'Unbegrenzt · SSO · API · White-Label', color: 'var(--kx-brand,#14613E)' },
 }
 
 const PALETTE = [
-  '#14613E', '#3A6DB5', '#B8904A', '#7C3AED', '#0F766E',
+  'var(--kx-brand,#14613E)', '#3A6DB5', '#B8904A', '#7C3AED', '#0F766E',
   '#1D3A8A', '#DC2626', '#374151', '#1B4F72', '#0A66C2',
 ]
 
@@ -95,7 +95,7 @@ export default function NeuerKundePage() {
 
   const [form, setForm] = useState<NewTenant>({
     name: '', display_name: '', slug: '', branche: '', plan: 'professional',
-    address_city: 'Zürich', billing_email: '', primary_color: '#14613E', mfa_required: false,
+    address_city: 'Zürich', billing_email: '', primary_color: 'var(--kx-brand,#14613E)', mfa_required: false,
     departments: [], newDept: '',
     admin_name: '', admin_email: '', admin_password: '', admin_position: 'HR Manager',
     assigned_courses: ['dsgvo-dsg', 'iso-27001'],
@@ -206,7 +206,7 @@ export default function NeuerKundePage() {
   }
 
   // ── Styles ─────────────────────────────────────────────────
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const card: React.CSSProperties = { background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '24px' }
   const label: React.CSSProperties = { fontFamily: 'monospace', fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase' as const, color: '#6B7280', display: 'block', marginBottom: 6 }
   const input: React.CSSProperties = { width: '100%', border: '1px solid #E5E7EB', borderRadius: 8, padding: '9px 12px', fontSize: 13, outline: 'none', background: '#fff', boxSizing: 'border-box' as const }
@@ -643,7 +643,7 @@ export default function NeuerKundePage() {
             setStep(1)
             setForm({
               name: '', display_name: '', slug: '', branche: '', plan: 'professional',
-              address_city: 'Zürich', billing_email: '', primary_color: '#14613E', mfa_required: false,
+              address_city: 'Zürich', billing_email: '', primary_color: 'var(--kx-brand,#14613E)', mfa_required: false,
               departments: [], newDept: '',
               admin_name: '', admin_email: '', admin_password: '', admin_position: 'HR Manager',
               assigned_courses: ['dsgvo-dsg', 'iso-27001'],

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import LanguageSwitcher from './LanguageSwitcher'
 import { NAVY, GREEN, GOLD, CREAM, LINE, GRAY, FH, FB, FM } from '@/lib/design/tokens'
+import { applyBrandTheme, clearBrandTheme } from '@/lib/design/brand'
 
 const I = {
   receipt:'M5 3h14v18l-3-2-2 2-2-2-2 2-3-2zM8 8h8M8 12h8M8 16h5',
@@ -79,6 +80,9 @@ export default function AppShell({active,children}:{active:string;children:React
       setCompany((cp as any)?.display_name||'')
       const b:any=br||{}
       setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||b.color||'')
+      // White-Label: Akzentfarbe des Mandanten plattformweit produktiv machen.
+      // Ohne gesetzte Farbe greift KALYX-Grün (Default aus globals.css).
+      applyBrandTheme(b.primary_color||b.accent_color||b.color||null)
     })()
     return()=>{on=false}
   },[router])
@@ -98,7 +102,7 @@ export default function AppShell({active,children}:{active:string;children:React
     return ()=>window.removeEventListener('keydown',onKey)
   },[mobileOpen])
 
-  async function logout(){await supabase.auth.signOut();router.replace('/anmelden')}
+  async function logout(){clearBrandTheme();await supabase.auth.signOut();router.replace('/anmelden')}
   const initials=(company||email||'K').trim().slice(0,2).toUpperCase()
 
   const sideLabel:React.CSSProperties={fontFamily:FM,fontSize:10,letterSpacing:'.16em',textTransform:'uppercase',color:'rgba(255,255,255,.4)',padding:'0 12px',margin:'14px 0 6px'}

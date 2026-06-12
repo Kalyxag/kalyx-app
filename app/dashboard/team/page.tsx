@@ -15,7 +15,7 @@ export default function TeamPage() {
   if (!session || !data) return null
 
   const { users, stats } = data
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const filtered = search ? users.filter((u: any) =>
     u.full_name.toLowerCase().includes(search.toLowerCase()) ||
     u.department?.toLowerCase().includes(search.toLowerCase()) ||

@@ -14,7 +14,7 @@ export default function UsersPage() {
           <h1 style={{fontFamily:'Georgia,serif',fontSize:26,fontWeight:600,marginBottom:4,color:'#111820'}}>Mitarbeitende</h1>
           <p style={{fontSize:14,color:'#6B7280'}}>{stats.total_users} Personen · {stats.active_users} aktiv</p>
         </div>
-        <button style={{background:'#14613E',color:'#fff',border:'none',borderRadius:8,padding:'10px 18px',fontSize:13,fontWeight:600,cursor:'pointer'}}>+ Einladen</button>
+        <button style={{background:'var(--kx-brand,#14613E)',color:'#fff',border:'none',borderRadius:8,padding:'10px 18px',fontSize:13,fontWeight:600,cursor:'pointer'}}>+ Einladen</button>
       </div>
       <div style={{background:'#fff',border:'1px solid #E5E7EB',borderRadius:12,overflow:'hidden'}}>
         <div style={{display:'grid',gridTemplateColumns:'2fr 1.5fr 1fr 1fr',padding:'12px 20px',borderBottom:'1px solid #F3F4F6',fontFamily:'monospace',fontSize:10,letterSpacing:'.08em',textTransform:'uppercase' as const,color:'#9CA3AF'}}>
@@ -23,7 +23,7 @@ export default function UsersPage() {
         {users.map((u:any)=>(
           <div key={u.id} style={{display:'grid',gridTemplateColumns:'2fr 1.5fr 1fr 1fr',padding:'14px 20px',borderBottom:'1px solid #F9FAFB',alignItems:'center'}}>
             <div style={{display:'flex',alignItems:'center',gap:10}}>
-              <div style={{width:32,height:32,borderRadius:'50%',background:'#E6F0EB',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#14613E',flexShrink:0}}>
+              <div style={{width:32,height:32,borderRadius:'50%',background:'var(--kx-brand-pale,#E6F0EB)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'var(--kx-brand,#14613E)',flexShrink:0}}>
                 {u.full_name.split(' ').map((n:string)=>n[0]).join('')}
               </div>
               <div>

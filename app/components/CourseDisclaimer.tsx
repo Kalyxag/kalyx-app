@@ -18,7 +18,7 @@ import {
 } from '@/lib/disclaimer/static-meta'
 
 const NAVY  = '#0B1929'
-const GREEN = '#14613E'
+const GREEN = 'var(--kx-brand,#14613E)'
 const GOLD  = '#B8904A'
 const LINE  = '#E4E0D8'
 const GRAY  = '#6B7280'

@@ -12,8 +12,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
 import { ADDON_KATALOG } from '@/lib/billing/preise'
+import { applyBrandTheme, normalizeHex, deriveBrand } from '@/lib/design/brand'
 
-const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='#14613E', GOLD='#B8904A', GREEN_PALE='#E6F0EB', GOLD_PALE='#F8F1E4', LINE='#E4E0D8', GRAY='#6B7280'
+const CREAM='#F5F4EF', NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', GREEN_PALE='var(--kx-brand-pale,#E6F0EB)', GOLD_PALE='#F8F1E4', LINE='#E4E0D8', GRAY='#6B7280'
 const FH="'Cormorant', Georgia, serif"
 const FB="'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM="'IBM Plex Mono', ui-monospace, monospace"
@@ -30,7 +31,7 @@ export default function ErweiterungenPage(){
   // Branding-Maske
   const [brandName,setBrandName]=useState('')
   const [logoUrl,setLogoUrl]=useState('')
-  const [accent,setAccent]=useState('#14613E')
+  const [accent,setAccent]=useState('var(--kx-brand,#14613E)')
   const [brandMsg,setBrandMsg]=useState('')
   const [savingBrand,setSavingBrand]=useState(false)
 
@@ -49,7 +50,7 @@ export default function ErweiterungenPage(){
     setTid(t); setIsAdmin((au as any)?.access_level==='admin')
     setAddons(ad); setAngefragt(an)
     const b:any=br||{}
-    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||'#14613E')
+    setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||'var(--kx-brand,#14613E)')
     setLoading(false)
   })();return()=>{on=false}},[router])
 
@@ -66,13 +67,24 @@ export default function ErweiterungenPage(){
   async function saveBranding(){
     setSavingBrand(true); setBrandMsg('')
     try{
-      const {error}=await supabase.from('branding').upsert({tenant_id:tid,brand_name:brandName.trim()||null,logo_url:logoUrl.trim()||null,primary_color:accent||null},{onConflict:'tenant_id'})
-      setBrandMsg(error?('Speichern nicht möglich. Sind die Branding-Felder in der Datenbank angelegt? '+error.message):'Gespeichert. Beim nächsten Laden erscheint dein Branding in der Seitenleiste.')
+      // Farbe vor dem Speichern normalisieren (#RGB → #RRGGBB); ungültiges wird nicht gespeichert.
+      const farbe = normalizeHex(accent)
+      if(accent.trim() && !farbe){ setBrandMsg('Die Akzentfarbe muss ein Hex-Wert wie #14613E sein.'); setSavingBrand(false); return }
+      const {error}=await supabase.from('branding').upsert({tenant_id:tid,brand_name:brandName.trim()||null,logo_url:logoUrl.trim()||null,primary_color:farbe},{onConflict:'tenant_id'})
+      if(!error){
+        // Sofort plattformweit anwenden — kein Neuladen nötig.
+        applyBrandTheme(farbe)
+        setBrandMsg('Gespeichert. Deine Akzentfarbe gilt ab sofort in der ganzen Plattform.')
+      } else {
+        setBrandMsg('Speichern nicht möglich. Sind die Branding-Felder in der Datenbank angelegt? '+error.message)
+      }
     }catch(e:any){ setBrandMsg('Speichern nicht möglich: '+(e?.message||'Fehler')) }
     setSavingBrand(false)
   }
 
   const card:React.CSSProperties={background:'#fff',borderRadius:16,padding:22,border:`1px solid ${LINE}`,boxShadow:'0 1px 2px rgba(0,0,0,.03),0 10px 28px rgba(0,0,0,.05)'}
+  // Live-Vorschau: gleiche Ableitung wie die Plattform (deriveBrand), Fallback CI-Grün.
+  const vorschau = deriveBrand(normalizeHex(accent)||'#14613E')
   const eyebrow:React.CSSProperties={fontFamily:FM,fontSize:11,letterSpacing:'.18em',textTransform:'uppercase',color:GOLD}
   const wlAktiv=addons.includes('white_label')
 
@@ -150,6 +162,18 @@ export default function ErweiterungenPage(){
                     </>
                 }
               </div>
+              {/* Live-Vorschau: aktive Navigation in der Akzentfarbe */}
+              <div style={{marginTop:14,display:'flex',flexDirection:'column',gap:4}}>
+                <div style={{display:'flex',alignItems:'center',gap:9,padding:'8px 10px',borderRadius:9,background:vorschau.activeBg,color:'#fff',fontFamily:FB,fontSize:13.5,fontWeight:600}}>Übersicht</div>
+                <div style={{display:'flex',alignItems:'center',gap:9,padding:'8px 10px',borderRadius:9,color:'rgba(255,255,255,.62)',fontFamily:FB,fontSize:13.5}}>Lernen</div>
+              </div>
+            </div>
+            {/* Live-Vorschau: Button und Tönung im hellen Bereich */}
+            <div style={{fontFamily:FB,fontSize:12,fontWeight:600,color:GRAY,margin:'14px 0 8px'}}>Vorschau Plattform</div>
+            <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+              <span style={{fontFamily:FB,fontSize:13.5,fontWeight:600,color:vorschau.contrast,background:vorschau.brand,borderRadius:9,padding:'9px 14px'}}>Kurs starten</span>
+              <span style={{fontFamily:FB,fontSize:12.5,fontWeight:600,color:vorschau.brand,background:vorschau.pale,borderRadius:999,padding:'5px 11px'}}>Pflichtschulung</span>
+              <span style={{fontFamily:FB,fontSize:13,color:vorschau.brand,fontWeight:600,textDecoration:'underline'}}>Mehr erfahren</span>
             </div>
           </div>
         </div>

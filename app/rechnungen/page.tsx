@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import AppShell from '../components/AppShell'
 
-const NAVY = '#0B1929', GREEN = '#14613E', GOLD = '#B8904A', LINE = '#E4E0D8', GRAY = '#6B7280', INK = '#1F2A37', MUTE = '#9AA1A9'
+const NAVY = '#0B1929', GREEN = 'var(--kx-brand,#14613E)', GOLD = '#B8904A', LINE = '#E4E0D8', GRAY = '#6B7280', INK = '#1F2A37', MUTE = '#9AA1A9'
 const FH = "'Cormorant', Georgia, serif"
 const FB = "'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM = "'IBM Plex Mono', ui-monospace, monospace"

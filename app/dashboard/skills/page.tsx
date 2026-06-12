@@ -18,7 +18,7 @@ export default function SkillsPage() {
   if (!session) return null
 
   const slug = session.tenantSlug || 'helvetia-finanz'
-  const primary = session.tenant?.primary_color || '#14613E'
+  const primary = session.tenant?.primary_color || 'var(--kx-brand,#14613E)'
   const skills: SkillArea[] = MOCK_SKILLS_BY_TENANT[slug] || MOCK_SKILLS_BY_TENANT['helvetia-finanz']
 
   const strong = skills.filter(s => s.status === 'strong')
@@ -26,7 +26,7 @@ export default function SkillsPage() {
   const gap = skills.filter(s => s.status === 'gap')
 
   const statusConfig = {
-    strong:   { label: 'Stark',          bg: '#F0FDF4', border: '#86EFAC', dot: '#14613E', text: '#14613E' },
+    strong:   { label: 'Stark',          bg: '#F0FDF4', border: '#86EFAC', dot: 'var(--kx-brand,#14613E)', text: 'var(--kx-brand,#14613E)' },
     building: { label: 'Im Aufbau',      bg: '#FFFBEB', border: '#FCD34D', dot: '#B8904A', text: '#B8904A' },
     gap:      { label: 'Lücke erkannt',  bg: '#FEF2F2', border: '#FCA5A5', dot: '#DC2626', text: '#DC2626' },
   }
@@ -101,7 +101,7 @@ export default function SkillsPage() {
           <div style={{ width: `${avgCoverage}%`, height: '100%', background: primary, borderRadius: 4 }} />
         </div>
         <div style={{ display: 'flex', gap: 20, flexShrink: 0 }}>
-          {([['strong', '#14613E'], ['building', '#B8904A'], ['gap', '#DC2626']] as [string, string][]).map(([status, color]) => {
+          {([['strong', 'var(--kx-brand,#14613E)'], ['building', '#B8904A'], ['gap', '#DC2626']] as [string, string][]).map(([status, color]) => {
             const count = skills.filter(s => s.status === status).length
             const cfg = statusConfig[status as keyof typeof statusConfig]
             return (
@@ -142,8 +142,8 @@ export default function SkillsPage() {
       {strong.length > 0 && (
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#14613E' }} />
-            <span style={{ fontFamily: 'monospace', fontSize: 10, letterSpacing: '.08em', color: '#14613E', fontWeight: 600 }}>STARK AUFGESTELLT · {strong.length} Bereiche</span>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--kx-brand,#14613E)' }} />
+            <span style={{ fontFamily: 'monospace', fontSize: 10, letterSpacing: '.08em', color: 'var(--kx-brand,#14613E)', fontWeight: 600 }}>STARK AUFGESTELLT · {strong.length} Bereiche</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
             {strong.map(s => <SkillCard key={s.id} skill={s} />)}
