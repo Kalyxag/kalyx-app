@@ -1681,8 +1681,6 @@ export const COURSES_DATA: Record<string, CourseData> = {
 
 }
 
-}
-
 
 
 
