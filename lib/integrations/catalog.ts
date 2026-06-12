@@ -42,13 +42,14 @@ export const INTEGRATIONS: IntegrationDef[] = [
   { key: 'zoom', name: 'Zoom', kategorie: 'Zusammenarbeit', protokoll: 'API', implementiert: false, beschreibung: 'Live-Trainings und Aufzeichnungen synchronisieren.' },
 
   // ---- E-Learning-Standards & CRM ----
+  { key: 'open_badges', name: 'Open Badges', kategorie: 'E-Learning-Standards & CRM', protokoll: 'Open Badges v2', implementiert: true, beschreibung: 'Abschluesse als portable Open Badges (v2, hosted verification): Issuer-, BadgeClass- und Assertion-Endpoints plus Badge-Datei mit eingebettetem Echtheitsnachweis.' },
   { key: 'scorm', name: 'SCORM 1.2 / 2004', kategorie: 'E-Learning-Standards & CRM', protokoll: 'Standard', implementiert: false, beschreibung: 'Import und Export von SCORM-Paketen.' },
   { key: 'xapi', name: 'xAPI (Tin Can)', kategorie: 'E-Learning-Standards & CRM', protokoll: 'Standard', implementiert: false, beschreibung: 'Lernverhalten-Tracking via xAPI-Statements.' },
   { key: 'lti', name: 'LTI 1.3', kategorie: 'E-Learning-Standards & CRM', protokoll: 'Standard', implementiert: false, beschreibung: 'Learning Tools Interoperability fuer LMS-Verbund.' },
   { key: 'salesforce', name: 'Salesforce', kategorie: 'E-Learning-Standards & CRM', protokoll: 'API', implementiert: false, beschreibung: 'Schulungsabschluesse in CRM-Profilen.' },
 
   // ---- KALYX ----
-  { key: 'rest_api', name: 'KALYX REST-API', kategorie: 'KALYX', protokoll: 'API', implementiert: false, beschreibung: 'Offene API mit Schluessel pro Mandant fuer eigene Anbindungen.' },
+  { key: 'rest_api', name: 'KALYX REST-API', kategorie: 'KALYX', protokoll: 'API', implementiert: true, beschreibung: 'Offene Lese-API (v1) mit Schluessel pro Mandant: Nachweise, Abschluesse und Pflichtschulungs-Abdeckung fuer eigene Anbindungen (BI, HR). Schluessel-Verwaltung unter Erweiterungen.' },
 ]
 
 export const INTEGRATION_MAP: Record<string, IntegrationDef> =
