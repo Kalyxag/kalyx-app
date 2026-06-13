@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { WASSERZEICHEN_AKTIV, WASSERZEICHEN_DECKKRAFT } from '@/lib/badges/design-config'
 
 const NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', CREAM='#F5F4EF', LINE='#E4E0D8', GRAY='#6B7280'
 const FH="'Cormorant', Georgia, serif"; const FB="'Albert Sans', system-ui, sans-serif"; const FM="'IBM Plex Mono', ui-monospace, monospace"
@@ -50,7 +51,14 @@ export default function ZertifikatPage(){
       </div>
 
       {/* Urkunde */}
-      <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:6,padding:'56px 60px',boxShadow:'0 10px 40px rgba(0,0,0,.08)',position:'relative'}}>
+      <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:6,padding:'56px 60px',boxShadow:'0 10px 40px rgba(0,0,0,.08)',position:'relative',overflow:'hidden'}}>
+        {/* Wasserzeichen: Linien-Variante des Badge-Designs, dezent hinter dem
+            Inhalt; druckt mit (kein kx-noprint). Konfiguration: lib/badges/design-config.ts */}
+        {WASSERZEICHEN_AKTIV && cert.status==='gueltig' && (
+          <img src={'/api/badge/image?nr='+encodeURIComponent(cert.cert_number)+'&variante=wasserzeichen'} alt=""
+            aria-hidden="true"
+            style={{position:'absolute',left:'50%',top:'50%',transform:'translate(-50%,-50%)',width:'min(420px, 78%)',opacity:WASSERZEICHEN_DECKKRAFT,pointerEvents:'none',userSelect:'none'}}/>
+        )}
         <div style={{position:'absolute',inset:14,border:`2px solid ${GOLD}`,borderRadius:4,pointerEvents:'none',opacity:.5}}/>
         <div style={{position:'relative',textAlign:'center'}}>
           <div style={{fontFamily:FH,fontWeight:700,fontSize:30,color:NAVY,letterSpacing:'.14em'}}>KALYX</div>
@@ -80,6 +88,24 @@ export default function ZertifikatPage(){
         Dies ist kein offizieller Branchenabschluss. Echtheit prüfbar über die Zertifikatsnummer.<br/>
         Pilotbetrieb · Daten in der EU gespeichert.
       </p>
+
+      {cert.status==='gueltig' && (
+        <div className="kx-noprint" style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:14,padding:'18px 20px',marginTop:14,display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
+          <img src={'/api/badge/image?nr='+encodeURIComponent(cert.cert_number)} alt="Open Badge" width={84} height={84} style={{flexShrink:0}}/>
+          <div style={{flex:1,minWidth:220}}>
+            <div style={{fontFamily:FB,fontSize:14.5,fontWeight:700,color:NAVY}}>Open Badge</div>
+            <div style={{fontFamily:FB,fontSize:12.5,color:GRAY,lineHeight:1.55,marginTop:3}}>
+              Dieser Nachweis ist auch im internationalen Open-Badges-Standard (v2) verfügbar — portabel
+              und von jedem Open-Badge-Prüfdienst verifizierbar. Die Badge-Datei trägt ihren
+              Echtheitsnachweis in sich; persönliche Daten erscheinen darin nur geschützt (gehasht).
+            </div>
+            <div style={{display:'flex',gap:14,marginTop:9,flexWrap:'wrap'}}>
+              <a href={'/api/badge/image?nr='+encodeURIComponent(cert.cert_number)+'&download=1'} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Badge herunterladen (SVG)</a>
+              <a href={'/api/badge/assertion?nr='+encodeURIComponent(cert.cert_number)} target="_blank" rel="noreferrer" style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Prüfdaten ansehen (JSON)</a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   </div>)
 }
