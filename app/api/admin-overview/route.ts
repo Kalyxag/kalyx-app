@@ -8,6 +8,7 @@
 // Aufruf: /api/admin-overview?token=GEHEIM   (gleicher Token wie die Seed-Routen)
 
 import { NextResponse } from 'next/server'
+import { seedDenied } from '@/lib/api/seed-secret'
 import { getAdminClient } from '@/lib/supabase/admin'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -15,7 +16,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
-const FALLBACK_SECRET = 'aurora-seed-7Q2x-Kalyx-2026'
 
 // Fallback, falls die Spalte is_demo noch nicht existiert.
 const DEMO_SLUGS_FALLBACK = [
@@ -28,10 +28,8 @@ type TenantRow = { id: string; slug: string; status: string | null; is_demo?: bo
 
 async function run(req: Request) {
   const url = new URL(req.url)
-  const token = url.searchParams.get('token') || ''
-  if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) {
-    return NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 })
-  }
+  const denied = seedDenied(req)
+  if (denied) return denied
   let admin: SupabaseClient
   try { admin = getAdminClient() } catch {
     return NextResponse.json({ error: 'Server nicht konfiguriert.' }, { status: 503 })

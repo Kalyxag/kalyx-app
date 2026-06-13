@@ -8,6 +8,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
+import { seedDenied } from '@/lib/api/seed-secret'
 import { INTEGRATION_MAP } from '@/lib/integrations/catalog'
 import { sendWebhook } from '@/lib/integrations/webhook'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -16,16 +17,13 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
-const FALLBACK_SECRET = 'aurora-seed-7Q2x-Kalyx-2026'
 const STATUSES = ['aktiv', 'vorbereitung', 'inaktiv']
 
 // Liefert den Admin-Client oder null; bei null hat authError() die Antwort.
-function authAdmin(req: Request): SupabaseClient | null {
-  const token = new URL(req.url).searchParams.get('token') || ''
-  if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) return null
+// Liefert den Admin-Client oder null (wenn Server nicht konfiguriert ist).
+function getAdmin(): SupabaseClient | null {
   try { return getAdminClient() } catch { return null }
 }
-function authError() { return NextResponse.json({ error: 'Nicht autorisiert oder Server nicht konfiguriert.' }, { status: 401 }) }
 
 async function tenantId(admin: SupabaseClient, slug: string): Promise<string | null> {
   const t = await admin.from('tenants').select('id').eq('slug', slug).maybeSingle()
@@ -34,8 +32,10 @@ async function tenantId(admin: SupabaseClient, slug: string): Promise<string | n
 }
 
 export async function GET(req: Request) {
-  const admin = authAdmin(req)
-  if (!admin) return authError()
+  const denied = seedDenied(req)
+  if (denied) return denied
+  const admin = getAdmin()
+  if (!admin) return NextResponse.json({ error: 'Server ist nicht konfiguriert.' }, { status: 503 })
   const slug = (new URL(req.url).searchParams.get('slug') || '').trim()
   if (!slug) return NextResponse.json({ error: 'slug fehlt.' }, { status: 400 })
   const tid = await tenantId(admin, slug)
@@ -55,8 +55,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const admin = authAdmin(req)
-  if (!admin) return authError()
+  const denied = seedDenied(req)
+  if (denied) return denied
+  const admin = getAdmin()
+  if (!admin) return NextResponse.json({ error: 'Server ist nicht konfiguriert.' }, { status: 503 })
   let body: any
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Ungueltiger Body.' }, { status: 400 }) }
 

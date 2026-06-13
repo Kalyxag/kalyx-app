@@ -24,6 +24,7 @@
 // naechste Schritt und brauchen zusaetzlich eine Webhook-Route.
 
 import { NextResponse } from 'next/server'
+import { seedDenied } from '@/lib/api/seed-secret'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { rechnePaket, type BillingMandant } from '@/lib/billing/preise'
 
@@ -31,7 +32,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
-const FALLBACK_SECRET = 'aurora-seed-7Q2x-Kalyx-2026'
 
 function siteOrigin(req: Request): string {
   return req.headers.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://kalyx.academy'
@@ -40,11 +40,8 @@ function siteOrigin(req: Request): string {
 export async function POST(req: Request) {
   try {
     // 1) Token-Schutz, gleicher Code wie die uebrigen Admin-Routen.
-    const url = new URL(req.url)
-    const token = url.searchParams.get('token') || ''
-    if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) {
-      return NextResponse.json({ ok: false, error: 'Nicht autorisiert.' }, { status: 401 })
-    }
+    const denied = seedDenied(req)
+    if (denied) return denied
 
     // 2) Stripe-Schluessel muss konfiguriert sein.
     const stripeKey = process.env.STRIPE_SECRET_KEY || ''

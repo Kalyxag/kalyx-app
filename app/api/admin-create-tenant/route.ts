@@ -8,6 +8,7 @@
 // damit keine halben Kunden zurückbleiben.
 
 import { NextResponse } from 'next/server'
+import { seedDenied } from '@/lib/api/seed-secret'
 import { getAdminClient } from '@/lib/supabase/admin'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -15,7 +16,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
 
-const FALLBACK_SECRET = 'aurora-seed-7Q2x-Kalyx-2026'
 const PLANS = ['klein', 'mittel', 'gross', 'konzern']
 const STATUSES = ['pilot', 'aktiv', 'gesperrt']
 const INTERVALS = ['monatlich', 'jaehrlich']
@@ -38,11 +38,8 @@ async function cleanup(admin: SupabaseClient, tenantId: string | null, userId: s
 }
 
 export async function POST(req: Request) {
-  const url = new URL(req.url)
-  const token = url.searchParams.get('token') || ''
-  if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) {
-    return NextResponse.json({ ok: false, error: 'Nicht autorisiert.' }, { status: 401 })
-  }
+  const denied = seedDenied(req)
+  if (denied) return denied
 
   let body: any
   try { body = await req.json() } catch { return NextResponse.json({ ok: false, error: 'Ungültige Anfrage.' }, { status: 400 }) }
