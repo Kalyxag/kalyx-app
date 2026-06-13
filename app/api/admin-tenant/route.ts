@@ -21,19 +21,16 @@ const STATUSES = ['pilot', 'aktiv', 'gesperrt']
 const INTERVALS = ['monatlich', 'jaehrlich']
 const ADDONS = ['white_label', 'ki_budget', 'api', 'support', 'bi', 'sso', 'dedicated']   // zentrale Add-on-Liste, hier erweitern
 
-function auth(req: Request): { ok: true; admin: SupabaseClient } | { ok: false; res: NextResponse } {
-  const url = new URL(req.url)
-  const token = url.searchParams.get('token') || ''
-  if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) {
-    return { ok: false, res: NextResponse.json({ error: 'Nicht autorisiert.' }, { status: 401 }) }
-  }
-  try { return { ok: true, admin: getAdminClient() } }
-  catch { return { ok: false, res: NextResponse.json({ error: 'Server nicht konfiguriert.' }, { status: 503 }) } }
+function authAdmin(req: Request): SupabaseClient | null {
+  const token = new URL(req.url).searchParams.get('token') || ''
+  if (token !== (process.env.SEED_SECRET || FALLBACK_SECRET)) return null
+  try { return getAdminClient() } catch { return null }
 }
+function authError() { return NextResponse.json({ error: 'Nicht autorisiert oder Server nicht konfiguriert.' }, { status: 401 }) }
 
 export async function GET(req: Request) {
-  const a = auth(req); if (!a.ok) return a.res
-  const admin = a.admin
+  const admin = authAdmin(req)
+  if (!admin) return authError()
   const slug = (new URL(req.url).searchParams.get('slug') || '').trim()
   if (!slug) return NextResponse.json({ error: 'slug fehlt.' }, { status: 400 })
 
@@ -96,8 +93,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const a = auth(req); if (!a.ok) return a.res
-  const admin = a.admin
+  const admin = authAdmin(req)
+  if (!admin) return authError()
 
   let body: any
   try { body = await req.json() } catch {
