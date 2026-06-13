@@ -32,6 +32,9 @@ export interface CourseData {
   bg: string
   duration: string
   passing_score: number
+  course_type?: 'pflicht' | 'vorbereitung' | 'weiterbildung'
+  course_level?: 'grundlagen' | 'aufbau' | 'vertiefung' | 'experte'
+  learning_objectives?: string[]
   modules: Module[]
   quiz: QuizQuestion[]
 }
@@ -41,13 +44,16 @@ export const COURSES_DATA: Record<string, CourseData> = {
   'gwg-2025': {
     id: 'gwg-2025',
     emoji: '⚖️',
-    title: 'Geldwäscherei-Prävention (GwG 2025)',
+    title: 'Geldwäscherei-Prävention (GwG, Stand 2026)',
     subtitle: 'Pflichtschulung für Finanzintermediäre — AML, MROS, PEP und Transaktionsüberwachung',
     regulation: 'FINMA · GwG · AML · FATF · MROS',
     color: '#14613E',
     bg: '#E6F0EB',
     duration: '55 Min.',
     passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'vertiefung',
+    learning_objectives: ['Die rechtlichen Grundlagen des GwG, der FATF-Empfehlungen und des neuen Transparenzgesetzes (TJPG) benennen', 'Sorgfaltspflichten (KYC), PEP-Identifikation und Enhanced Due Diligence in der Praxis anwenden', 'Verdachtsmomente erkennen und das Meldeverfahren an MROS korrekt einleiten', 'Die persönliche strafrechtliche Verantwortung nach Art. 305bis StGB einordnen'],
     modules: [
       {
         id: 'm1',
@@ -59,6 +65,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Das Drei-Phasen-Modell der Geldwäscherei beschreibt den typischen Ablauf: Placement (Einspeisung — Bargeld aus illegalen Quellen wie Drogenhandel oder Korruption wird in das Finanzsystem eingebracht, z.B. durch Strukturierung kleinerer Einzahlungen, sog. Smurfing), Layering (Verschleierung — durch komplexe Transaktionsketten, Offshore-Gesellschaften, Schein-Firmengeflechte und Immobilienkäufe wird der Ursprung unkenntlich gemacht), und Integration (Einschleusung — gereinigte Gelder erscheinen als legitimes Einkommen oder Unternehmensgewinn).',
           'Die volkswirtschaftlichen Schäden sind enorm: Die UNODC schätzt das globale Geldwäschevolumen auf 2–5% des weltweiten BIP, entsprechend USD 800 Mrd. bis 2 Billionen jährlich. In der Schweiz verzeichnete MROS 2023 einen Rekordwert von 9\'303 Verdachtsmeldungen mit einem gemeldeten verdächtigen Vermögensvolumen von über CHF 12 Mrd. Die häufigsten Vortaten laut MROS-Jahresbericht: Betrug und ungetreue Geschäftsbesorgung (42%), Korruption (18%), Drogenhandel (12%).',
           'Aktuelle Entwicklungen: FATF-Empfehlung 15 zu Virtual Assets und Virtual Asset Service Providers (VASPs) wurde 2019 eingeführt und 2023 verschärft. Die Travel Rule verlangt, dass bei Kryptotransfers über USD/CHF 1\'000 Absender- und Empfängerdaten elektronisch übermittelt werden müssen. In der Schweiz umgesetzt durch FINMA-Rundschreiben 2023/4 "Video- und Online-Identifizierung". Die EU AMLA (Anti-Money Laundering Authority), die 2025 den Betrieb aufnahm, zentralisiert die AML-Aufsicht in der EU und beeinflusst CH-Institute mit EU-Niederlassungen direkt.',
+          'Schweizer Reform 2025/2026: Am 26. September 2025 haben die Eidgenössischen Räte eine umfassende GwG-Revision sowie das neue Bundesgesetz über die Transparenz juristischer Personen und die Identifikation der wirtschaftlich berechtigten Personen (TJPG) verabschiedet. Kernstück ist ein zentrales, nicht öffentliches eidgenössisches Transparenzregister der wirtschaftlich Berechtigten, geführt vom EJPD und zugänglich für Behörden sowie dem GwG unterstellte Finanzintermediäre. Zusätzlich werden die GwG-Sorgfaltspflichten auf bestimmte beratende Tätigkeiten (u.a. von Anwälten und Notaren bei strukturierenden Geschäften) ausgedehnt. Das Inkrafttreten ist für die zweite Jahreshälfte 2026 vorgesehen, mit Übergangsfristen für bestehende Rechtseinheiten. Ziel ist die Umsetzung der FATF-Empfehlung 24 und die Vorbereitung auf die FATF-Länderprüfung 2027/2028.',
         ],
         keypoints: [
           'GwG (SR 955.0): präventives Gesetz — Verstoss nach Art. 305bis StGB bis 3 Jahre Freiheitsstrafe',
@@ -188,6 +195,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
       { id: 'q13', question: 'Wo ist MROS angesiedelt?', options: ['FINMA', 'Beim fedpol (Bundesamt für Polizei) als schweizerische FIU', 'Schweizerische Nationalbank', 'SECO'], correct: 1, explanation: 'MROS (Money Reporting Office Switzerland) ist die schweizerische Financial Intelligence Unit (FIU), angesiedelt beim fedpol. Sie empfängt, analysiert und leitet Verdachtsmeldungen weiter.' },
       { id: 'q14', question: 'Wie oft sind Mitarbeitende nach FINMA-Standard mindestens in AML zu schulen?', options: ['Einmalig bei Stellenantritt', 'Initial + Refresher mindestens alle 2 Jahre', 'Monatliche Briefings', 'Nur bei GwG-Änderungen'], correct: 1, explanation: 'FINMA-Standard: initiale AML-Schulung bei Stellenantritt + Refresher-Schulungen mindestens alle 2 Jahre. Dokumentation (Datum, Inhalt, Ergebnis) für FINMA-Inspektionen aufbewahren.' },
       { id: 'q15', question: 'Kann sich ein Mitarbeiter auf Vorgesetzten-Anweisungen berufen wenn er eine verdächtige Transaktion ausführt?', options: ['Ja, Weisungen der Hierarchie sind bindend', 'Nein — Art. 305bis StGB gilt auch für ausführende Personen persönlich', 'Nur Compliance-Beauftragte haften persönlich', 'Nur bei Beträgen über CHF 1 Mio.'], correct: 1, explanation: 'Art. 305bis StGB gilt für jede natürliche Person, die wissentlich an Geldwäscherei mitwirkt — unabhängig von der Hierarchieebene. "Befehlsnotstand" ist keine strafrechtliche Entlastung.' },
+      { id: 'q16', question: 'Was führt das neue Transparenzgesetz (TJPG, Inkrafttreten H2 2026) ein?', options: ['Eine öffentliche Liste aller Bankkonten', 'Ein zentrales, nicht öffentliches eidgenössisches Register der wirtschaftlich Berechtigten juristischer Personen', 'Die Abschaffung der Sorgfaltspflichten', 'Ein FINMA-Bewilligungsverfahren für Berater'], correct: 1, explanation: 'Das TJPG (verabschiedet am 26.09.2025, Inkrafttreten zweite Jahreshälfte 2026) schafft ein zentrales, nicht öffentliches Bundesregister der wirtschaftlich Berechtigten, geführt vom EJPD und zugänglich für Behörden sowie GwG-unterstellte Finanzintermediäre. Umsetzung der FATF-Empfehlung 24.' },
     ],
   },
 
@@ -201,7 +209,10 @@ export const COURSES_DATA: Record<string, CourseData> = {
     color: '#3A6DB5',
     bg: '#EAF0FA',
     duration: '50 Min.',
-    passing_score: 75,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Grundsätze und den Anwendungsbereich von DSGVO und revidiertem DSG unterscheiden', 'Betroffenenrechte korrekt umsetzen und Fristen einhalten', 'Eine Datenschutzverletzung erkennen und die Meldepflicht fristgerecht erfüllen', 'Auftragsverarbeitung und internationale Datenübermittlung rechtssicher gestalten'],
     modules: [
       {
         id: 'm1',
@@ -354,7 +365,10 @@ export const COURSES_DATA: Record<string, CourseData> = {
     color: '#B8904A',
     bg: '#F8F1E4',
     duration: '50 Min.',
-    passing_score: 70,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Schutzziele (CIA-Triade) und die Grundkonzepte eines ISMS nach ISO 27001:2022 erläutern', 'Phishing, Ransomware und Social Engineering im Arbeitsalltag erkennen', 'Sichere Authentifizierung (MFA, Zero Trust) und Zugangsregeln anwenden', 'Im Ernstfall die Schritte der Incident Response einleiten'],
     modules: [
       {
         id: 'm1',
@@ -507,6 +521,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#D6EAF8',
     duration: '50 Min.',
     passing_score: 80,
+    course_type: 'weiterbildung',
+    course_level: 'vertiefung',
+    learning_objectives: ['Ziele und Systematik der zweiten RPG-Teilrevision erklären', 'Den neuen Gebietsansatz in Richt- und Nutzungsplanung anwenden', 'Spielräume für erneuerbare Energien ausserhalb der Bauzone einordnen', 'Bestehende Planungen auf RPG-2-Konformität überprüfen'],
     modules: [
       {
         id: 'm1',
@@ -516,7 +533,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Das Parlament hat am 29. September 2023 die zweite Teilrevision des Raumplanungsgesetzes (RPG 2) verabschiedet. Am 1. Januar 2026 trat der erste Teil in Kraft, die Bestimmungen zum Bauen ausserhalb der Bauzonen folgen per 1. Juli 2026.',
           'Herzstück der Revision ist das sogenannte Stabilisierungsziel: Die Anzahl Gebäude und die versiegelte Fläche ausserhalb der Bauzonen sollen stabilisiert werden. Damit will der Bund der Zersiedelung entgegenwirken und einen haushälterischen Umgang mit dem Boden sichern.',
           'Die RPG 2 führt ein Kontingentsystem ein: Für neue Gebäude ausserhalb der Bauzonen wird ein Kontingent festgelegt. Bereits wurden pro Jahr rund 70 zusätzliche Gebäude bewilligt — bei gleichbleibendem Wachstum würde das Kontingent in etwa 30 Jahren aufgebraucht.',
-          'Als Planerin bei MetroPlan Zürich sind Sie direkt von der RPG 2 betroffen: Regionale Richtpläne, Nutzungsplanungen und Stellungnahmen müssen die neuen Anforderungen vollumfänglich berücksichtigen.',
+          'Als Planerin in einem Raumplanungsbüro sind Sie direkt von der RPG 2 betroffen: Regionale Richtpläne, Nutzungsplanungen und Stellungnahmen müssen die neuen Anforderungen vollumfänglich berücksichtigen.',
         ],
         keypoints: [
           'RPG 2 in Kraft: 1.1.2026 (Teil 1) und 1.7.2026 (Bauen ausserhalb Bauzonen)',
@@ -570,7 +587,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
         duration: '12 Min.',
         content: [
           'Die RPG 2 schafft neue Möglichkeiten für erneuerbare Energien ausserhalb der Bauzonen. Insbesondere Solaranlagen auf bestehenden Gebäuden und Infrastrukturen werden erleichtert. Die RPV darf die Nutzung von Sonnenenergie auf Dächern nicht stärker einschränken als Art. 1 RPG es erlaubt.',
-          'Für Planungsbüros wie MetroPlan Zürich entstehen neue Aufgaben: Die Beratung von Gemeinden und Kantonen bei der Umsetzung der RPG 2, die Erarbeitung von Stabilisierungsstrategien und die Überprüfung bestehender Pläne auf Konformität.',
+          'Für Planungsbüros entstehen neue Aufgaben: Die Beratung von Gemeinden und Kantonen bei der Umsetzung der RPG 2, die Erarbeitung von Stabilisierungsstrategien und die Überprüfung bestehender Pläne auf Konformität.',
           'Die Koordinationspflicht zwischen raumrelevanten Bundesaufgaben (Sachpläne SIL, SIS etc.) und kantonaler Richtplanung wird durch die KoVo (Koordinationsverordnung) präzisiert. Als Projektleiterin müssen Sie diese Abstimmungsprozesse kennen und aktiv einfordern.',
           'Rechtsbehelfe: Bei Konflikten zwischen kommunalen Nutzungsplänen und kantonalen Richtplänen entscheidet letztlich das Bundesgericht. Die RPG 2 hat die Standortgebundenheit als Voraussetzung für Bauten ausserhalb der Bauzonen verschärft.',
         ],
@@ -595,106 +612,6 @@ export const COURSES_DATA: Record<string, CourseData> = {
       { id: 'q10', question: 'Was gilt für Solaranlagen auf Bestandsgebäuden ausserhalb der Bauzone nach RPG 2?', options: ['Weiterhin verboten', 'Erleichtert, keine Einschränkungen', 'Bewilligungspflicht bleibt, aber vereinfacht', 'Nur auf Landwirtschaftsgebäuden erlaubt'], correct: 2, explanation: 'Die RPG 2 und RPV erleichtern Solaranlagen auf bestehenden Gebäuden. Die RPV darf die Solarnutzung nicht stärker einschränken als Art. 1 RPG.' },
     ],
   },
-
-  'rpg2-2026': {
-    id: 'rpg2-2026',
-    emoji: '🗺️',
-    title: 'RPG 2 — Bauen ausserhalb der Bauzonen (2026)',
-    subtitle: 'Zweite Teilrevision des Raumplanungsgesetzes — in Kraft ab 1.1.2026',
-    regulation: 'RPG · RPV · ARE · EspaceSuisse',
-    color: '#1B4F72',
-    bg: '#D6EAF8',
-    duration: '50 Min.',
-    passing_score: 80,
-    modules: [
-      {
-        id: 'm1',
-        title: 'Hintergrund und Ziele der RPG 2-Revision',
-        duration: '12 Min.',
-        content: [
-          'Das Parlament hat am 29. September 2023 die zweite Teilrevision des Raumplanungsgesetzes (RPG 2) verabschiedet. Am 1. Januar 2026 trat der erste Teil in Kraft, die Bestimmungen zum Bauen ausserhalb der Bauzonen folgen per 1. Juli 2026.',
-          'Herzstück der Revision ist das sogenannte Stabilisierungsziel: Die Anzahl Gebäude und die versiegelte Fläche ausserhalb der Bauzonen sollen stabilisiert werden. Damit will der Bund der Zersiedelung entgegenwirken und einen haushälterischen Umgang mit dem Boden sichern.',
-          'Die RPG 2 führt ein Kontingentsystem ein: Für neue Gebäude ausserhalb der Bauzonen wird ein Kontingent festgelegt. Bereits wurden pro Jahr rund 70 zusätzliche Gebäude bewilligt — bei gleichbleibendem Wachstum würde das Kontingent in etwa 30 Jahren aufgebraucht.',
-          'Als Planerin bei MetroPlan Zürich sind Sie direkt von der RPG 2 betroffen: Regionale Richtpläne, Nutzungsplanungen und Stellungnahmen müssen die neuen Anforderungen vollumfänglich berücksichtigen.',
-        ],
-        keypoints: [
-          'RPG 2 in Kraft: 1.1.2026 (Teil 1) und 1.7.2026 (Bauen ausserhalb Bauzonen)',
-          'Stabilisierungsziel = Herzstück der Revision',
-          'Kontingent für neue Gebäude ausserhalb Bauzonen',
-          'Kantone müssen Stabilisierungsstrategien erarbeiten',
-        ],
-        sources: [
-          'Bundesgesetz über die Raumplanung (RPG) rev. 2. Parlamentarische Abstimmung 29. September 2023 — admin.ch/fedlex',
-          'ARE. Erläuterungen zur revidierten RPV 2025. Bern: Bundesamt für Raumentwicklung, 2025 — are.admin.ch',
-          'EspaceSuisse. RPG 2: Revidiertes Raumplanungsrecht in Kraft. Basel: EspaceSuisse, Januar 2026 — espacesuisse.ch',
-        ],
-      },
-      {
-        id: 'm2',
-        title: 'Der neue Gebietsansatz und Richtplanung',
-        duration: '13 Min.',
-        content: [
-          'Die RPG 2 führt den sogenannten Gebietsansatz ein — ein freiwilliges Instrument für Kantone, das eine koordinierte Entwicklung von Gebieten ausserhalb der Bauzonen ermöglicht. Der Kanton Bern hat bereits angekündigt, dieses Instrument nutzen zu wollen.',
-          'Die kantonalen Richtpläne müssen bis Ende 2029 an die Anforderungen der RPG 2 angepasst werden. Die «Ergänzung des Leitfadens Richtplanung zu RPG 2» des ARE gibt den Kantonen dabei konkrete Vorgaben.',
-          'Für die regionale Planung bedeutet dies: Bestehende Richtplaninhalte müssen auf Konformität mit den neuen Stabilisierungszielen geprüft werden. Raumkonzepte, Siedlungsleitbilder und Entwicklungsschwerpunkte sind entsprechend anzupassen.',
-          'Die RPV-Revision vom 15. Oktober 2025 präzisiert die Anforderungen an kantonale und kommunale Planungen. Insbesondere die Regelungen zu Fruchtfolgeflächen (FFF) wurden verschärft: Änderungen von mehr als 3 Hektaren müssen dem Bundesamt für Landwirtschaft (BLW) gemeldet werden.',
-        ],
-        keypoints: [
-          'Gebietsansatz: freiwilliges kantonales Instrument',
-          'Richtplananpassung Frist: bis Ende 2029',
-          'ARE Leitfaden Richtplanung zu RPG 2 beachten',
-          'FFF-Meldepflicht: Änderungen > 3 ha an BLW',
-        ],
-      },
-      {
-        id: 'm3',
-        title: 'Nutzungsplanung und kommunale Auswirkungen',
-        duration: '13 Min.',
-        content: [
-          'Auf kommunaler Ebene müssen Zonenreglemente und Bau- und Zonenordnungen (BZO) im Einklang mit der revidierten kantonalen Richtplanung stehen. Gemeinden haben nach Genehmigung des kantonalen Richtplans eine Frist von 5 Jahren für die Anpassung ihrer Nutzungspläne.',
-          'Bestehende Auszonungspflichten aus RPG 1 (2014) bleiben bestehen und werden durch RPG 2 ergänzt. Überdimensionierte Bauzonen müssen weiterhin rückgezont werden. Die RPG 2 verschärft zusätzlich die Anforderungen für Einzonungen.',
-          'Für Planungen in der Agglomeration Zürich gilt: Der kantonale Richtplan Zürich und der Agglomerationsplan sind die übergeordneten Instrumente. Regionale Planungen müssen in diesem Rahmen koordiniert werden.',
-          'Die Mehrwertabgabe (Art. 5 RPG) bleibt ein zentrales Instrument. Bei Planungsmehrwerten durch Einzonungen ist weiterhin eine Abgabe von mindestens 20% zu erheben. Die Mittel sind zweckgebunden für Massnahmen zur Freihaltung und Aufwertung des Kulturlands einzusetzen.',
-        ],
-        keypoints: [
-          'BZO-Anpassungsfrist: 5 Jahre nach Richtplangenehmigung',
-          'Auszonungspflichten aus RPG 1 bleiben bestehen',
-          'Mehrwertabgabe: mindestens 20% bei Einzonungen',
-          'Koordination mit kantonalem Richtplan Zürich zwingend',
-        ],
-      },
-      {
-        id: 'm4',
-        title: 'Erneuerbare Energien und neue Spielräume',
-        duration: '12 Min.',
-        content: [
-          'Die RPG 2 schafft neue Möglichkeiten für erneuerbare Energien ausserhalb der Bauzonen. Insbesondere Solaranlagen auf bestehenden Gebäuden und Infrastrukturen werden erleichtert. Die RPV darf die Nutzung von Sonnenenergie auf Dächern nicht stärker einschränken als Art. 1 RPG es erlaubt.',
-          'Für Planungsbüros wie MetroPlan Zürich entstehen neue Aufgaben: Die Beratung von Gemeinden und Kantonen bei der Umsetzung der RPG 2, die Erarbeitung von Stabilisierungsstrategien und die Überprüfung bestehender Pläne auf Konformität.',
-          'Die Koordinationspflicht zwischen raumrelevanten Bundesaufgaben (Sachpläne SIL, SIS etc.) und kantonaler Richtplanung wird durch die KoVo (Koordinationsverordnung) präzisiert. Als Projektleiterin müssen Sie diese Abstimmungsprozesse kennen und aktiv einfordern.',
-          'Rechtsbehelfe: Bei Konflikten zwischen kommunalen Nutzungsplänen und kantonalen Richtplänen entscheidet letztlich das Bundesgericht. Die RPG 2 hat die Standortgebundenheit als Voraussetzung für Bauten ausserhalb der Bauzonen verschärft.',
-        ],
-        keypoints: [
-          'Solaranlagen auf Bestandsgebäuden: erleichtert',
-          'Neue Beratungsaufgaben für Planungsbüros',
-          'KoVo: Koordination Sachpläne und Richtplanung',
-          'Standortgebundenheit verschärft',
-        ],
-      },
-    ],
-    quiz: [
-      { id: 'q1', question: 'Wann ist der erste Teil der RPG 2 in Kraft getreten?', options: ['1. September 2023', '1. Januar 2025', '1. Januar 2026', '1. Juli 2026'], correct: 2, explanation: 'Der erste Teil der RPG 2 trat am 1. Januar 2026 in Kraft. Die Bestimmungen zum Bauen ausserhalb der Bauzonen folgen per 1. Juli 2026.' },
-      { id: 'q2', question: 'Was ist das "Herzstück" der RPG 2-Revision?', options: ['Der Gebietsansatz', 'Das Stabilisierungsziel', 'Die Mehrwertabgabe', 'Die Auszonungspflicht'], correct: 1, explanation: 'Das Stabilisierungsziel — Stabilisierung der Gebäudeanzahl und versiegelter Flächen ausserhalb der Bauzonen — ist das Herzstück der RPG 2.' },
-      { id: 'q3', question: 'Bis wann müssen kantonale Richtpläne an RPG 2 angepasst werden?', options: ['Ende 2026', 'Ende 2027', 'Ende 2028', 'Ende 2029'], correct: 3, explanation: 'Kantone haben bis Ende 2029 Zeit, ihre Richtpläne an die Anforderungen der RPG 2 anzupassen.' },
-      { id: 'q4', question: 'Ab welcher FFF-Verminderung muss dem Bundesamt für Landwirtschaft gemeldet werden?', options: ['1 Hektar', '2 Hektar', '3 Hektar', '5 Hektar'], correct: 2, explanation: 'Gemäss RPV muss das Bundesamt für Landwirtschaft (BLW) bei Nutzungsplanänderungen benachrichtigt werden, die Fruchtfolgeflächen um mehr als 3 Hektaren vermindern.' },
-      { id: 'q5', question: 'Was ist der "Gebietsansatz" in der RPG 2?', options: ['Eine Pflicht für alle Kantone', 'Ein freiwilliges kantonales Instrument für koordinierte Entwicklung', 'Ein neuer Zonentyp', 'Eine Bundesaufgabe'], correct: 1, explanation: 'Der Gebietsansatz ist ein freiwilliges Instrument für Kantone, das eine koordinierte Entwicklung von Gebieten ausserhalb der Bauzonen ermöglicht.' },
-      { id: 'q6', question: 'Wie hoch ist die Mehrwertabgabe bei Einzonungen gemäss Art. 5 RPG mindestens?', options: ['10%', '15%', '20%', '25%'], correct: 2, explanation: 'Art. 5 RPG schreibt eine Mehrwertabgabe von mindestens 20% bei Planungsmehrwerten durch Einzonungen vor.' },
-      { id: 'q7', question: 'Wie lange haben Gemeinden nach Richtplangenehmigung für die Anpassung ihrer Nutzungspläne?', options: ['2 Jahre', '3 Jahre', '5 Jahre', '10 Jahre'], correct: 2, explanation: 'Gemeinden haben nach Genehmigung des kantonalen Richtplans eine Frist von 5 Jahren für die Anpassung ihrer Nutzungspläne (BZO).' },
-      { id: 'q8', question: 'Was regelt die KoVo?', options: ['Koordination zwischen Bund und Gemeinden', 'Koordination raumrelevanter Bundesaufgaben', 'Koordination von Umweltprüfungen', 'Koordination der Mehrwertabgabe'], correct: 1, explanation: 'Die Koordinationsverordnung (KoVo) regelt die Koordination und Kooperation bei raumrelevanten Bundesaufgaben (Sachpläne, Konzepte).' },
-      { id: 'q9', question: 'Wann hat das Parlament die RPG 2 verabschiedet?', options: ['15. Oktober 2025', '29. September 2023', '1. Januar 2024', '28. Juni 2000'], correct: 1, explanation: 'Das Parlament hat die zweite Teilrevision des Raumplanungsgesetzes (RPG 2) am 29. September 2023 verabschiedet.' },
-      { id: 'q10', question: 'Was gilt für Solaranlagen auf Bestandsgebäuden ausserhalb der Bauzone nach RPG 2?', options: ['Weiterhin verboten', 'Erleichtert, keine Einschränkungen', 'Bewilligungspflicht bleibt, aber vereinfacht', 'Nur auf Landwirtschaftsgebäuden erlaubt'], correct: 2, explanation: 'Die RPG 2 und RPV erleichtern Solaranlagen auf bestehenden Gebäuden. Die RPV darf die Solarnutzung nicht stärker einschränken als Art. 1 RPG.' },
-    ],
-  },
-
   'dsg-oeffentlich': {
     id: 'dsg-oeffentlich',
     emoji: '🔏',
@@ -704,20 +621,23 @@ export const COURSES_DATA: Record<string, CourseData> = {
     color: '#1B4F72',
     bg: '#D6EAF8',
     duration: '35 Min.',
-    passing_score: 75,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Besonderheiten des DSG für öffentliche Stellen und das Verhältnis zum kantonalen IDG erläutern', 'Datenschutzanforderungen bei Geodaten und ÖREB-Kataster berücksichtigen', 'Datenpannen erkennen und die Meldepflichten erfüllen', 'Auftragsbearbeitungen mit Dritten rechtskonform vereinbaren'],
     modules: [
       {
         id: 'm1',
         title: 'DSG 2023 für öffentliche Stellen — Besonderheiten',
         duration: '9 Min.',
         content: [
-          'Das revidierte Datenschutzgesetz (DSG) gilt seit 1. September 2023 und betrifft auch öffentliche Stellen wie Planungsverbände, Kantone und Gemeinden. Als gemischte Institution (öffentliche Aufgaben, privatrechtliche Struktur) unterliegt MetroPlan Zürich dem DSG.',
+          'Das revidierte Datenschutzgesetz (DSG) gilt seit 1. September 2023 und betrifft auch öffentliche Stellen wie Planungsverbände, Kantone und Gemeinden. Als gemischte Institution (öffentliche Aufgaben, privatrechtliche Struktur) unterliegt Ihre Organisation dem DSG.',
           'Für öffentliche Stellen gelten neben dem DSG auch kantonale Datenschutzgesetze. Im Kanton Zürich ist dies das Gesetz über die Information und den Datenschutz (IDG). Das Zusammenspiel dieser Normen ist für die tägliche Arbeit entscheidend.',
           'Planungsprozesse involvieren zahlreiche personenbezogene Daten: Grundeigentümerdaten, Mitwirkungsunterlagen, Stellungnahmen von Behörden und Privaten, GIS-Daten mit Personenbezug. All diese Daten sind datenschutzrechtlich zu behandeln.',
           'Der Öffentlichkeitsgrundsatz (Informationsfreiheit) und der Datenschutz stehen oft in Spannung: Was öffentlich zugänglich ist, unterliegt trotzdem dem DSG — personenbezogene Daten in öffentlichen Planungsdokumenten müssen entsprechend behandelt werden.',
         ],
         keypoints: [
-          'DSG + kantonales IDG gelten für MetroPlan Zürich',
+          'DSG + kantonales IDG gelten für Ihre Organisation',
           'Planungsdaten = häufig personenbezogene Daten',
           'Öffentlichkeitsgrundsatz ≠ Datenschutzfreiheit',
           'EDÖB ist Aufsichtsbehörde auf Bundesebene',
@@ -731,7 +651,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Geodaten spielen in der Raumplanung eine zentrale Rolle. Viele Geodaten enthalten personenbezogene Informationen (z.B. Grundeigentümerdaten, Gebäudeadressen). Der ÖREB-Kataster (öffentlich-rechtliche Eigentumsbeschränkungen) ist öffentlich zugänglich, enthält aber schützenswerte Daten.',
           'Bei der Arbeit mit GIS-Systemen (ArcGIS, QGIS) sind folgende Grundsätze zu beachten: Datensparsamkeit (nur notwendige Daten), Zweckbindung (Geodaten nur für planungsrelevante Zwecke), sichere Datenhaltung (Zugriffsrechte, Verschlüsselung).',
           'Mitwirkungsverfahren nach RPG Art. 4 generieren personenbezogene Daten: Stellungnahmen, Einsprachen, Kontaktdaten. Diese Daten sind nach Abschluss des Verfahrens entsprechend zu archivieren oder zu löschen.',
-          'Datenbearbeitungsverzeichnis: MetroPlan Zürich muss ein Verzeichnis aller Datenbearbeitungen führen. Dieses umfasst: Art der Daten, Zweck, Empfänger, Aufbewahrungsfristen, Sicherheitsmassnahmen.',
+          'Datenbearbeitungsverzeichnis: Ihre Organisation muss ein Verzeichnis aller Datenbearbeitungen führen. Dieses umfasst: Art der Daten, Zweck, Empfänger, Aufbewahrungsfristen, Sicherheitsmassnahmen.',
         ],
         keypoints: [
           'ÖREB-Kataster öffentlich ≠ kein Datenschutz',
@@ -762,9 +682,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
         title: 'Auftragsbearbeitungen und Drittparteien',
         duration: '8 Min.',
         content: [
-          'MetroPlan Zürich arbeitet mit Subunternehmen, Partnerplanern und Behörden zusammen. Bei der Weitergabe von personenbezogenen Daten (Grundeigentümerlisten, Mitwirkungsunterlagen) müssen Auftragsbearbeitungsverträge (ABV) abgeschlossen werden.',
+          'Planungsbüros arbeiten mit Subunternehmen, Partnerplanern und Behörden zusammen. Bei der Weitergabe von personenbezogenen Daten (Grundeigentümerlisten, Mitwirkungsunterlagen) müssen Auftragsbearbeitungsverträge (ABV) abgeschlossen werden.',
           'Cloud-Dienste: Für die Verwendung von Cloud-Plattformen (z.B. für die Dateiablage von Planungsprojekten) muss geprüft werden, ob der Anbieter DSG-konform ist. US-Cloud-Dienste wie Google Drive oder Dropbox können problematisch sein, wenn sie personenbezogene Planungsdaten enthalten.',
-          'Empfehlung für MetroPlan Zürich: Nutzung von Schweizer oder EU-zertifizierten Cloud-Diensten (z.B. Infomaniak, Switch) für Projekte mit personenbezogenen Daten. Interne Projektnamen ohne Personenbezug verwenden.',
+          'Empfehlung: Nutzung von Schweizer oder EU-zertifizierten Cloud-Diensten (z.B. Infomaniak, Switch) für Projekte mit personenbezogenen Daten. Interne Projektnamen ohne Personenbezug verwenden.',
           'Sanktionen: Das DSG sieht Bussen bis CHF 250\'000 für natürliche Personen vor. Als Projektleiterin mit direktem Zugriff auf personenbezogene Daten sind Sie persönlich verantwortlich.',
         ],
         keypoints: [
@@ -778,7 +698,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
     quiz: [
       { id: 'q1', question: 'Welches kantonale Gesetz ergänzt das DSG für öffentliche Stellen im Kanton Zürich?', options: ['Datenschutzgesetz des Kantons Zürich (DSchG)', 'Informations- und Datenschutzgesetz (IDG)', 'Öffentlichkeitsgesetz (OeG)', 'Verwaltungsrechtspflegegesetz (VRG)'], correct: 1, explanation: 'Im Kanton Zürich gilt das Gesetz über die Information und den Datenschutz (IDG) als kantonales Pendant zum Bundes-DSG.' },
       { id: 'q2', question: 'Was ist der ÖREB-Kataster?', options: ['Öffentliches Register für Eigentümer', 'Kataster der öffentlich-rechtlichen Eigentumsbeschränkungen', 'Öffentliche Bauzone-Datenbank', 'Raumplanungsbehörde Bund'], correct: 1, explanation: 'Der ÖREB-Kataster (öffentlich-rechtliche Eigentumsbeschränkungen) ist ein öffentliches Informationssystem, das Nutzungsplanungen und andere Eigentumsbeschränkungen dokumentiert.' },
-      { id: 'q3', question: 'Was muss MetroPlan Zürich gemäss Art. 12 DSG führen?', options: ['Risikoregister', 'Datenbearbeitungsverzeichnis', 'Datenschutz-Folgeabschätzung', 'Compliance-Bericht'], correct: 1, explanation: 'Art. 12 DSG verpflichtet Verantwortliche zur Führung eines Verzeichnisses aller Datenbearbeitungen (Bearbeitungsverzeichnis).' },
+      { id: 'q3', question: 'Was muss eine datenbearbeitende Organisation gemäss Art. 12 DSG führen?', options: ['Risikoregister', 'Datenbearbeitungsverzeichnis', 'Datenschutz-Folgeabschätzung', 'Compliance-Bericht'], correct: 1, explanation: 'Art. 12 DSG verpflichtet Verantwortliche zur Führung eines Verzeichnisses aller Datenbearbeitungen (Bearbeitungsverzeichnis).' },
       { id: 'q4', question: 'Bei welchem Cloud-Dienst sind Datenschutzbedenken bei personenbezogenen Planungsdaten besonders hoch?', options: ['Infomaniak', 'Switch', 'Google Drive', 'None of the above'], correct: 2, explanation: 'US-Cloud-Dienste wie Google Drive können problematisch sein, da sie dem US Cloud Act unterliegen — Behörden können auf Daten zugreifen.' },
       { id: 'q5', question: 'Welche Frist gilt im DSG 2023 für die Meldung einer Datenpanne?', options: ['24 Stunden', '72 Stunden', 'So rasch wie möglich', '7 Tage'], correct: 2, explanation: 'Das DSG 2023 schreibt keine starre Frist vor — es gilt «so rasch wie möglich». In der Praxis bedeutet das wenige Tage.' },
       { id: 'q6', question: 'Was ist bei der Weitergabe von Grundeigentümerdaten an einen Subplaner erforderlich?', options: ['Nichts Besonderes', 'Auftragsbearbeitungsvertrag (ABV)', 'Einwilligung der Grundeigentümer', 'Genehmigung des EDÖB'], correct: 1, explanation: 'Bei der Weitergabe personenbezogener Daten an Auftragsbearbeiter (Subunternehmen) muss ein Auftragsbearbeitungsvertrag (ABV) abgeschlossen werden.' },
@@ -799,6 +719,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#D5F5E3',
     duration: '45 Min.',
     passing_score: 80,
+    course_type: 'weiterbildung',
+    course_level: 'vertiefung',
+    learning_objectives: ['Zweck, Anwendungsbereich und Auslöser einer Umweltverträglichkeitsprüfung bestimmen', 'Ablauf und Pflichtenheft einer UVP korrekt aufsetzen', 'Die planungsbegleitende UVP koordinieren', 'NHG-Anforderungen und Natur-/Landschaftsschutz in die Planung integrieren'],
     modules: [
       {
         id: 'm1',
@@ -808,7 +731,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Die Umweltverträglichkeitsprüfung (UVP) ist in Art. 10a–f des Umweltschutzgesetzes (USG) geregelt. Sie ist für bestimmte Anlagen und Vorhaben obligatorisch, bevor die Bewilligung erteilt werden darf.',
           'Prüfpflichtig sind Anlagen, die in der Verordnung über die Umweltverträglichkeitsprüfung (UVPV) aufgelistet sind. Dazu gehören Infrastrukturvorhaben ab bestimmten Schwellenwerten (z.B. Nationalstrassen, Bahnlinien, Kraftwerke, grosse Einkaufszentren, Deponien).',
           'Die UVP bezweckt, dass die Behörden bei ihrer Entscheidung die Umweltauswirkungen eines Projekts kennen. Sie ist eine Grundlage für den Bewilligungsentscheid — aber kein Bewilligungsersatz.',
-          'Als Projektleiterin bei MetroPlan Zürich sind Sie häufig in UVP-pflichtige Planungen involviert: Erschliessungsstrassen, Infrastrukturprojekte, grössere Überbauungen. Sie müssen den UVP-Bedarf frühzeitig erkennen und koordinieren.',
+          'Als Projektleiterin in einem Planungsbüro sind Sie häufig in UVP-pflichtige Planungen involviert: Erschliessungsstrassen, Infrastrukturprojekte, grössere Überbauungen. Sie müssen den UVP-Bedarf frühzeitig erkennen und koordinieren.',
         ],
         keypoints: [
           'Rechtsgrundlage: USG Art. 10a–f + UVPV',
@@ -858,7 +781,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
         content: [
           'Das Natur- und Heimatschutzgesetz (NHG) ergänzt die UVP: Bei Eingriffen in Biotope nationaler Bedeutung, Auenwälder, Moore und andere schützenswerte Lebensräume ist eine Interessenabwägung und Kompensation erforderlich.',
           'Bundesinventare (BLN, IVS, ISOS, Flachmoore etc.) sind bei der Planung verbindlich zu berücksichtigen. Bei Eingriffen in Schutzobjekte gilt das Verunstaltungsverbot — nur bei überwiegendem öffentlichem Interesse kann davon abgewichen werden.',
-          'Artenschutz: Die eidgenössische Jagdverordnung (JSV) und das NHG schützen Wildtiere. Baubewilligungen können verweigert werden, wenn sie störend für Wildtierkorridore oder Brutgebiete sind. MetroPlan Zürich muss dies in regionalen Planungen berücksichtigen.',
+          'Artenschutz: Die eidgenössische Jagdverordnung (JSV) und das NHG schützen Wildtiere. Baubewilligungen können verweigert werden, wenn sie störend für Wildtierkorridore oder Brutgebiete sind. Planungsbüros müssen dies in regionalen Planungen berücksichtigen.',
           'Verbindung zu RPG 2: Die RPG 2 stärkt den Schutz von Fruchtfolgeflächen und naturnahen Gebieten ausserhalb der Bauzone. Bei Planungen muss die Konformität mit NHG und RPG 2 gemeinsam geprüft werden.',
         ],
         keypoints: [
@@ -893,6 +816,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#E8DAEF',
     duration: '40 Min.',
     passing_score: 75,
+    course_type: 'weiterbildung',
+    course_level: 'aufbau',
+    learning_objectives: ['Die wesentlichen Neuerungen der IVöB 2021 benennen', 'Verfahrensart und Zuschlagskriterien situationsgerecht wählen', 'Nachhaltigkeitskriterien nach Art. 2 IVöB im Vergabeprozess berücksichtigen', 'Rechtsmittel und typische Submissionsfallen kennen'],
     modules: [
       {
         id: 'm1',
@@ -900,13 +826,13 @@ export const COURSES_DATA: Record<string, CourseData> = {
         duration: '10 Min.',
         content: [
           'Die Interkantonale Vereinbarung über das öffentliche Beschaffungswesen (IVöB) 2021 ist das zentrale Regelwerk für Beschaffungen der Kantone und Gemeinden. Sie ist seit dem 1. Januar 2023 in allen Kantonen in Kraft und ersetzt die alte IVöB 2001.',
-          'MetroPlan Zürich ist doppelt betroffen: Als Auftragnehmer öffentlicher Stellen muss das Büro die Vergabeverfahren kennen; als Subbeauftragte öffentlicher Körperschaften (z.B. Gemeinden) muss es auch Weiterbeauftragungen regelkonform gestalten.',
+          'Ein Planungsbüro ist hier doppelt betroffen: Als Auftragnehmer öffentlicher Stellen muss das Büro die Vergabeverfahren kennen; als Subbeauftragte öffentlicher Körperschaften (z.B. Gemeinden) muss es auch Weiterbeauftragungen regelkonform gestalten.',
           'Wichtigste Neuerungen der IVöB 2021: Einführung von Nachhaltigkeitskriterien, Stärkung des Grundsatzes der Verhältnismässigkeit, neue Verfahrensregeln für den Dialog und die Ausschreibung, verbesserte Rechtsschutzregeln.',
           'Schwellenwerte (Kanton Zürich, exkl. MWST): Dienstleistungen Freihändige Vergabe bis CHF 100\'000, Einladungsverfahren CHF 100\'000–250\'000, Selektives Verfahren CHF 250\'000–500\'000, Offenes Verfahren ab CHF 500\'000. Für Planungsleistungen gelten diese Werte.',
         ],
         keypoints: [
           'IVöB 2021: seit 1.1.2023 in allen Kantonen',
-          'MetroPlan: Auftragnehmer UND Subvergabe-Verpflichteter',
+          'Planungsbüro: Auftragnehmer UND Subvergabe-Verpflichteter',
           'Schwellenwert offenes Verfahren: ab CHF 500\'000',
           'Neu: Nachhaltigkeitskriterien verbindlich',
         ],
@@ -916,8 +842,8 @@ export const COURSES_DATA: Record<string, CourseData> = {
         title: 'Verfahrensarten und Zuschlagskriterien',
         duration: '10 Min.',
         content: [
-          'Freihändige Vergabe: Unter CHF 100\'000 kann MetroPlan Zürich direkt beauftragt werden. Der Auftraggeber muss die Vergabe aber auch hier wirtschaftlich begründen können.',
-          'Einladungsverfahren (CHF 100\'000–250\'000): Mindestens 3 Angebote müssen eingeholt werden. MetroPlan Zürich kann direkt eingeladen werden.',
+          'Freihändige Vergabe: Unter CHF 100\'000 kann Ihr Büro direkt beauftragt werden. Der Auftraggeber muss die Vergabe aber auch hier wirtschaftlich begründen können.',
+          'Einladungsverfahren (CHF 100\'000–250\'000): Mindestens 3 Angebote müssen eingeholt werden. Ihr Büro kann direkt eingeladen werden.',
           'Offenes Verfahren (ab CHF 500\'000): Öffentliche Ausschreibung auf simap.ch ist Pflicht. Teilnahme an allen qualifizierten Interessenten muss gewährt werden. Dies betrifft viele regionale Planungsaufträge.',
           'Zuschlagskriterien müssen vorab in der Ausschreibung bekannt gegeben werden. Preis ist nur ein Kriterium — Qualität, Referenzen, Methodik, Terminplanung und Nachhaltigkeitskriterien können und sollen berücksichtigt werden.',
         ],
@@ -930,12 +856,12 @@ export const COURSES_DATA: Record<string, CourseData> = {
       },
       {
         id: 'm3',
-        title: 'Nachhaltigkeitskriterien und WOKE-Prinzip',
+        title: 'Nachhaltigkeitskriterien nach Art. 2 IVöB',
         duration: '10 Min.',
         content: [
           'Die IVöB 2021 verankert Nachhaltigkeitskriterien verbindlich. Auftraggeber müssen bei der Beschaffung ökologische, soziale und innovative Aspekte berücksichtigen (Art. 2 IVöB).',
           'Für Planungsleistungen bedeutet dies: Beurteilung nach ökologischem Fussabdruck der Bürotätigkeit, Sozialstandards (GAV-Einhaltung, Lohngleichheit), Innovation (neue Planungsmethoden, BIM, GIS-Kompetenz).',
-          'Nachweispflicht: Auftragnehmer müssen auf Anfrage nachweisen, dass sie Umwelt-, Sozial- und Arbeitsstandards einhalten. MetroPlan Zürich sollte hierfür entsprechende Dokumente bereit halten (ISO 14001, Lohngleichheitsanalyse, etc.).',
+          'Nachweispflicht: Auftragnehmer müssen auf Anfrage nachweisen, dass sie Umwelt-, Sozial- und Arbeitsstandards einhalten. Ihre Organisation sollte hierfür entsprechende Dokumente bereit halten (ISO 14001, Lohngleichheitsanalyse, etc.).',
           'Ausschlussklauseln: Firmen können von der Vergabe ausgeschlossen werden bei Steuerhinterziehung, Korruption, Verletzung von Arbeitsschutzvorschriften oder Missachtung des Lohngleichheitsgebots.',
         ],
         keypoints: [
@@ -952,8 +878,8 @@ export const COURSES_DATA: Record<string, CourseData> = {
         content: [
           'Unterlegene Anbieter können gegen Vergabeentscheide Beschwerde einlegen. Die Beschwerdefrist beträgt 20 Tage ab Bekanntgabe des Zuschlags. Beschwerdeinstanz für kantonale Vergaben ist das Verwaltungsgericht des jeweiligen Kantons.',
           'Aufschiebende Wirkung: Eine Beschwerde hemmt nicht automatisch die Auftragserteilung. Der Auftraggeber kann in dringenden Fällen den Auftrag trotz laufender Beschwerde vergeben.',
-          'Für Planungsbüros wie MetroPlan Zürich: Bei der Subvergabe von Leistungen (z.B. Spezialgutachten, Visualisierungen) ab CHF 100\'000 muss die IVöB ebenfalls eingehalten werden, wenn der Auftraggeber eine öffentliche Stelle ist.',
-          'Submissionsfallen: Häufige Fehler sind das Überschreiten von Fristen, unvollständige Angebote, fehlende Nachweise, Angebote ausserhalb der Eignungskriterien. MetroPlan Zürich sollte eine interne Checkliste für Ausschreibungen führen.',
+          'Für Planungsbüros: Bei der Subvergabe von Leistungen (z.B. Spezialgutachten, Visualisierungen) ab CHF 100\'000 muss die IVöB ebenfalls eingehalten werden, wenn der Auftraggeber eine öffentliche Stelle ist.',
+          'Submissionsfallen: Häufige Fehler sind das Überschreiten von Fristen, unvollständige Angebote, fehlende Nachweise, Angebote ausserhalb der Eignungskriterien. Ihr Büro sollte eine interne Checkliste für Ausschreibungen führen.',
         ],
         keypoints: [
           'Beschwerdefrist: 20 Tage ab Zuschlag',
@@ -971,8 +897,8 @@ export const COURSES_DATA: Record<string, CourseData> = {
       { id: 'q5', question: 'Auf welcher Plattform sind öffentliche Ausschreibungen ab Schwellenwert zu publizieren?', options: ['admin.ch', 'simap.ch', 'beschaffung.ch', 'are.admin.ch'], correct: 1, explanation: 'simap.ch ist die Schweizer Plattform für öffentliche Ausschreibungen — Pflichtpublikation ab dem jeweiligen Schwellenwert.' },
       { id: 'q6', question: 'Wie lange ist die Beschwerdefrist nach einem Vergabeentscheid?', options: ['5 Tage', '10 Tage', '20 Tage', '30 Tage'], correct: 2, explanation: 'Unterlegene Anbieter können innerhalb von 20 Tagen ab Bekanntgabe des Zuschlags Beschwerde einlegen.' },
       { id: 'q7', question: 'Wann kann eine Firma von der Vergabe ausgeschlossen werden?', options: ['Bei zu hohem Preis', 'Bei Steuerhinterziehung oder Korruption', 'Bei fehlendem ISO-Zertifikat', 'Bei mehr als 50 Mitarbeitenden'], correct: 1, explanation: 'Art. 44 IVöB sieht Ausschluss bei Steuerhinterziehung, Korruption, Verletzung von Arbeitsschutzvorschriften oder Missachtung des Lohngleichheitsgebots vor.' },
-      { id: 'q8', question: 'Muss MetroPlan Zürich die IVöB auch bei der Subvergabe einhalten?', options: ['Nein, nur öffentliche Stellen', 'Ja, ab CHF 100\'000 wenn Auftraggeber öffentlich', 'Nur ab CHF 500\'000', 'Nein, bei Planungsleistungen nie'], correct: 1, explanation: 'Bei der Subvergabe von Leistungen ab CHF 100\'000 muss auch MetroPlan Zürich die IVöB einhalten, wenn der Hauptauftraggeber eine öffentliche Stelle ist.' },
-      { id: 'q9', question: 'Was muss MetroPlan Zürich bei Nachhaltigkeitskriterien nachweisen können?', options: ['ISO 9001 Zertifikat', 'Einhaltung von Umwelt-, Sozial- und Arbeitsstandards', 'Mindestgrösse des Büros', 'Kantonale Zulassung'], correct: 1, explanation: 'Auftragnehmer müssen auf Anfrage nachweisen, dass sie Umwelt-, Sozial- und Arbeitsstandards einhalten (z.B. GAV, Lohngleichheit, Umweltmanagement).' },
+      { id: 'q8', question: 'Muss ein Planungsbüro die IVöB auch bei der Subvergabe einhalten?', options: ['Nein, nur öffentliche Stellen', 'Ja, ab CHF 100\'000 wenn Auftraggeber öffentlich', 'Nur ab CHF 500\'000', 'Nein, bei Planungsleistungen nie'], correct: 1, explanation: 'Bei der Subvergabe von Leistungen ab CHF 100\'000 muss auch das Planungsbüro die IVöB einhalten, wenn der Hauptauftraggeber eine öffentliche Stelle ist.' },
+      { id: 'q9', question: 'Was muss Ihre Organisation bei Nachhaltigkeitskriterien nachweisen können?', options: ['ISO 9001 Zertifikat', 'Einhaltung von Umwelt-, Sozial- und Arbeitsstandards', 'Mindestgrösse des Büros', 'Kantonale Zulassung'], correct: 1, explanation: 'Auftragnehmer müssen auf Anfrage nachweisen, dass sie Umwelt-, Sozial- und Arbeitsstandards einhalten (z.B. GAV, Lohngleichheit, Umweltmanagement).' },
       { id: 'q10', question: 'Was ist das wichtigste Zuschlagskriterium bei öffentlichen Vergaben?', options: ['Immer der tiefste Preis', 'Immer die Qualität', 'Das wirtschaftlich günstigste Angebot (Preis + Qualität)', 'Die Grösse des Büros'], correct: 2, explanation: 'Zuschlagskriterium ist das wirtschaftlich günstigste Angebot: Preis ist nur ein Faktor — Qualität, Methodik, Referenzen und Nachhaltigkeit sind gleichwertig zu berücksichtigen.' },
     ],
   },
@@ -987,6 +913,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#D5F5E3',
     duration: '40 Min.',
     passing_score: 75,
+    course_type: 'weiterbildung',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Schweizer Netto-Null-Strategie 2050 und ihre Bedeutung für die Raumplanung erläutern', 'Hitzeinseleffekt und Stadtklima in Planungsentscheide einbeziehen', 'Naturgefahren im Kontext des Klimawandels bewerten', 'Begrünung und Biodiversität in der Grünraumplanung verankern'],
     modules: [
       {
         id: 'm1',
@@ -996,7 +925,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Der Bundesrat hat die Klimastrategie Schweiz 2050 verabschiedet: Bis 2050 soll die Schweiz netto null Treibhausgasemissionen erreichen. Das revidierte CO2-Gesetz und das Klimaschutzgesetz (KlG, angenommen 18. Juni 2023) bilden die rechtliche Grundlage.',
           'Für die Raumplanung bedeutet Netto-Null: Neue Siedlungen und Bauten müssen klimaverträglich geplant werden. Dazu gehören kompakte Siedlungsstrukturen, Förderung des ÖV und Langsamverkehrs, Reduktion der Bodenversiegelung und Förderung von Begrünungsmassnahmen.',
           'Klimaschutzgesetz (KlG): Verabschiedet 2023, verankert das Netto-Null-Ziel gesetzlich. Der Bundesrat muss alle 4 Jahre Zwischenziele definieren. Kantone und Gemeinden sind aufgefordert, eigene Klimaschutzstrategien zu entwickeln.',
-          'Für MetroPlan Zürich als Planungsorganisation: Die Klimaverträglichkeit muss bei allen Planungen berücksichtigt werden — von der Siedlungsentwicklung über die Mobilität bis zur Grün- und Freiraumentwicklung.',
+          'Für Ihre Organisation als Planungsorganisation: Die Klimaverträglichkeit muss bei allen Planungen berücksichtigt werden — von der Siedlungsentwicklung über die Mobilität bis zur Grün- und Freiraumentwicklung.',
         ],
         keypoints: [
           'Netto-Null 2050: gesetzlich verankert (KlG)',
@@ -1030,7 +959,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
           'Der Klimawandel verstärkt Naturgefahren: Hochwasser, Erdrutsche, Trockenheit und Hitzewellen nehmen zu. Die Raumplanung hat die Aufgabe, Bauverbotszonen und Gefahrengebiete zu definieren und neue Siedlungen vor Naturgefahren zu schützen.',
           'Gefahrenkarten: Kantone und Gemeinden sind verpflichtet, Gefahrenkarten zu erstellen und in der Raumplanung zu berücksichtigen. Neueinzonungen in Gefahrengebieten sind grundsätzlich unzulässig.',
           'PLANAT (Nationale Plattform Naturgefahren): Koordiniert die Naturgefahrenprävention in der Schweiz. Die Empfehlungen von PLANAT sind für die kommunale und regionale Planung massgebend.',
-          'Klimaangepasste Infrastruktur: Strassen, Brücken und Entwässerungssysteme müssen auf zukünftige Extremereignisse ausgelegt werden. MetroPlan Zürich ist als Planungsorganisation gefordert, diese Anforderungen in regionale Infrastrukturplanungen einzubeziehen.',
+          'Klimaangepasste Infrastruktur: Strassen, Brücken und Entwässerungssysteme müssen auf zukünftige Extremereignisse ausgelegt werden. Ihre Organisation ist als Planungsorganisation gefordert, diese Anforderungen in regionale Infrastrukturplanungen einzubeziehen.',
         ],
         keypoints: [
           'Gefahrenkarten: verbindlich in Raumplanung',
@@ -1045,9 +974,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
         duration: '10 Min.',
         content: [
           'Die Biodiversitätsstrategie Schweiz und der Aktionsplan Biodiversität verlangen, dass Grünräume nicht nur als Erholungsflächen, sondern auch als Lebensräume geplant werden. Dies betrifft städtische Grünflächen, Wildtierkorridore und ökologische Vernetzung.',
-          'Grünraumanteil und Versiegelungsgrad: MetroPlan Zürich und die Zürcher Planungspraxis streben einen Grünraumanteil von mindestens 30% in Siedlungsgebieten an. Der Versiegelungsgrad soll durch Entsiegelungsmassnahmen gesenkt werden.',
+          'Grünraumanteil und Versiegelungsgrad: Ihre Organisation und die Zürcher Planungspraxis streben einen Grünraumanteil von mindestens 30% in Siedlungsgebieten an. Der Versiegelungsgrad soll durch Entsiegelungsmassnahmen gesenkt werden.',
           'Fassaden- und Dachbegrünung: Die SIA Norm 312 und kantonale Vorschriften fördern begrünte Dächer und Fassaden. Diese verbessern den Wasserhaushalt (Retentionswirkung), kühlen die Stadt und erhöhen die Biodiversität.',
-          'Agglomerationsprogramme: Die Agglomerationsprogramme des Bundes (ARE) co-finanzieren Grünraum- und Freiraumprojekte in Agglomerationen. MetroPlan Zürich sollte diese Fördermöglichkeiten bei regionalen Planungen aktiv einbeziehen.',
+          'Agglomerationsprogramme: Die Agglomerationsprogramme des Bundes (ARE) co-finanzieren Grünraum- und Freiraumprojekte in Agglomerationen. Ihre Organisation sollte diese Fördermöglichkeiten bei regionalen Planungen aktiv einbeziehen.',
         ],
         keypoints: [
           'Biodiversitätsstrategie: Grünräume = Lebensräume',
@@ -1062,7 +991,7 @@ export const COURSES_DATA: Record<string, CourseData> = {
       { id: 'q2', question: 'Wie viel wärmer kann Zürich im Sommer durch den Hitzeinseleffekt sein?', options: ['1–2°C', '2–4°C', '5–8°C', '10–12°C'], correct: 2, explanation: 'Durch den städtischen Hitzeinseleffekt (Urban Heat Island, UHI) kann Zürich im Sommer 5–8°C wärmer sein als das umliegende Landgebiet.' },
       { id: 'q3', question: 'Welches SIA-Dokument ist massgebend für klimaangepasstes Bauen?', options: ['SIA 118', 'SIA 261', 'SIA 2040', 'SIA 312'], correct: 2, explanation: 'Das SIA Merkblatt 2040 "Energie" enthält Grundlagen für klimaangepasstes Planen und Bauen unter Berücksichtigung zukünftiger Klimaszenarien.' },
       { id: 'q4', question: 'Was koordiniert PLANAT?', options: ['Raumplanung Schweiz', 'Naturgefahrenprävention', 'Klimafinanzierung', 'Agglomerationsprogramme'], correct: 1, explanation: 'PLANAT (Nationale Plattform Naturgefahren) koordiniert die Naturgefahrenprävention in der Schweiz und gibt massgebende Empfehlungen für die Raumplanung.' },
-      { id: 'q5', question: 'Welchen Grünraumanteil strebt die Zürcher Planungspraxis in Siedlungsgebieten an?', options: ['10%', '20%', '30%', '50%'], correct: 2, explanation: 'MetroPlan Zürich und die Zürcher Planungspraxis streben einen Grünraumanteil von mindestens 30% in Siedlungsgebieten an.' },
+      { id: 'q5', question: 'Welchen Grünraumanteil strebt die Zürcher Planungspraxis in Siedlungsgebieten an?', options: ['10%', '20%', '30%', '50%'], correct: 2, explanation: 'Ihre Organisation und die Zürcher Planungspraxis streben einen Grünraumanteil von mindestens 30% in Siedlungsgebieten an.' },
       { id: 'q6', question: 'Was sind die drei Hauptrisiken des Klimawandels für die Raumplanung?', options: ['Kälte, Wind, Schnee', 'Übertemperierung, Starkregen, Trockenheit', 'Hochwasser, Lawinen, Steinschlag', 'Permafrost, Gletscherschmelze, Erosion'], correct: 1, explanation: 'Die drei Hauptrisiken des Klimawandels für Gebäude und Städte sind Übertemperierung (Hitze), Starkregen (Überschwemmung) und Trockenheit (Wasserknappheit).' },
       { id: 'q7', question: 'Was regelt die SIA Norm 312?', options: ['Lärmschutz', 'Statik', 'Dachbegrünung', 'Barrierefreiheit'], correct: 2, explanation: 'Die SIA Norm 312 enthält technische Anforderungen für Dachbegrünungen — diese verbessern Wasserhaushalt, Kühlung und Biodiversität.' },
       { id: 'q8', question: 'Für welche Planungen sind Gefahrenkarten verbindlich zu berücksichtigen?', options: ['Nur für grosse Bauprojekte', 'Nur auf Bundesebene', 'Bei allen kommunalen und regionalen Planungen', 'Nur in Berggebieten'], correct: 2, explanation: 'Gefahrenkarten sind bei allen kommunalen und regionalen Planungen verbindlich zu berücksichtigen — Neueinzonungen in Gefahrengebieten sind grundsätzlich unzulässig.' },
@@ -1080,6 +1009,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#EDE9FE',
     duration: '35 Min.',
     passing_score: 70,
+    course_type: 'weiterbildung',
+    course_level: 'grundlagen',
+    learning_objectives: ['Grundprinzipien von Sprachmodellen verständlich erklären', 'Mit systematischem Prompt Engineering bessere Ergebnisse erzielen', 'KI-Bildgenerierung rechtssicher und effizient einsetzen', 'KI sinnvoll in den Agentur-Workflow integrieren'],
     modules: [
       {
         id: 'm1',
@@ -1201,7 +1133,10 @@ export const COURSES_DATA: Record<string, CourseData> = {
     color: '#0369A1',
     bg: '#E0F2FE',
     duration: '40 Min.',
-    passing_score: 75,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'grundlagen',
+    learning_objectives: ['Die für Marketing-Teams konkret geltenden DSGVO-Pflichten benennen', 'Cookie-Banner, Tracking-Pixel und Analytics rechtskonform einsetzen', 'E-Mail-Marketing einwilligungsbasiert und rechtssicher gestalten', 'First-Party-Daten-Strategien für die cookielose Zukunft entwickeln'],
     modules: [
       {
         id: 'm1',
@@ -1324,6 +1259,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#DCFCE7',
     duration: '50 Min.',
     passing_score: 75,
+    course_type: 'weiterbildung',
+    course_level: 'vertiefung',
+    learning_objectives: ['Account-Based Marketing strategisch einordnen und vom klassischen Funnel abgrenzen', 'Zielkonten identifizieren und priorisieren', 'Vertrieb und Marketing im ABM-Ansatz orchestrieren', 'ABM-Kampagnen messbar aufsetzen und auswerten'],
     modules: [
       {
         id: 'm1',
@@ -1446,6 +1384,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#ECFDF5',
     duration: '35 Min.',
     passing_score: 70,
+    course_type: 'weiterbildung',
+    course_level: 'aufbau',
+    learning_objectives: ['Greenwashing erkennen und rechtliche Risiken nachhaltiger Werbeaussagen einordnen', 'Die Anforderungen der EU-Green-Claims-Richtlinie an Umweltaussagen anwenden', 'Belegbare, transparente Nachhaltigkeitskommunikation gestalten', 'Umweltkennzeichen und Zertifikate korrekt verwenden'],
     modules: [
       {
         id: 'm1',
@@ -1568,6 +1509,9 @@ export const COURSES_DATA: Record<string, CourseData> = {
     bg: '#DBEAFE',
     duration: '35 Min.',
     passing_score: 70,
+    course_type: 'weiterbildung',
+    course_level: 'grundlagen',
+    learning_objectives: ['Die Prinzipien von Social Selling im B2B verstehen', 'Ein professionelles LinkedIn-Profil als Vertriebsinstrument aufbauen', 'Relevante Inhalte zur Leadgenerierung einsetzen', 'Beziehungen systematisch zu Geschäftsabschlüssen entwickeln'],
     modules: [
       {
         id: 'm1',

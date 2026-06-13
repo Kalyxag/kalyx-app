@@ -19,6 +19,9 @@ export const NEW_COURSES: Record<string, CourseData> = {
     bg: '#E6F0EB',
     duration: '55 Min.',
     passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'vertiefung',
+    learning_objectives: ['Kundensegmentierung und Verhaltenspflichten nach FIDLEG anwenden', 'Bewilligungspflichten und Organisationsanforderungen des FINIG einordnen', 'Kapitalanforderungen nach Basel III/IV verstehen', 'Die Aufsichtspflichten gegenüber der FINMA erfüllen'],
     modules: [
       {
         id: 'm1',
@@ -170,6 +173,9 @@ export const NEW_COURSES: Record<string, CourseData> = {
     bg: '#FEF2F2',
     duration: '50 Min.',
     passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Pflichten von Arbeitgebenden nach ArG und UVG benennen', 'Gefährdungen am Arbeitsplatz erkennen und beurteilen', 'Schutzmassnahmen nach SUVA-Vorgaben umsetzen', 'Im Unfall- und Notfall korrekt handeln und dokumentieren'],
     modules: [
       {
         id: 'm1',
@@ -320,7 +326,10 @@ export const NEW_COURSES: Record<string, CourseData> = {
     color: '#3A6DB5',
     bg: '#EAF0FA',
     duration: '55 Min.',
-    passing_score: 82,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'vertiefung',
+    learning_objectives: ['Die GxP-Grundsätze und ihre Bedeutung im Heilmittelrecht erläutern', 'Anforderungen des HMG und der Swissmedic-Aufsicht einordnen', 'Qualitäts- und Dokumentationspflichten in regulierten Prozessen anwenden', 'Abweichungen erkennen und korrekt behandeln'],
     modules: [
       {
         id: 'm1',
@@ -472,6 +481,9 @@ export const NEW_COURSES: Record<string, CourseData> = {
     bg: '#F8F1E4',
     duration: '50 Min.',
     passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Grundsätze des Lebensmittelrechts (LMG) benennen', 'Ein HACCP-Konzept in den eigenen Prozessen anwenden', 'Kritische Kontrollpunkte bestimmen und überwachen', 'Selbstkontrolle und Rückverfolgbarkeit sicherstellen'],
     modules: [
       {
         id: 'm1',
@@ -623,7 +635,10 @@ export const NEW_COURSES: Record<string, CourseData> = {
     color: '#0F766E',
     bg: '#F0FDFA',
     duration: '50 Min.',
-    passing_score: 82,
+    passing_score: 80,
+    course_type: 'pflicht',
+    course_level: 'aufbau',
+    learning_objectives: ['Die Bedeutung einer offenen Fehlerkultur für die Patientensicherheit erklären', 'Risiken in klinischen Prozessen erkennen', 'CIRS-Meldesysteme korrekt nutzen', 'Aus Zwischenfällen systematisch Verbesserungen ableiten'],
     modules: [
       {
         id: 'm1',
@@ -775,6 +790,9 @@ export const NEW_COURSES: Record<string, CourseData> = {
     bg: '#F9FAFB',
     duration: '50 Min.',
     passing_score: 78,
+    course_type: 'weiterbildung',
+    course_level: 'aufbau',
+    learning_objectives: ['Aufbau und Grundprinzipien eines QMS nach ISO 9001:2015 erläutern', 'Den prozessorientierten Ansatz im eigenen Bereich anwenden', 'Den PDCA-Zyklus zur kontinuierlichen Verbesserung nutzen', 'Sich auf interne und externe Audits vorbereiten'],
     modules: [
       {
         id: 'm1',
