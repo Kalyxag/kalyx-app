@@ -7,7 +7,10 @@
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-type Body = { thema?: string; anzahl?: number; sprache?: string; niveau?: string; branche?: string; position?: string; fachgebiete?: string[]; certPrep?: boolean; externalCert?: string }
+import { getAdminClient } from '@/lib/supabase/admin'
+import { pruefeBudget, verbrauche } from '@/lib/billing/ki-budget'
+
+type Body = { thema?: string; anzahl?: number; sprache?: string; niveau?: string; branche?: string; position?: string; fachgebiete?: string[]; certPrep?: boolean; externalCert?: string; access_token?: string }
 const SPRACHE: Record<string, string> = { de: 'Deutsch', fr: 'Französisch', it: 'Italienisch', en: 'Englisch' }
 const BRANCHE: Record<string, string> = { finance: 'Finanzdienstleistung', pharma: 'Pharma / Life Sciences', bildung: 'Bildung / Verband', retail: 'Handel', industrie: 'Industrie / Produktion', sonstige: 'allgemein' }
 
@@ -16,6 +19,35 @@ export async function POST(req: Request) {
   try { body = await req.json() } catch { return json({ error: 'Ungültige Anfrage.' }, 400) }
   const thema = (body.thema || '').trim()
   if (!thema) return json({ error: 'Kein Thema übergeben.' }, 400)
+
+  // KI-Budget prüfen (gleiche Logik wie Kurs-Generierung).
+  let tenantId: string | null = null
+  try {
+    const token = String(body.access_token || '')
+    if (token) {
+      const admin = getAdminClient()
+      const { data: ures } = await admin.auth.getUser(token)
+      const uid = ures?.user?.id
+      if (uid) {
+        const { data: me } = await admin.from('app_users').select('tenant_id').eq('id', uid).maybeSingle()
+        tenantId = (me as any)?.tenant_id || null
+      }
+    }
+  } catch { /* freies Kontingent, nicht blockierend */ }
+
+  let hatBudget = false
+  if (tenantId) {
+    try {
+      const admin = getAdminClient()
+      const { data: b } = await admin.from('tenant_billing').select('addons').eq('tenant_id', tenantId).maybeSingle()
+      const addons = (b as any)?.addons || []
+      hatBudget = Array.isArray(addons) && addons.includes('ki_budget')
+    } catch {}
+  }
+
+  const budget = await pruefeBudget(tenantId, hatBudget)
+  if (budget.ok === false) return json({ error: budget.error, kontingent_erschoepft: true }, budget.status)
+
   const sprache = SPRACHE[body.sprache || 'de'] || 'Deutsch'
   const anzahl = Math.min(Math.max(Number(body.anzahl) || 20, 1), 30)
   const niveau = body.niveau || 'fortgeschritten'
@@ -75,6 +107,7 @@ export async function POST(req: Request) {
     let diff = String(q?.difficulty || 'mittel').toLowerCase(); if (!ALLOWED.includes(diff)) diff = 'mittel'
     return { topic: String(q?.topic || '').slice(0, 120), difficulty: diff, question: String(q?.question || '').slice(0, 800), options: opts, correct_index: ci, explanation: String(q?.explanation || '').slice(0, 1000) }
   }).filter((q: any) => q.question)
+  await verbrauche(tenantId)
   return json({ questions }, 200)
 }
 
