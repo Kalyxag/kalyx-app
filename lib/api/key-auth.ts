@@ -64,11 +64,25 @@ export async function pruefeApiKey(req: Request): Promise<ApiAuth> {
 
     if (!data || (data as any).revoked_at) return { ok: false, status: 401, error: 'Ungültiger API-Schlüssel.' }
 
+    // Add-on-Gate: Die REST-API ist ein kostenpflichtiges Add-on ('api').
+    // Ohne gebuchtes Add-on wird der Zugriff verweigert (402), auch wenn der
+    // Schlüssel technisch gültig ist. So ist die Verrechnung im Code verankert.
+    const tid = (data as any).tenant_id
+    try {
+      const { data: ten } = await admin.from('tenants').select('addons').eq('id', tid).maybeSingle()
+      const addons = (ten as any)?.addons || []
+      if (!Array.isArray(addons) || !addons.includes('api')) {
+        return { ok: false, status: 402, error: 'Die API-Anbindung ist für diesen Mandanten nicht aktiv. Bitte das Add-on „API-Anbindung“ buchen.' }
+      }
+    } catch {
+      return { ok: false, status: 500, error: 'Prüfung nicht möglich.' }
+    }
+
     // "Zuletzt benutzt" pflegen — Fehler hier dürfen den Request nie stören.
     admin.from('api_keys').update({ last_used_at: new Date().toISOString() }).eq('id', (data as any).id)
       .then(() => {}, () => {})
 
-    return { ok: true, tenant_id: (data as any).tenant_id, key_id: (data as any).id, key_name: (data as any).name }
+    return { ok: true, tenant_id: tid, key_id: (data as any).id, key_name: (data as any).name }
   } catch {
     return { ok: false, status: 500, error: 'Prüfung nicht möglich.' }
   }
