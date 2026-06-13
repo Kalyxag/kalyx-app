@@ -104,6 +104,48 @@ export async function POST(req: Request) {
       .update({ status: 'aktiv', activated_at: jetzt, updated_at: jetzt })
       .eq('tenant_id', tenantId)
 
+    // 1b) Bezahlte Add-ons automatisch freischalten.
+    // Der Checkout hat die zu aktivierenden Add-ons in den Metadaten
+    // hinterlegt (genau die, für die der Kunde bezahlt hat). Wir übernehmen
+    // sie in die aktiven addons und entfernen sie aus der Wunschliste.
+    // So entfällt der manuelle Freischalt-Schritt. Defensiv: ein Fehler hier
+    // darf die Zahlungsbestätigung an Stripe nicht brechen.
+    try {
+      const zuAktivieren = String(meta.aktiviere_addons || '')
+        .split(',').map(s => s.trim()).filter(Boolean)
+      if (zuAktivieren.length > 0) {
+        const { data: cur } = await admin.from('tenant_billing')
+          .select('addons,feature_flags').eq('tenant_id', tenantId).maybeSingle()
+        const aktiv: string[] = Array.isArray((cur as any)?.addons) ? (cur as any).addons : []
+        const ff: any = (cur as any)?.feature_flags || {}
+        const angefragt: string[] = Array.isArray(ff.angefragt) ? ff.angefragt : []
+
+        // Neue aktive Liste = bisherige ∪ bezahlte (ohne Dubletten).
+        const neuAktiv = Array.from(new Set([...aktiv, ...zuAktivieren]))
+        // Aus der Wunschliste entfernen, was jetzt aktiv ist.
+        const neuAngefragt = angefragt.filter(k => !zuAktivieren.includes(k))
+
+        await admin.from('tenant_billing').update({
+          addons: neuAktiv,
+          feature_flags: { ...ff, angefragt: neuAngefragt },
+          updated_at: jetzt,
+        }).eq('tenant_id', tenantId)
+
+        // Spur im Prüfprotokoll (nicht kritisch). Bewusst ohne 'meta'-Spalte,
+        // da nicht alle Schemas sie haben — Add-ons in die Aktion schreiben.
+        try {
+          await admin.from('audit_log').insert({
+            tenant_id: tenantId, actor_id: null,
+            action: 'addons_freigeschaltet', entity: 'tenant_billing',
+            entity_id: (slug || tenantId) + ': ' + zuAktivieren.join(', '),
+          })
+        } catch {}
+      }
+    } catch {
+      // Add-on-Freischaltung fehlgeschlagen — die Zahlung ist trotzdem gültig.
+      // Fällt auf den manuellen Weg zurück (Betreiber schaltet frei).
+    }
+
     // 2) Zahlung festhalten, falls die Tabelle existiert (sonst still ueberspringen).
     try {
       await admin.from('tenant_payments').insert({

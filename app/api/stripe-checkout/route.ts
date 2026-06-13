@@ -65,15 +65,22 @@ export async function POST(req: Request) {
 
     // 5) Paket und Lizenzen aus tenant_billing lesen.
     const b = await admin.from('tenant_billing')
-      .select('plan,seats,addons,billing_interval')
+      .select('plan,seats,addons,billing_interval,feature_flags')
       .eq('tenant_id', tenantId).maybeSingle()
     if (b.error || !b.data) {
       return NextResponse.json({ ok: false, error: 'Für diesen Mandanten ist noch kein Paket gespeichert. Bitte zuerst Paket und Lizenzzahl speichern.' }, { status: 400 })
     }
+    const aktiveAddons: string[] = Array.isArray((b.data as any).addons) ? (b.data as any).addons : []
+    const ff: any = (b.data as any).feature_flags || {}
+    const angefragteAddons: string[] = Array.isArray(ff.angefragt) ? ff.angefragt : []
+    // Für die Preisberechnung zählen die aktiven UND die angefragten Add-ons:
+    // Der Kunde bezahlt im Checkout genau das, was nach der Zahlung
+    // freigeschaltet wird. Doppelte vermeiden.
+    const zuBerechnen = Array.from(new Set([...aktiveAddons, ...angefragteAddons]))
     const billing: BillingMandant = {
       paket: (b.data as any).plan || null,
       lizenzen: typeof (b.data as any).seats === 'number' ? (b.data as any).seats : 0,
-      addons: Array.isArray((b.data as any).addons) ? (b.data as any).addons : [],
+      addons: zuBerechnen,
       abrechnung: (b.data as any).billing_interval || 'monatlich',
     }
 
@@ -115,6 +122,12 @@ export async function POST(req: Request) {
     form.set('metadata[tenant_slug]', slug)
     form.set('metadata[tenant_id]', String(tenantId))
     form.set('metadata[interval]', rechnung.interval)
+    // Welche Add-ons nach der Zahlung freigeschaltet werden sollen.
+    // Der Webhook übernimmt diese Liste in die aktiven addons. Auf 480
+    // Zeichen begrenzt (Stripe-Metadatengrenze), kommagetrennt.
+    if (angefragteAddons.length > 0) {
+      form.set('metadata[aktiviere_addons]', angefragteAddons.join(',').slice(0, 480))
+    }
 
     const resp = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
