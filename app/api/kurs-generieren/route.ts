@@ -6,6 +6,9 @@
 
 export const runtime = 'nodejs'
 
+import { getAdminClient } from '@/lib/supabase/admin'
+import { pruefeBudget, verbrauche } from '@/lib/billing/ki-budget'
+
 type Body = {
   thema?: string
   typ?: string
@@ -14,6 +17,7 @@ type Body = {
   module?: number
   certPrep?: boolean
   externalCert?: string
+  access_token?: string
 }
 
 const SPRACHE: Record<string, string> = { de: 'Deutsch', fr: 'Französisch', it: 'Italienisch', en: 'Englisch' }
@@ -24,6 +28,36 @@ export async function POST(req: Request) {
 
   const thema = (body.thema || '').trim()
   if (!thema) return json({ error: 'Bitte ein Thema angeben.' }, 400)
+
+  // KI-Budget prüfen: Mandant über die Session ermitteln, Kontingent checken.
+  // Schützt die eigene Marge und verankert das Add-on 'ki_budget' im Code.
+  let tenantId: string | null = null
+  try {
+    const token = String(body.access_token || '')
+    if (token) {
+      const admin = getAdminClient()
+      const { data: ures } = await admin.auth.getUser(token)
+      const uid = ures?.user?.id
+      if (uid) {
+        const { data: me } = await admin.from('app_users').select('tenant_id').eq('id', uid).maybeSingle()
+        tenantId = (me as any)?.tenant_id || null
+      }
+    }
+  } catch { /* Mandant bleibt null → freies Kontingent, nicht blockierend */ }
+
+  let hatBudget = false
+  if (tenantId) {
+    try {
+      const admin = getAdminClient()
+      const { data: b } = await admin.from('tenant_billing').select('addons').eq('tenant_id', tenantId).maybeSingle()
+      const addons = (b as any)?.addons || []
+      hatBudget = Array.isArray(addons) && addons.includes('ki_budget')
+    } catch { /* defensiv: ohne Add-on weiter */ }
+  }
+
+  const budget = await pruefeBudget(tenantId, hatBudget)
+  if (budget.ok === false) return json({ error: budget.error, kontingent_erschoepft: true }, budget.status)
+
   const sprache = SPRACHE[body.sprache || 'de'] || 'Deutsch'
   const anzahl = Math.min(Math.max(Number(body.module) || 4, 2), 6)
   const typ = body.typ || 'compliance'
@@ -84,7 +118,10 @@ export async function POST(req: Request) {
       content: String(m?.content || '').slice(0, 4000),
     })),
   }
-  return json(out, 200)
+  // Erst NACH erfolgreicher Generierung den Verbrauch zählen — ein
+  // fehlgeschlagener KI-Aufruf soll nicht gegen das Kontingent zählen.
+  await verbrauche(tenantId)
+  return json({ ...out, kontingent_verbleibend: Math.max(budget.verbleibend - 1, 0) }, 200)
 }
 
 function extractJson(s: string): any {
