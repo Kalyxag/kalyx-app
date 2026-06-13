@@ -11,9 +11,7 @@ import { WASSERZEICHEN_AKTIV, WASSERZEICHEN_DECKKRAFT } from '@/lib/badges/desig
 const NAVY='#0B1929', GREEN='var(--kx-brand,#14613E)', GOLD='#B8904A', CREAM='#F5F4EF', LINE='#E4E0D8', GRAY='#6B7280'
 const FH="'Cormorant', Georgia, serif"; const FB="'Albert Sans', system-ui, sans-serif"; const FM="'IBM Plex Mono', ui-monospace, monospace"
 
-type Cert={cert_number:string;title:string;recipient_name:string|null;score:number|null;status:string;issued_at:string;content_hash?:string|null;course_type?:string|null;course_level?:string|null}
-const TYP_LABEL:Record<string,string>={pflicht:'Compliance-Pflichtschulung',vorbereitung:'Vorbereitungskurs',weiterbildung:'Weiterbildung'}
-const NIV_LABEL:Record<string,string>={grundlagen:'Grundlagen',aufbau:'Aufbau',vertiefung:'Vertiefung',experte:'Experte'}
+type Cert={cert_number:string;title:string;recipient_name:string|null;score:number|null;status:string;issued_at:string}
 
 export default function ZertifikatPage(){
   const [cert,setCert]=useState<Cert|null>(null)
@@ -32,7 +30,7 @@ export default function ZertifikatPage(){
       if(!nr){setErr('Keine Zertifikatsnummer angegeben.');setLoading(false);return}
       const {data:sess}=await supabase.auth.getSession()
       if(!sess.session){window.location.href='/anmelden';return}
-      const {data}=await supabase.from('certificates').select('cert_number,title,recipient_name,score,status,issued_at,content_hash,course_type,course_level').eq('cert_number',nr).maybeSingle()
+      const {data}=await supabase.from('certificates').select('cert_number,title,recipient_name,score,status,issued_at').eq('cert_number',nr).maybeSingle()
       if(!on)return
       if(!data){setErr('Zertifikat nicht gefunden.')}else setCert(data as Cert)
       setLoading(false)
@@ -70,12 +68,6 @@ export default function ZertifikatPage(){
           <div style={{fontFamily:FH,fontSize:30,fontWeight:600,color:NAVY,margin:'10px 0'}}>{cert.recipient_name||'—'}</div>
           <div style={{fontFamily:FB,fontSize:14,color:GRAY}}>den folgenden Kurs erfolgreich absolviert und die Prüfung bestanden hat:</div>
           <div style={{fontFamily:FH,fontSize:24,fontWeight:600,color:GREEN,margin:'12px 0 4px'}}>{cert.title}</div>
-          {(cert.course_type||cert.course_level) && (
-            <div style={{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap',margin:'8px 0 2px'}}>
-              {cert.course_type && <span style={{fontFamily:FM,fontSize:10.5,letterSpacing:'.04em',color:NAVY,background:CREAM,border:`1px solid ${GOLD}`,borderRadius:20,padding:'3px 11px'}}>{TYP_LABEL[cert.course_type]||cert.course_type}</span>}
-              {cert.course_level && <span style={{fontFamily:FM,fontSize:10.5,letterSpacing:'.04em',color:'#fff',background:GREEN,borderRadius:20,padding:'3px 11px'}}>Niveau: {NIV_LABEL[cert.course_level]||cert.course_level}</span>}
-            </div>
-          )}
           {cert.score!=null && <div style={{fontFamily:FM,fontSize:13,color:GRAY}}>Ergebnis: {Math.round(cert.score)}%</div>}
 
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:46,gap:20}}>
@@ -111,27 +103,6 @@ export default function ZertifikatPage(){
               <a href={'/api/badge/image?nr='+encodeURIComponent(cert.cert_number)+'&download=1'} style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Badge herunterladen (SVG)</a>
               <a href={'/api/badge/assertion?nr='+encodeURIComponent(cert.cert_number)} target="_blank" rel="noreferrer" style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Prüfdaten ansehen (JSON)</a>
             </div>
-          </div>
-        </div>
-      )}
-
-      {cert.status==='gueltig' && cert.content_hash && (
-        <div className="kx-noprint" style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:14,padding:'18px 20px',marginTop:14}}>
-          <div style={{display:'flex',gap:12,alignItems:'center'}}>
-            <span style={{fontSize:20}}>🛡️</span>
-            <div style={{fontFamily:FB,fontSize:14.5,fontWeight:700,color:NAVY}}>Geprüfter Schulungsinhalt</div>
-          </div>
-          <div style={{fontFamily:FB,fontSize:12.5,color:GRAY,lineHeight:1.55,marginTop:8}}>
-            Dieses Zertifikat verweist nicht nur auf den Kurstitel, sondern auf die exakte, unveränderliche
-            Fassung des Kurses, auf die geprüft wurde — Lernziele, Module, Niveau und Art. Diese Fassung wurde
-            beim ersten Abschluss eingefroren und revisionssicher protokolliert. Spätere Änderungen am Kurs
-            betreffen dieses Zertifikat nicht.
-          </div>
-          <div style={{fontFamily:FM,fontSize:11,color:GRAY,marginTop:10,wordBreak:'break-all',background:CREAM,borderRadius:8,padding:'8px 10px'}}>
-            Inhalts-Prüfsumme: {cert.content_hash}
-          </div>
-          <div style={{marginTop:10}}>
-            <a href={'/verify?nr='+encodeURIComponent(cert.cert_number)} target="_blank" rel="noreferrer" style={{fontFamily:FB,fontSize:13,fontWeight:600,color:GREEN}}>Inhalt öffentlich ansehen und prüfen →</a>
           </div>
         </div>
       )}
