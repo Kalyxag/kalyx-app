@@ -585,7 +585,6 @@ export default function KursErstellenPage() {
                 style={{
                   width: '100%', textAlign: 'left' as const, padding: '12px 16px',
                   background: previewModule === i ? `${primary}10` : 'transparent',
-                  borderLeft: `3px solid ${previewModule === i ? primary : 'transparent'}`,
                   border: 'none', borderLeft: `3px solid ${previewModule === i ? primary : 'transparent'}`,
                   cursor: 'pointer', borderBottom: '1px solid #F9FAFB',
                 }}>
