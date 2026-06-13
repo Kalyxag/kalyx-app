@@ -7,6 +7,7 @@
 export const runtime = 'nodejs'
 
 import { getAdminClient } from '@/lib/supabase/admin'
+import { oeffentlicheSicht, typLabel, niveauLabel } from '@/lib/snapshots/snapshot'
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -26,7 +27,7 @@ export async function GET(req: Request) {
     const admin = getAdminClient()
     const { data } = await admin
       .from('certificates')
-      .select('cert_number,title,recipient_name,issued_at,status')
+      .select('cert_number,title,recipient_name,issued_at,status,content_hash,course_type,course_level')
       .eq('cert_number', nr)
       .maybeSingle()
 
@@ -34,12 +35,35 @@ export async function GET(req: Request) {
       return json({ valid: false, cert_number: nr }, 200)
     }
     const c = data as any
+
+    // Eingefrorenen Inhalt (falls vorhanden) als öffentliche Sicht beilegen:
+    // Lernziele, Module, Niveau/Art — ohne Prüfungsfragen.
+    let inhalt: any = null
+    if (c.content_hash) {
+      const { data: snap } = await admin
+        .from('course_snapshots')
+        .select('content,content_hash,first_certified_at,module_count,question_count')
+        .eq('content_hash', c.content_hash)
+        .maybeSingle()
+      if (snap) {
+        const s = snap as any
+        inhalt = {
+          ...oeffentlicheSicht(s.content),
+          content_hash: s.content_hash,
+          eingefroren_am: s.first_certified_at,
+        }
+      }
+    }
+
     return json({
       valid: true,
       cert_number: c.cert_number,
       title: c.title,
       recipient_name: c.recipient_name,
       issued_at: c.issued_at,
+      art: typLabel(c.course_type),
+      niveau: niveauLabel(c.course_level),
+      inhalt,
       note: 'KALYX-Abschlusszertifikat. Kein offizieller Branchenabschluss.',
     }, 200)
   } catch (e: any) {
