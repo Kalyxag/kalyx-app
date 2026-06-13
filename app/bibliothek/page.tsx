@@ -16,8 +16,8 @@ const FH="'Cormorant', Georgia, serif"
 const FB="'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM="'IBM Plex Mono', ui-monospace, monospace"
 
-const TYPES=[{v:'compliance',l:'Compliance'},{v:'vorbereitung',l:'Vorbereitung'},{v:'fachkurs',l:'Fachkurs'},{v:'onboarding',l:'Onboarding'},{v:'sonstige',l:'Sonstige'}]
-const LEVELS=[{v:'einsteiger',l:'Einsteiger'},{v:'fortgeschritten',l:'Fortgeschritten'},{v:'experte',l:'Experte'}]
+const TYPES=[{v:'pflicht',l:'Compliance-Pflichtschulung'},{v:'vorbereitung',l:'Vorbereitungskurs'},{v:'weiterbildung',l:'Weiterbildung'}]
+const LEVELS=[{v:'grundlagen',l:'Grundlagen'},{v:'aufbau',l:'Aufbau'},{v:'vertiefung',l:'Vertiefung'},{v:'experte',l:'Experte'}]
 const LANGS=[{v:'de',l:'Deutsch'},{v:'fr',l:'Französisch'},{v:'it',l:'Italienisch'},{v:'en',l:'Englisch'}]
 const SECTORS=[{v:'finance',l:'Finance'},{v:'pharma',l:'Pharma & Life Sciences'},{v:'bildung',l:'Bildung & Verband'},{v:'retail',l:'Handel'},{v:'industrie',l:'Industrie'},{v:'sonstige',l:'Sonstige'}]
 const tl=(arr:{v:string;l:string}[],v:string)=>arr.find(x=>x.v===v)?.l||v
@@ -39,7 +39,7 @@ export default function BibliothekPage(){
   const [msg,setMsg]=useState('')
 
   const [cTitle,setCTitle]=useState(''); const [cDesc,setCDesc]=useState(''); const [cCat,setCCat]=useState('')
-  const [cType,setCType]=useState('compliance'); const [cLevel,setCLevel]=useState('einsteiger'); const [cLang,setCLang]=useState('de')
+  const [cType,setCType]=useState('pflicht'); const [cLevel,setCLevel]=useState('grundlagen'); const [cLang,setCLang]=useState('de')
   const [cDur,setCDur]=useState<number|''>(''); const [cCertPrep,setCCertPrep]=useState(false); const [cExtCert,setCExtCert]=useState('')
   const [cStatus,setCStatus]=useState('veroeffentlicht'); const [cSector,setCSector]=useState(''); const [cPos,setCPos]=useState(''); const [saving,setSaving]=useState(false)
 
@@ -73,7 +73,7 @@ export default function BibliothekPage(){
     const {data,error}=await supabase.from('courses').insert({
       tenant_id:tenantId, title:cTitle.trim(), description:cDesc.trim()||null, category:cCat.trim()||null,
       sector: cSector||null, position: cPos.trim()||null,
-      course_type:cType, level:cLevel, language:cLang, duration_min: cDur===''?null:Number(cDur),
+      course_type:cType, course_level:cLevel, level:cLevel, language:cLang, duration_min: cDur===''?null:Number(cDur),
       cert_prep:cCertPrep, external_cert: cCertPrep?cExtCert.trim():null, status:cStatus, ai_generated:false, created_by:uid,
     }).select('id').single()
     if(error){setSaving(false);setMsg('Anlegen fehlgeschlagen: '+error.message);return}

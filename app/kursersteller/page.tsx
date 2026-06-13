@@ -14,8 +14,8 @@ const FH="'Cormorant', Georgia, serif"
 const FB="'Albert Sans', system-ui, -apple-system, sans-serif"
 const FM="'IBM Plex Mono', ui-monospace, monospace"
 
-const TYPES=[{v:'compliance',l:'Compliance'},{v:'vorbereitung',l:'Vorbereitung'},{v:'fachkurs',l:'Fachkurs'},{v:'onboarding',l:'Onboarding'},{v:'sonstige',l:'Sonstige'}]
-const LEVELS=[{v:'einsteiger',l:'Einsteiger'},{v:'fortgeschritten',l:'Fortgeschritten'},{v:'experte',l:'Experte'}]
+const TYPES=[{v:'pflicht',l:'Compliance-Pflichtschulung'},{v:'vorbereitung',l:'Vorbereitungskurs'},{v:'weiterbildung',l:'Weiterbildung'}]
+const LEVELS=[{v:'grundlagen',l:'Grundlagen'},{v:'aufbau',l:'Aufbau'},{v:'vertiefung',l:'Vertiefung'},{v:'experte',l:'Experte'}]
 const LANGS=[{v:'de',l:'Deutsch'},{v:'fr',l:'Französisch'},{v:'it',l:'Italienisch'},{v:'en',l:'Englisch'}]
 
 type Mod={title:string;content:string}
@@ -24,7 +24,7 @@ type Draft={title:string;description:string;category:string;modules:Mod[]}
 export default function KurserstellerPage(){
   const router=useRouter()
   const [tenantId,setTenantId]=useState(''); const [uid,setUid]=useState('')
-  const [thema,setThema]=useState(''); const [typ,setTyp]=useState('compliance'); const [niveau,setNiveau]=useState('einsteiger')
+  const [thema,setThema]=useState(''); const [typ,setTyp]=useState('pflicht'); const [niveau,setNiveau]=useState('grundlagen')
   const [sprache,setSprache]=useState('de'); const [anzahl,setAnzahl]=useState(4)
   const [certPrep,setCertPrep]=useState(false); const [extCert,setExtCert]=useState('')
   const [gen,setGen]=useState(false); const [draft,setDraft]=useState<Draft|null>(null)
@@ -60,7 +60,7 @@ export default function KurserstellerPage(){
     setSaving(true); setMsg('')
     const {data,error}=await supabase.from('courses').insert({
       tenant_id:tenantId,title:draft.title.trim(),description:draft.description.trim()||null,category:draft.category.trim()||null,
-      course_type:typ,level:niveau,language:sprache,cert_prep:certPrep,external_cert:certPrep?extCert.trim():null,
+      course_type:typ,course_level:niveau,language:sprache,cert_prep:certPrep,external_cert:certPrep?extCert.trim():null,
       status:'entwurf',ai_generated:true,created_by:uid,
     }).select('id').single()
     if(error){setSaving(false);setMsg('Speichern fehlgeschlagen: '+error.message);return}
@@ -103,6 +103,12 @@ export default function KurserstellerPage(){
             <div style={{fontSize:13.5,fontWeight:600,color:NAVY}}>Vorbereitung auf eine externe Zertifizierung</div>
             <div style={{fontSize:12,color:GRAY,marginBottom:certPrep?8:0}}>KALYX bereitet vor, ersetzt aber nicht die offizielle Prüfung.</div>
             {certPrep && <input className="kx-input" style={input} value={extCert} onChange={e=>setExtCert(e.target.value)} placeholder="Vorbereitung auf … (z. B. ISO 27001 Foundation)"/>}
+          </div>
+        </div>
+        <div style={{gridColumn:'1 / -1',display:'flex',alignItems:'flex-start',gap:9,background:'var(--kx-brand-pale,#E6F0EB)',borderRadius:10,padding:'11px 13px'}}>
+          <span style={{color:GREEN,fontSize:15,lineHeight:1.2,marginTop:1}}>🛡️</span>
+          <div style={{flex:1,fontSize:12.5,color:NAVY,lineHeight:1.5}}>
+            <b>Fälschungssicherer Nachweis.</b> Sobald die erste Person diesen Kurs besteht, wird sein Inhalt (Lernziele, Module, Niveau und Art) als unveränderliche Fassung eingefroren und revisionssicher protokolliert. Jedes Zertifikat verweist dauerhaft auf genau diese Fassung und ist öffentlich unter <span style={{fontFamily:FM}}>kalyx.academy/verify</span> prüfbar. Spätere Änderungen am Kurs gelten erst für künftige Absolventen.
           </div>
         </div>
       </div>

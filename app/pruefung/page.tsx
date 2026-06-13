@@ -137,7 +137,18 @@ export default function PruefungPage(){
         if((ex as any)?.cert_number){setCertNumber((ex as any).cert_number)}
         else{
           const num='KX-'+new Date().getFullYear()+'-'+Math.random().toString(36).slice(2,10).toUpperCase()
-          const {error:cerr}=await supabase.from('certificates').insert({tenant_id:tenantId,course_id:course.id,user_id:uid,attempt_id:(att as any)?.id||null,cert_number:num,title:course.title,recipient_name:email||null,score,status:'gueltig'})
+          // Inhalt einfrieren (Snapshot in der Audit-Kette) und Hash + Niveau/Art ans Zertifikat binden.
+          let snapHash:string|null=null, snapType:string|null=null, snapLevel:string|null=null
+          try{
+            const {data:sess0}=await supabase.auth.getSession()
+            const tok0=sess0.session?.access_token
+            if(tok0){
+              const sr=await fetch('/api/course-snapshot',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({access_token:tok0,course_id:course.id})})
+              const sj=await sr.json()
+              if(sj?.ok){snapHash=sj.content_hash||null;snapType=sj.course_type||null;snapLevel=sj.course_level||null}
+            }
+          }catch{}
+          const {error:cerr}=await supabase.from('certificates').insert({tenant_id:tenantId,course_id:course.id,user_id:uid,attempt_id:(att as any)?.id||null,cert_number:num,title:course.title,recipient_name:email||null,score,status:'gueltig',content_hash:snapHash,course_type:snapType,course_level:snapLevel})
           if(!cerr){
             setCertNumber(num)
             // Slack/Teams-Benachrichtigung serverseitig ausloesen (fire-and-forget, stoert den Ablauf nie)
