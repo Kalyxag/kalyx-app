@@ -12,7 +12,8 @@ const FH="'Cormorant', Georgia, serif", FB="'Albert Sans', system-ui, sans-serif
 
 type Modul={title:string;duration?:string;keypoints?:string[]}
 type Inhalt={title:string;course_type:string;course_level:string;passing_score:number|null;learning_objectives:string[];modules:Modul[];module_count:number;question_count:number;content_hash:string;eingefroren_am:string}
-type Result={valid:boolean;cert_number?:string;title?:string;recipient_name?:string|null;issued_at?:string;art?:string;niveau?:string;inhalt?:Inhalt|null;note?:string}
+type Branding={brand_name?:string|null;logo_url?:string|null;primary_color?:string|null;show_kalyx?:boolean;support_email?:string|null;support_url?:string|null;tagline?:string|null}
+type Result={valid:boolean;status?:string;status_label?:string;cert_number?:string;title?:string;recipient_name?:string|null;issued_at?:string;expires_at?:string|null;tage_bis_ablauf?:number|null;art?:string;niveau?:string;inhalt?:Inhalt|null;branding?:Branding|null;note?:string}
 
 export default function VerifyPage(){
   const [nr,setNr]=useState('')
@@ -44,8 +45,18 @@ export default function VerifyPage(){
   return(<div style={{minHeight:'100vh',background:CREAM,fontFamily:FB,color:NAVY}}>
     <div style={{maxWidth:760,margin:'0 auto',padding:'40px 20px 80px'}}>
       <div style={{textAlign:'center',marginBottom:8}}>
-        <div style={{fontFamily:FH,fontSize:30,fontWeight:700,letterSpacing:4,color:NAVY}}>KALYX</div>
-        <div style={{fontFamily:FM,fontSize:10,letterSpacing:3,color:GOLD,marginTop:2}}>NACHWEIS-PRÜFUNG</div>
+        {res?.branding?.brand_name ? (
+          <>
+            {res.branding.logo_url && <img src={res.branding.logo_url} alt={res.branding.brand_name} style={{maxHeight:46,maxWidth:220,objectFit:'contain',margin:'0 auto 8px',display:'block'}}/>}
+            <div style={{fontFamily:FH,fontSize:26,fontWeight:700,letterSpacing:1,color:NAVY}}>{res.branding.brand_name}</div>
+            <div style={{fontFamily:FM,fontSize:10,letterSpacing:3,color:GOLD,marginTop:2}}>NACHWEIS-PRÜFUNG</div>
+          </>
+        ) : (
+          <>
+            <div style={{fontFamily:FH,fontSize:30,fontWeight:700,letterSpacing:4,color:NAVY}}>KALYX</div>
+            <div style={{fontFamily:FM,fontSize:10,letterSpacing:3,color:GOLD,marginTop:2}}>NACHWEIS-PRÜFUNG</div>
+          </>
+        )}
       </div>
       <p style={{textAlign:'center',fontSize:13.5,color:GRAY,maxWidth:520,margin:'10px auto 24px',lineHeight:1.5}}>
         Geben Sie die Zertifikatsnummer ein, um Echtheit und den geprüften Schulungsinhalt anzuzeigen.
@@ -62,14 +73,27 @@ export default function VerifyPage(){
       </div>
 
       {done && res && !res.valid && (
+        (res.status==='abgelaufen'||res.status==='widerrufen') ? (
+        <div style={{background:'#fff',border:`1px solid #E9D9B5`,borderRadius:14,padding:'26px',textAlign:'center'}}>
+          <div style={{fontSize:30}}>⏱️</div>
+          <div style={{fontFamily:FB,fontSize:17,fontWeight:700,color:'#8A6D1E',marginTop:6}}>{res.status==='abgelaufen'?'Nachweis abgelaufen':'Nachweis widerrufen'}</div>
+          <div style={{fontSize:13.5,color:NAVY,marginTop:6}}>{res.title}</div>
+          <div style={{fontSize:13,color:GRAY,marginTop:6}}>
+            {res.status==='abgelaufen'
+              ? <>Die Nummer {res.cert_number} war gültig{res.expires_at?<> bis {fmt(res.expires_at)}</>:null} und erfordert nun eine Rezertifizierung. Der damalige Schulungsinhalt bleibt unten nachvollziehbar.</>
+              : <>Die Nummer {res.cert_number} wurde widerrufen.</>}
+          </div>
+        </div>
+        ) : (
         <div style={{background:'#fff',border:`1px solid #E7C9C9`,borderRadius:14,padding:'26px',textAlign:'center'}}>
           <div style={{fontSize:30}}>⚠️</div>
           <div style={{fontFamily:FB,fontSize:17,fontWeight:700,color:'#9B2C2C',marginTop:6}}>Kein gültiges Zertifikat gefunden</div>
           <div style={{fontSize:13,color:GRAY,marginTop:6}}>Zur Nummer {res.cert_number||nr} liegt kein gültiger Nachweis vor. Bitte prüfen Sie die Schreibweise.</div>
         </div>
+        )
       )}
 
-      {done && res && res.valid && (
+      {done && res && (res.valid || res.status==='abgelaufen') && (
         <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:16,overflow:'hidden'}}>
           <div style={{background:GREEN,padding:'20px 24px',color:'#fff',display:'flex',alignItems:'center',gap:14}}>
             <div style={{width:44,height:44,borderRadius:'50%',background:'rgba(255,255,255,.18)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>✓</div>
@@ -146,7 +170,11 @@ export default function VerifyPage(){
         </div>
       )}
 
-      <div style={{textAlign:'center',marginTop:30,fontSize:11.5,color:GRAY}}>kalyx.academy · Wir schützen, was wächst.</div>
+      <div style={{textAlign:'center',marginTop:30,fontSize:11.5,color:GRAY}}>
+        {res?.branding?.brand_name
+          ? <>Echtheitsprüfung bereitgestellt und fälschungssicher abgesichert durch <b style={{color:NAVY}}>KALYX</b> · kalyx.academy</>
+          : <>kalyx.academy · Wir schützen, was wächst.</>}
+      </div>
     </div>
   </div>)
 }
