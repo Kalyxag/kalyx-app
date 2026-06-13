@@ -32,6 +32,10 @@ export default function ErweiterungenPage(){
   const [brandName,setBrandName]=useState('')
   const [logoUrl,setLogoUrl]=useState('')
   const [accent,setAccent]=useState('#14613E')
+  const [logoLight,setLogoLight]=useState('')
+  const [favicon,setFavicon]=useState('')
+  const [tagline,setTagline]=useState('')
+  const [supportEmail,setSupportEmail]=useState('')
   const [brandMsg,setBrandMsg]=useState('')
   const [savingBrand,setSavingBrand]=useState(false)
   // KALYX REST-API: Schlüssel-Verwaltung
@@ -79,6 +83,7 @@ export default function ErweiterungenPage(){
     setAddons(ad); setAngefragt(an)
     const b:any=br||{}
     setBrandName(b.brand_name||b.name||''); setLogoUrl(b.logo_url||b.logo||''); setAccent(b.primary_color||b.accent_color||'#14613E')
+    setLogoLight(b.logo_light_url||''); setFavicon(b.favicon_url||''); setTagline(b.tagline||''); setSupportEmail(b.support_email||'')
     if((au as any)?.access_level==='admin') ladeKeys()
     setLoading(false)
   })();return()=>{on=false}},[router])
@@ -99,7 +104,7 @@ export default function ErweiterungenPage(){
       // Farbe vor dem Speichern normalisieren (#RGB → #RRGGBB); ungültiges wird nicht gespeichert.
       const farbe = normalizeHex(accent)
       if(accent.trim() && !farbe){ setBrandMsg('Die Akzentfarbe muss ein Hex-Wert wie #14613E sein.'); setSavingBrand(false); return }
-      const {error}=await supabase.from('branding').upsert({tenant_id:tid,brand_name:brandName.trim()||null,logo_url:logoUrl.trim()||null,primary_color:farbe},{onConflict:'tenant_id'})
+      const {error}=await supabase.from('branding').upsert({tenant_id:tid,brand_name:brandName.trim()||null,logo_url:logoUrl.trim()||null,primary_color:farbe,logo_light_url:logoLight.trim()||null,favicon_url:favicon.trim()||null,tagline:tagline.trim()||null,support_email:supportEmail.trim()||null,verify_show_kalyx:true},{onConflict:'tenant_id'})
       if(!error){
         // Sofort plattformweit anwenden — kein Neuladen nötig.
         applyBrandTheme(farbe)
@@ -164,7 +169,7 @@ export default function ErweiterungenPage(){
       </div>
     ) : (
       <div style={{...card}}>
-        <p style={{fontFamily:FB,fontSize:13.5,color:GRAY,lineHeight:1.6,marginBottom:16}}>Setze Logo, Markennamen und Akzentfarbe. Sie erscheinen in der Seitenleiste der Plattform. Ist kein Logo gesetzt, wird der Markenname mit der Akzentfarbe gezeigt.</p>
+        <p style={{fontFamily:FB,fontSize:13.5,color:GRAY,lineHeight:1.6,marginBottom:16}}>Setzt Logo, Markennamen und Akzentfarbe. Sie wirken plattformweit in der Seitenleiste — und auf euren Abschlussnachweisen und der öffentlichen Prüfseite. Eure Mitarbeitenden sehen eure Marke, KALYX bleibt nur als dezentes Echtheits-Siegel sichtbar (abschaltbar).</p>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))',gap:16}}>
           <div>
             <label style={{display:'block',fontFamily:FB,fontSize:13,fontWeight:600,color:NAVY,marginBottom:6}}>Markenname</label>
@@ -175,6 +180,28 @@ export default function ErweiterungenPage(){
             <div style={{display:'flex',alignItems:'center',gap:10}}>
               <input type="color" value={/^#[0-9a-fA-F]{6}$/.test(accent)?accent:'#14613E'} onChange={e=>setAccent(e.target.value)} style={{width:44,height:38,border:`1px solid ${LINE}`,borderRadius:8,background:'#fff',cursor:'pointer'}}/>
               <input value={accent} onChange={e=>setAccent(e.target.value)} style={{flex:1,fontFamily:FM,fontSize:13,color:NAVY,background:CREAM,border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 13px',boxSizing:'border-box'}}/>
+            </div>
+
+            <div style={{borderTop:`1px solid ${LINE}`,margin:'18px 0 0',paddingTop:16}}>
+              <div style={{fontFamily:FM,fontSize:11,letterSpacing:'.16em',textTransform:'uppercase',color:GOLD,marginBottom:10}}>Auf Nachweisen und Prüfseite</div>
+
+              <label style={{display:'block',fontFamily:FB,fontSize:13,fontWeight:600,color:NAVY,marginBottom:6}}>Helles Logo (für dunkle Flächen)</label>
+              <input value={logoLight} onChange={e=>setLogoLight(e.target.value)} placeholder="https://euer-host.ch/logo-weiss.png" style={{width:'100%',fontFamily:FB,fontSize:14,color:NAVY,background:CREAM,border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 13px',boxSizing:'border-box'}}/>
+              <div style={{fontFamily:FB,fontSize:11.5,color:GRAY,marginTop:4}}>Optional. Das normale Logo (oben) erscheint auf hellem Grund, z. B. dem Zertifikat. Das helle Logo nutzt KALYX auf dunklen Flächen wie der Seitenleiste.</div>
+
+              <label style={{display:'block',fontFamily:FB,fontSize:13,fontWeight:600,color:NAVY,margin:'14px 0 6px'}}>Tagline (optional)</label>
+              <input value={tagline} onChange={e=>setTagline(e.target.value)} placeholder="z. B. Wissen, das schützt." style={{width:'100%',fontFamily:FB,fontSize:14,color:NAVY,background:CREAM,border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 13px',boxSizing:'border-box'}}/>
+
+              <label style={{display:'block',fontFamily:FB,fontSize:13,fontWeight:600,color:NAVY,margin:'14px 0 6px'}}>Support-Kontakt für Nutzer (optional)</label>
+              <input value={supportEmail} onChange={e=>setSupportEmail(e.target.value)} placeholder="support@eure-firma.ch" style={{width:'100%',fontFamily:FB,fontSize:14,color:NAVY,background:CREAM,border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 13px',boxSizing:'border-box'}}/>
+
+              <label style={{display:'block',fontFamily:FB,fontSize:13,fontWeight:600,color:NAVY,margin:'14px 0 6px'}}>Favicon (optional)</label>
+              <input value={favicon} onChange={e=>setFavicon(e.target.value)} placeholder="https://euer-host.ch/favicon.png" style={{width:'100%',fontFamily:FB,fontSize:14,color:NAVY,background:CREAM,border:`1.5px solid ${LINE}`,borderRadius:10,padding:'10px 13px',boxSizing:'border-box'}}/>
+
+              <div style={{display:'flex',alignItems:'flex-start',gap:9,margin:'16px 0 0',padding:'12px 14px',background:CREAM,borderRadius:10,border:`1px solid ${LINE}`}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="1.8" style={{marginTop:2,flexShrink:0}}><path d="M12 22V12"/><path d="M12 12C12 7 7 4 3 6c4 1 7 5 9 6z"/><path d="M12 12c0-5 5-8 9-6-4 1-7 5-9 6z"/></svg>
+                <span style={{fontFamily:FB,fontSize:13,color:NAVY,lineHeight:1.5}}><b>KALYX-Echtheitssiegel</b><br/><span style={{color:GRAY,fontSize:12}}>Eure Nachweise tragen unten ein dezentes „Verifiziert über KALYX“. Das belegt gegenüber Dritten, dass der Nachweis fälschungssicher geprüft ist — der Grund, warum eure Nachweise mehr wert sind als ein PDF. Eure Marke bleibt vorn.</span></span>
+              </div>
             </div>
           </div>
           <div>
@@ -203,6 +230,25 @@ export default function ErweiterungenPage(){
               <span style={{fontFamily:FB,fontSize:13.5,fontWeight:600,color:vorschau.contrast,background:vorschau.brand,borderRadius:9,padding:'9px 14px'}}>Kurs starten</span>
               <span style={{fontFamily:FB,fontSize:12.5,fontWeight:600,color:vorschau.brand,background:vorschau.pale,borderRadius:999,padding:'5px 11px'}}>Pflichtschulung</span>
               <span style={{fontFamily:FB,fontSize:13,color:vorschau.brand,fontWeight:600,textDecoration:'underline'}}>Mehr erfahren</span>
+            </div>
+
+            <div style={{fontFamily:FB,fontSize:12,fontWeight:600,color:GRAY,margin:'14px 0 8px'}}>Vorschau Nachweis (so sehen es eure Mitarbeitenden)</div>
+            <div style={{background:'#fff',border:`1px solid ${LINE}`,borderRadius:8,padding:'20px 22px',textAlign:'center',position:'relative'}}>
+              <div style={{position:'absolute',inset:8,border:`1.5px solid ${GOLD}`,borderRadius:4,opacity:.4,pointerEvents:'none'}}/>
+              <div style={{position:'relative'}}>
+                {logoUrl
+                  ? <img src={logoUrl} alt="" style={{maxHeight:30,maxWidth:150,objectFit:'contain',margin:'0 auto 4px',display:'block'}}/>
+                  : <div style={{fontFamily:FH,fontWeight:700,fontSize:18,color:NAVY,letterSpacing:'.04em'}}>{brandName||'Eure Marke'}</div>}
+                <div style={{fontFamily:FM,fontSize:8,letterSpacing:'.24em',color:GOLD,textTransform:'uppercase',marginTop:3}}>Abschlusszertifikat</div>
+                <div style={{fontFamily:FH,fontSize:15,fontWeight:600,color:NAVY,margin:'10px 0 2px'}}>Maria Muster</div>
+                <div style={{fontFamily:FH,fontSize:13,fontWeight:600,color:vorschau.brand}}>Datenschutz-Grundlagen</div>
+                {(
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginTop:12,paddingTop:9,borderTop:`1px solid ${LINE}`}}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.6"><path d="M12 22V12"/><path d="M12 12C12 7 7 4 3 6c4 1 7 5 9 6z"/><path d="M12 12c0-5 5-8 9-6-4 1-7 5-9 6z"/></svg>
+                    <span style={{fontFamily:FM,fontSize:7.5,letterSpacing:'.12em',color:NAVY,textTransform:'uppercase'}}>Verifiziert über KALYX</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
