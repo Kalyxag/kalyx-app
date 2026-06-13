@@ -43,8 +43,10 @@ export default function KurserstellerPage(){
     if(certPrep && !extCert.trim()){setMsg('Bitte angeben, worauf der Kurs vorbereitet.');return}
     setGen(true); setMsg(''); setDraft(null); setSavedId('')
     try{
+      const {data:sess}=await supabase.auth.getSession()
+      const token=sess?.session?.access_token||''
       const r=await fetch('/api/kurs-generieren',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({thema:thema.trim(),typ,niveau,sprache,module:anzahl,certPrep,externalCert:extCert.trim()})})
+        body:JSON.stringify({thema:thema.trim(),typ,niveau,sprache,module:anzahl,certPrep,externalCert:extCert.trim(),access_token:token})})
       const d=await r.json()
       if(!r.ok){setMsg(d?.error||'Erzeugen fehlgeschlagen.');setGen(false);return}
       setDraft({title:d.title||thema.trim(),description:d.description||'',category:d.category||'',modules:Array.isArray(d.modules)?d.modules:[]})
