@@ -199,8 +199,10 @@ export default function PruefungPage(){
     if(!course)return
     setAiGen(true);setAiMsg('');setAiDraft(null)
     try{
+      const {data:sess}=await supabase.auth.getSession()
+      const token=sess?.session?.access_token||''
       const r=await fetch('/api/fragen-generieren',{method:'POST',headers:{'content-type':'application/json'},
-        body:JSON.stringify({thema:course.title,anzahl:aiCount,sprache:course.language,niveau:course.level,branche:course.sector,position:course.position,fachgebiete:course.category?[course.category]:[],certPrep:course.cert_prep,externalCert:course.external_cert})})
+        body:JSON.stringify({thema:course.title,anzahl:aiCount,sprache:course.language,niveau:course.level,branche:course.sector,position:course.position,fachgebiete:course.category?[course.category]:[],certPrep:course.cert_prep,externalCert:course.external_cert,access_token:token})})
       const d=await r.json()
       if(!r.ok){setAiMsg(d?.error||'Erzeugen fehlgeschlagen.');setAiGen(false);return}
       setAiDraft(Array.isArray(d.questions)?d.questions:[])
